@@ -1,5 +1,6 @@
 package dicomux;
 
+import java.net.URL;
 import java.util.Locale;
 
 /**
@@ -17,6 +18,12 @@ public interface IController {
 	 * closes all workspaces and opens a file open dialog
 	 */
 	public void closeAllWorkspaces();
+	
+	/**
+	 * opens a query form
+	 */
+	public void openDicomQueryDialog();
+
 	
 	/**
 	 * opens a file open dialog
@@ -43,6 +50,12 @@ public interface IController {
 	 * @param path file path of the dicom file
 	 */
 	public void openDicomFile(String path);
+	
+	/**
+	 * opens a dicom file from an url (WADO)
+	 * @param url the path to the dicom object
+	 */
+	public void openDicomURL(URL url);	
 	
 	/**
 	 * tells the model, which workspace is currently active<br/>

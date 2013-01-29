@@ -19,6 +19,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Locale;
@@ -38,6 +39,7 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -304,17 +306,22 @@ public class View extends JFrame implements IView {
 	 */
 	private void addFileMenu() {
 		JMenu menu = new JMenu(m_languageBundle.getString("key_file"));
-		JMenuItem tmp = new JMenuItem(m_languageBundle.getString("key_openFile"));
-		tmp.addActionListener(new ActionListener() {
-		
+		JMenuItem tmp = new JMenuItem(m_languageBundle.getString("key_dicomQuery"));
+		tmp.addActionListener(new ActionListener() {		
+			public void actionPerformed(ActionEvent e) {
+				m_controller.openDicomQueryDialog();
+			}
+		});
+		menu.add(tmp);
+		tmp = new JMenuItem(m_languageBundle.getString("key_openFile"));
+		tmp.addActionListener(new ActionListener() {		
 			public void actionPerformed(ActionEvent e) {
 				m_controller.openDicomFileDialog();
 			}
 		});
 		menu.add(tmp);
 		tmp = new JMenuItem(m_languageBundle.getString("key_openDir"));
-		tmp.addActionListener(new ActionListener() {
-		
+		tmp.addActionListener(new ActionListener() {		
 			public void actionPerformed(ActionEvent e) {
 				m_controller.openDicomDirectoryDialog();
 			}
@@ -322,16 +329,14 @@ public class View extends JFrame implements IView {
 		menu.add(tmp);
 		menu.addSeparator();
 		tmp = new JMenuItem(m_languageBundle.getString("key_closeTab"));
-		tmp.addActionListener(new ActionListener() {
-		
+		tmp.addActionListener(new ActionListener() {		
 			public void actionPerformed(ActionEvent e) {
 				m_controller.closeWorkspace();
 			}
 		});
 		menu.add(tmp);
 		tmp = new JMenuItem(m_languageBundle.getString("key_closeAllTabs"));
-		tmp.addActionListener(new ActionListener() {
-		
+		tmp.addActionListener(new ActionListener() {		
 			public void actionPerformed(ActionEvent e) {
 				m_controller.closeAllWorkspaces();
 			}
@@ -339,8 +344,7 @@ public class View extends JFrame implements IView {
 		menu.add(tmp);
 		menu.addSeparator();
 		tmp = new JMenuItem(m_languageBundle.getString("key_exit"));
-		tmp.addActionListener(new ActionListener() {
-		
+		tmp.addActionListener(new ActionListener() {		
 			public void actionPerformed(ActionEvent e) {
 				m_controller.closeApplication();
 			}
@@ -503,6 +507,10 @@ public class View extends JFrame implements IView {
 					m_tabbedPane.add(m_dialogs.makeWelcomeTab());
 					name = m_languageBundle.getString("key_welcome");
 					break;
+				case DICOM_QUERY:
+					m_tabbedPane.add(m_dialogs.makeDicomQueryTab());
+					name = m_languageBundle.getString("key_query");
+					break;
 				case FILE_OPEN:
 					m_tabbedPane.add(m_dialogs.makeOpenFileTab());
 					name = m_languageBundle.getString("key_open");
@@ -562,6 +570,40 @@ public class View extends JFrame implements IView {
 			
 			return content;
 		}
+
+		/**
+		 * convenience method for building an dicom query dialog tab
+		 * @return a JPanel
+		 */
+		protected JComponent makeDicomQueryTab() {
+			JPanel content = new JPanel(new BorderLayout(5 , 5), false);
+			content.add(makeMessage(m_languageBundle.getString("key_html_query")), BorderLayout.NORTH);
+			
+			final JTextField wadoUrl = new JTextField();
+			JButton wadoLoad = new JButton("Load");
+			
+			JPanel wado = new JPanel(new BorderLayout());			
+			wado.add(new JLabel("WADO URL: "), BorderLayout.WEST);
+			wado.add(wadoUrl, BorderLayout.CENTER);
+			wado.add(wadoLoad, BorderLayout.EAST);
+			
+			JPanel wrapper = new JPanel(new BorderLayout());
+			wrapper.add(wado, BorderLayout.NORTH);
+			content.add(wrapper, BorderLayout.CENTER);
+			
+			wadoLoad.addActionListener(new ActionListener() {			
+				public void actionPerformed(ActionEvent e) {
+					try {
+						m_controller.openDicomURL(new URL(wadoUrl.getText()));
+					} catch (MalformedURLException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			});
+			
+			return content;
+		}		
 		
 		/**
 		 * convenience method for building an file open dialog tab
@@ -733,10 +775,18 @@ public class View extends JFrame implements IView {
 		 */
 		private JComponent makeOpenButtons() {
 			JPanel retVal = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0), false);
-			JButton tmp = new JButton(m_languageBundle.getString("key_openFile"));
+			JButton tmp = new JButton(m_languageBundle.getString("key_dicomQuery"));
 			tmp.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/text-x-generic.png")));
-			tmp.addActionListener(new ActionListener() {
+			tmp.addActionListener(new ActionListener() {			
+				public void actionPerformed(ActionEvent e) {
+					m_controller.openDicomQueryDialog();
+				}
+			});
+			retVal.add(tmp);
 			
+			tmp = new JButton(m_languageBundle.getString("key_openFile"));
+			tmp.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/text-x-generic.png")));
+			tmp.addActionListener(new ActionListener() {			
 				public void actionPerformed(ActionEvent e) {
 					m_controller.openDicomFileDialog();
 				}
@@ -745,8 +795,7 @@ public class View extends JFrame implements IView {
 			
 			tmp = new JButton(m_languageBundle.getString("key_openDir"));
 			tmp.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/folder.png")));
-			tmp.addActionListener(new ActionListener() {
-			
+			tmp.addActionListener(new ActionListener() {			
 				public void actionPerformed(ActionEvent e) {
 					m_controller.openDicomDirectoryDialog();
 				}
@@ -755,8 +804,7 @@ public class View extends JFrame implements IView {
 			
 			tmp = new JButton(m_languageBundle.getString("key_exit"));
 			tmp.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/system-log-out.png")));
-			tmp.addActionListener(new ActionListener() {
-			
+			tmp.addActionListener(new ActionListener() {			
 				public void actionPerformed(ActionEvent e) {
 					m_controller.closeApplication();
 				}

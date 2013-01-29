@@ -1,6 +1,7 @@
 package dicomux;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Locale;
 import java.util.Vector;
 
@@ -72,6 +73,18 @@ public class Controller implements IController {
 		m_model.addWorkspace(new TabObject(TabState.ABOUT));
 	}
 	
+	public void openDicomQueryDialog() {
+		for (int i = 0; i < m_model.getWorkspaceCount(); ++i) {
+			switch (m_model.getWorkspace(i).getTabState()) {
+			case ERROR_OPEN:
+			case FILE_OPEN:
+			case DIR_OPEN:
+			case DICOM_QUERY:
+			case WELCOME: m_model.setWorkspace(i, new TabObject(TabState.DICOM_QUERY, true)); return;
+			}
+		}
+		m_model.addWorkspace(new TabObject(TabState.DICOM_QUERY));
+	}
 
 	public void openDicomDirectoryDialog() {
 		for (int i = 0; i < m_model.getWorkspaceCount(); ++i) {
@@ -79,6 +92,7 @@ public class Controller implements IController {
 			case ERROR_OPEN:
 			case FILE_OPEN:
 			case DIR_OPEN:
+			case DICOM_QUERY:
 			case WELCOME: m_model.setWorkspace(i, new TabObject(TabState.DIR_OPEN, true)); return;
 			}
 		}
@@ -92,6 +106,7 @@ public class Controller implements IController {
 			case ERROR_OPEN:
 			case FILE_OPEN:
 			case DIR_OPEN:
+			case DICOM_QUERY:
 			case WELCOME: m_model.setWorkspace(i, new TabObject(TabState.FILE_OPEN, true)); return;
 			}
 		}
@@ -103,7 +118,62 @@ public class Controller implements IController {
 		System.exit(0);
 	}
 	
-
+	private void openDicomObject(String tabName, DicomObject dicomObject) 
+	throws Exception {
+		// look for a suitable plug-in for the opened DicomObject
+		APlugin chosenPlugin = null;
+		Vector<APlugin> suitablePlugins = new Vector<APlugin>();
+		for (int i = 0; i < m_availblePlugins.size(); ++i) { // iterate over all available plug-ins
+			APlugin tmp = m_availblePlugins.get(i);
+			// does the selected plug-in support our DicomObject? 
+			if (tmp.getKeyTag().checkDicomObject(dicomObject)) {
+				suitablePlugins.add(tmp);
+			}
+		}
+		
+		if (suitablePlugins.size() > 0) {
+			// select the first plug-in of the suitable plug-ins
+			chosenPlugin = suitablePlugins.firstElement().getClass().newInstance();
+			
+			// push the currently used language to the new plug-in
+			chosenPlugin.setLanguage(m_view.getLanguage());
+			
+			// push the DicomObject to the plug-in
+			chosenPlugin.setData(dicomObject);
+			
+			// create a new TabObject and fill it with all we got
+			TabObject tmp = new TabObject();
+			tmp.setDicomObj(dicomObject);
+			tmp.setTabActive(true);
+			tmp.setName(tabName);
+			tmp.setTabState(TabState.PLUGIN_ACTIVE);
+			tmp.setPlugin(chosenPlugin);
+			tmp.setSuitablePlugins(suitablePlugins);
+			
+			// push the new TabObject to our workspace
+			m_model.setWorkspace(m_view.getActiveWorkspaceId(), tmp);
+		}
+		else
+			throw new Exception("No suitable plug-in found!");
+	}
+	
+	public void openDicomURL(URL url) {
+		try {
+			DicomInputStream din = new DicomInputStream(url.openStream());
+			DicomObject dicomObject = din.readDicomObject();
+			din.close();
+			
+			openDicomObject(url.toString(), dicomObject);
+		} catch (Exception e) {
+			// something didn't work - let's show an error message
+			TabObject errorTab = new TabObject(TabState.ERROR_OPEN, true);
+			errorTab.setName(e.getMessage());
+			m_model.setWorkspace(m_view.getActiveWorkspaceId(), errorTab);
+			e.printStackTrace();
+			return;
+		}		
+	}
+	
 	public void openDicomFile(String path) {
 		try {
 			// open the dicom file
@@ -112,50 +182,15 @@ public class Controller implements IController {
 			DicomObject dicomObject = din.readDicomObject();
 			din.close();
 			
-			// look for a suitable plug-in for the opened DicomObject
-			APlugin chosenPlugin = null;
-			Vector<APlugin> suitablePlugins = new Vector<APlugin>();
-			for (int i = 0; i < m_availblePlugins.size(); ++i) { // iterate over all available plug-ins
-				APlugin tmp = m_availblePlugins.get(i);
-				// does the selected plug-in support our DicomObject? 
-				if (tmp.getKeyTag().checkDicomObject(dicomObject)) {
-					suitablePlugins.add(tmp);
-				}
-			}
-			
-			if (suitablePlugins.size() > 0) {
-				// select the first plug-in of the suitable plug-ins
-				chosenPlugin = suitablePlugins.firstElement().getClass().newInstance();
-				
-				// push the currently used language to the new plug-in
-				chosenPlugin.setLanguage(m_view.getLanguage());
-				
-				// push the DicomObject to the plug-in
-				chosenPlugin.setData(dicomObject);
-				
-				// create a new TabObject and fill it with all we got
-				TabObject tmp = new TabObject();
-				tmp.setDicomObj(dicomObject);
-				tmp.setTabActive(true);
-				tmp.setName(fileObject.getName());
-				tmp.setTabState(TabState.PLUGIN_ACTIVE);
-				tmp.setPlugin(chosenPlugin);
-				tmp.setSuitablePlugins(suitablePlugins);
-				
-				// push the new TabObject to our workspace
-				m_model.setWorkspace(m_view.getActiveWorkspaceId(), tmp);
-			}
-			else
-				throw new Exception("No suitable plug-in found!");
-		}
-		catch (Exception e) {
+			openDicomObject(fileObject.getName(), dicomObject);
+		} catch (Exception e) {
 			// something didn't work - let's show an error message
 			TabObject errorTab = new TabObject(TabState.ERROR_OPEN, true);
 			errorTab.setName(e.getMessage());
 			m_model.setWorkspace(m_view.getActiveWorkspaceId(), errorTab);
 			e.printStackTrace();
 			return;
-		}
+		}			
 	}
 	
 
