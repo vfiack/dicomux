@@ -19,7 +19,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Locale;
@@ -39,7 +38,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -47,6 +45,8 @@ import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.text.html.HTMLFrameHyperlinkEvent;
+
+import dicomux.query.QueryPanel;
 
 /**
  * concrete View for Dicomux
@@ -578,29 +578,10 @@ public class View extends JFrame implements IView {
 		protected JComponent makeDicomQueryTab() {
 			JPanel content = new JPanel(new BorderLayout(5 , 5), false);
 			content.add(makeMessage(m_languageBundle.getString("key_html_query")), BorderLayout.NORTH);
-			
-			final JTextField wadoUrl = new JTextField();
-			JButton wadoLoad = new JButton("Load");
-			
-			JPanel wado = new JPanel(new BorderLayout());			
-			wado.add(new JLabel("WADO URL: "), BorderLayout.WEST);
-			wado.add(wadoUrl, BorderLayout.CENTER);
-			wado.add(wadoLoad, BorderLayout.EAST);
-			
+
 			JPanel wrapper = new JPanel(new BorderLayout());
-			wrapper.add(wado, BorderLayout.NORTH);
+			wrapper.add(new QueryPanel(m_controller), BorderLayout.NORTH);
 			content.add(wrapper, BorderLayout.CENTER);
-			
-			wadoLoad.addActionListener(new ActionListener() {			
-				public void actionPerformed(ActionEvent e) {
-					try {
-						m_controller.openDicomURL(new URL(wadoUrl.getText()));
-					} catch (MalformedURLException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-				}
-			});
 			
 			return content;
 		}		

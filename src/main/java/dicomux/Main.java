@@ -29,10 +29,7 @@ public class Main {
 					// check if it is a file
 					if(f.exists() && f.isFile()){
 						//check if it is a directory file
-						if(arg.contains("DICOMDIR")||
-								arg.contains("dicomdir") ||
-									arg.contains("dir") ||
-										arg.contains("DIR")){
+						if(arg.toLowerCase().contains("dir")) {
 							ctrl.openDicomDirectory(arg);
 						}
 						else{
