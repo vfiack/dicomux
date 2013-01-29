@@ -116,7 +116,6 @@ public class DicomQuery {
 				throw new IOException("DICOM Query Failed: " + cmd.getString(Tag.ErrorComment));
 			}
 			
-			System.err.println(cmd);
 			if (CommandUtils.isPending(cmd)) {
 				DicomObject data = rsp.getDataset();
 				result.add(data);

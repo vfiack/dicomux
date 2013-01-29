@@ -6,6 +6,7 @@ import java.util.Locale;
 import java.util.Vector;
 
 import org.dcm4che2.data.DicomObject;
+import org.dcm4che2.data.Tag;
 import org.dcm4che2.io.DicomInputStream;
 
 /**
@@ -168,7 +169,11 @@ public class Controller implements IController {
 			DicomObject dicomObject = din.readDicomObject();
 			din.close();
 			
-			openDicomObject(url.toString(), dicomObject);
+			String patient = dicomObject.getString(Tag.PatientName);
+			String date = dicomObject.getString(Tag.StudyDate);
+			String title = patient + " " + date;
+			
+			openDicomObject(title, dicomObject);
 		} catch (Exception e) {
 			// something didn't work - let's show an error message
 			TabObject errorTab = new TabObject(TabState.ERROR_OPEN, true);
