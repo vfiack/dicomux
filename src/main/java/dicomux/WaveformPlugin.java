@@ -766,28 +766,24 @@ public class WaveformPlugin extends APlugin {
 						max = data[i][j] * scalingValue;
 					}
 				}
-				definitions[i].setMaximum(max);
-				definitions[i].setMinimum(min);
+				definitions[i].setMaximum_uV(max);
+				definitions[i].setMinimum_uV(min);
 			}
 			
 			double max = Double.MIN_VALUE;
 			double min = Double.MAX_VALUE;
 			for(int i = 0; i < definitions.length; i++) {
-				if(min > definitions[i].getMinimum()){
-					min = definitions[i].getMinimum();
+				if(min > definitions[i].getMinimum_uV()){
+					min = definitions[i].getMinimum_uV();
 				}
-				if(max < definitions[i].getMaximum()) {
-					max = definitions[i].getMaximum();
+				if(max < definitions[i].getMaximum_uV()) {
+					max = definitions[i].getMaximum_uV();
 				}
 			}
 			
-			double minmax = Math.max(Math.abs(max), Math.abs(min));
-			int mv_cells = (int) (minmax / 1000);
-			if((int) minmax % 1000 != 0) {
-				++mv_cells;
-			}
-			mv_cells *= 2;			
-			this.mv_cells = mv_cells;
+			double minmax_uV = Math.max(Math.abs(max), Math.abs(min));
+			double minmax_mV = minmax_uV/1000;
+			this.mv_cells = (int)Math.ceil(minmax_mV) * 2;
 	}
 	
 	private class InfoPanel extends JPanel {
@@ -1051,9 +1047,9 @@ public class WaveformPlugin extends APlugin {
 							infoPanel.setMiliVolt(0);
 						} else {	
 							sec = highlightedSample / (double)samples_per_second;
-							double mv = data[highlightedSample] * valueScaling;		
+							double uV = data[highlightedSample] * valueScaling;		
 							infoPanel.setSeconds(sec);
-							infoPanel.setMiliVolt(mv);
+							infoPanel.setMiliVolt(uV/1000);
 						}
 						
 						repaint();						
@@ -1071,8 +1067,8 @@ public class WaveformPlugin extends APlugin {
 					setCursor(cursor);
 					
 					infoPanel.setLead(definition.getName());
-					infoPanel.setMaximum(definition.getMaximum());
-					infoPanel.setMinimum(definition.getMinimum());
+					infoPanel.setMaximum(definition.getMaximum_uV()/1000);
+					infoPanel.setMinimum(definition.getMinimum_uV()/1000);
 				}
 				
 				public void mouseExited(MouseEvent e) {
@@ -1198,8 +1194,8 @@ public class WaveformPlugin extends APlugin {
 		private double sensitivity;
 		private int sensitivityCorrection;
 		private ChannelUnit unit;
-		private double minimum;
-		private double maximum;
+		private double minimum_uV;
+		private double maximum_uV;
 					
 		public ChannelDefinition(String name, double baseline,
 				double sensitity, int sensitivityCorrection, 
@@ -1209,8 +1205,8 @@ public class WaveformPlugin extends APlugin {
 			this.sensitivity = sensitity;
 			this.sensitivityCorrection = sensitivityCorrection;
 			this.unit = unit;
-			this.maximum = 0.0;
-			this.minimum = 0.0;
+			this.maximum_uV = 0.0;
+			this.minimum_uV = 0.0;
 		}
 		
 		public double getScaling() {
@@ -1241,20 +1237,20 @@ public class WaveformPlugin extends APlugin {
 			return sensitivityCorrection;
 		}
 
-		public double getMinimum() {
-			return minimum;
+		public double getMinimum_uV() {
+			return minimum_uV;
 		}
 
-		public void setMinimum(double minimum) {
-			this.minimum = minimum;
+		public void setMinimum_uV(double minimum) {
+			this.minimum_uV = minimum;
 		}
 
-		public double getMaximum() {
-			return maximum;
+		public double getMaximum_uV() {
+			return maximum_uV;
 		}
 
-		public void setMaximum(double maximum) {
-			this.maximum = maximum;
+		public void setMaximum_uV(double maximum) {
+			this.maximum_uV = maximum;
 		}
 
 		@Override
