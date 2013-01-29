@@ -1053,7 +1053,7 @@ public class WaveformPlugin extends APlugin {
 				
 				public void mouseEntered(MouseEvent e) {
 					Toolkit toolkit = Toolkit.getDefaultToolkit();  
-					Image image = new ImageIcon(this.getClass().getClassLoader().getResource("cursorHand.png")).getImage();					
+					Image image = new ImageIcon(this.getClass().getClassLoader().getResource("images/cursorHand.png")).getImage();					
 					Point hotspot = new Point(7,0);
 					Cursor cursor = toolkit.createCustomCursor(image, hotspot, "dicomux"); 
 					setCursor(cursor);
@@ -1274,7 +1274,7 @@ public class WaveformPlugin extends APlugin {
 		private void addZoomButtons() {
 			
 			this.zoomOut = new JButton();
-			this.zoomOut.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("zoomOut.png")));
+			this.zoomOut.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoomOut.png")));
 			this.zoomOut.addActionListener(new ActionListener() {
 			
 				public void actionPerformed(ActionEvent arg0) {
@@ -1289,7 +1289,7 @@ public class WaveformPlugin extends APlugin {
 			this.add(this.zoomOut);		
 			
 			this.zoomIn = new JButton();
-			this.zoomIn.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("zoomIn.png")));
+			this.zoomIn.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoomIn.png")));
 			this.zoomIn.addActionListener(new ActionListener() {
 			
 				public void actionPerformed(ActionEvent arg0) {
@@ -1303,7 +1303,7 @@ public class WaveformPlugin extends APlugin {
 			this.add(zoomIn);
 			
 			zoomFit = new JButton();
-			zoomFit.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("fitToPage.png")));
+			zoomFit.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/fitToPage.png")));
 			zoomFit.addActionListener(new ActionListener() {
 			
 				public void actionPerformed(ActionEvent arg0) {
