@@ -111,6 +111,12 @@ public class DicomQuery {
 				TC_FIND.getTransferSyntax()[0], cancelAfter);
 		while (rsp.next()) {
 			DicomObject cmd = rsp.getCommand();
+			int status = cmd.getInt(Tag.Status);
+			if(status >= 0xA000 && status < 0xB000 || status >= 0xC000 && status < 0xD000) {
+				throw new IOException("DICOM Query Failed: " + cmd.getString(Tag.ErrorComment));
+			}
+			
+			System.err.println(cmd);
 			if (CommandUtils.isPending(cmd)) {
 				DicomObject data = rsp.getDataset();
 				result.add(data);
