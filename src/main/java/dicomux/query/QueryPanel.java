@@ -14,6 +14,7 @@ import java.net.URL;
 import java.util.List;
 
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -48,7 +49,7 @@ public class QueryPanel extends JPanel {
 		this.patientFirstName = new JTextField(); 
 		this.fromDate = new JTextField(); 
 		this.toDate = new JTextField();
-		this.search = new JButton("Search");
+		this.search = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/system-search.png")));
 		this.result = new JTable();
 		result.setModel(new DicomTableModel());
 		

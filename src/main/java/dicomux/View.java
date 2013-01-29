@@ -757,7 +757,7 @@ public class View extends JFrame implements IView {
 		private JComponent makeOpenButtons() {
 			JPanel retVal = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0), false);
 			JButton tmp = new JButton(m_languageBundle.getString("key_dicomQuery"));
-			tmp.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/text-x-generic.png")));
+			tmp.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/system-search.png")));
 			tmp.addActionListener(new ActionListener() {			
 				public void actionPerformed(ActionEvent e) {
 					m_controller.openDicomQueryDialog();
