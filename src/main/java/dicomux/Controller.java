@@ -62,7 +62,12 @@ public class Controller implements IController {
 	public void closeWorkspace() {
 		m_model.removeWorkspace(m_view.getActiveWorkspaceId());
 	}
-	
+
+	public void showErrorMessage(String msg) {
+		TabObject errorTab = new TabObject(TabState.ERROR_OPEN, true);
+		errorTab.setName(msg);
+		m_model.setWorkspace(m_view.getActiveWorkspaceId(), errorTab);
+	}
 
 	public void openAbout() {
 		for (int i = 0; i < m_model.getWorkspaceCount(); ++i) {

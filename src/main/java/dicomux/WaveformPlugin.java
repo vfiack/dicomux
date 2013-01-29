@@ -152,10 +152,10 @@ public class WaveformPlugin extends APlugin {
 			if(meaning == null) 
 				throw new Exception("Could not read Code Meaning");
 			
-			//XXX baseline
+			// read the baseline
 			double baseline = object.getDouble(Tag.ChannelBaseline);
 			
-			//XXX unit
+			// read the unit
 			DicomElement sensitivityUnitsSequence = object.get(Tag.ChannelSensitivityUnitsSequence);
 			DicomObject sensitivityUnit = sensitivityUnitsSequence.getDicomObject();
 			String sensitivityUnitValue = sensitivityUnit.getString(Tag.CodeValue);
@@ -1039,7 +1039,7 @@ public class WaveformPlugin extends APlugin {
 					public void mouseMoved(MouseEvent e) {			
 						double sec = offset + (e.getPoint().getX() / cellwidth * 0.1);
 
-						//XXX lookup for the nearest sample
+						// lookup for the nearest sample
 						highlightedSample = (int)Math.round(samples_per_second * sec);
 						if(highlightedSample >= data.length) {
 							highlightedSample = -1;

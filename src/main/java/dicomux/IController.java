@@ -20,10 +20,14 @@ public interface IController {
 	public void closeAllWorkspaces();
 	
 	/**
+	 * Opens the error dialog
+	 */
+	public void showErrorMessage(String msg);
+	
+	/**
 	 * opens a query form
 	 */
 	public void openDicomQueryDialog();
-
 	
 	/**
 	 * opens a file open dialog

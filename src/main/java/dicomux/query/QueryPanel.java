@@ -30,6 +30,7 @@ import dicomux.Config;
 import dicomux.IController;
 
 public class QueryPanel extends JPanel {
+	private IController controller;
 	private JTextField patientId;
 	private JTextField patientLastName;
 	private JTextField patientFirstName;
@@ -41,6 +42,7 @@ public class QueryPanel extends JPanel {
 	public QueryPanel(final IController controller) {
 		super(new BorderLayout());
 				
+		this.controller = controller;
 		this.patientId = new JTextField();
 		this.patientLastName = new JTextField(); 
 		this.patientFirstName = new JTextField(); 
@@ -81,7 +83,7 @@ public class QueryPanel extends JPanel {
 						}
 					});							
 				} catch (MalformedURLException ex) {
-					//XXX config error ?
+					controller.showErrorMessage("WADO configuration error: " + ex.getMessage());
 					ex.printStackTrace();
 					return;
 				}
@@ -148,7 +150,7 @@ public class QueryPanel extends JPanel {
 			result.setModel(new DicomTableModel(objects));
 			query.close();
 		} catch(Exception e) {
-			//XXX
+			controller.showErrorMessage(e.getMessage());
 			e.printStackTrace();
 		}
 	}

@@ -88,4 +88,10 @@ public class ControllerAdapter implements IController {
 		
 	}
 
+
+	public void showErrorMessage(String msg) {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
