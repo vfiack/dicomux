@@ -73,6 +73,8 @@ class DrawingPanel extends JPanel {
 		
 		addListeners();
 		this.isRhythm = false;
+		
+		setBackground(Color.WHITE);
 	}
 	
 	public void setRhythm(boolean mode) {
@@ -177,6 +179,8 @@ class DrawingPanel extends JPanel {
 				Cursor cursor = toolkit.createCustomCursor(image, hotspot, "dicomux"); 
 				setCursor(cursor);
 				
+				setBackground(new Color(255, 255, 215));
+				
 				plugin.getInfoPanel().setLead(definition.getName());
 				plugin.getInfoPanel().setMinMax(definition.getMinimum_uV()/1000, definition.getMaximum_uV()/1000);
 				setStartSample(startSample);
@@ -186,6 +190,8 @@ class DrawingPanel extends JPanel {
 			public void mouseExited(MouseEvent e) {
 				Cursor normal = new Cursor(Cursor.DEFAULT_CURSOR);
 				setCursor(normal);
+				
+				setBackground(Color.WHITE);
 				setHighlightedSample(-1);
 				repaint();
 			}
@@ -219,9 +225,6 @@ class DrawingPanel extends JPanel {
 			this.secsCellCount = 5 * 10;
 			this.end = this.start + 5 * plugin.getSamplesPerSecond();
 		}
-
-		//set background color to white
-		this.setBackground(Color.WHITE);
 					
 		this.dim = getPreferredSize();
 		// calculate height and width of the cells
@@ -286,7 +289,7 @@ class DrawingPanel extends JPanel {
 		if(startSample < 0 || stopSample < 0 || stopSample <= startSample)
 			return;
 
-		Color background = new Color(230, 230, 230);
+		Color background = new Color(230, 230, 230, 200);
 		
 		g2.setColor(background);
 		double startX = this.scalingWidth * (startSample - this.start);
