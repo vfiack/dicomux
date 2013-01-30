@@ -34,10 +34,10 @@ class DrawingPanel extends JPanel {
 	private int[] data;
 	private float scalingWidth;
 	private ChannelDefinition definition;
-	private int mv_cell_count;
-	private int secs_cell_count;
-	private double cellheight;
-	private double cellwidth;
+	private int mvCellCount;
+	private int secsCellCount;
+	private double cellHeight;
+	private double cellWidth;
 	private Dimension dim;
 	private int start;
 	private int end;
@@ -50,12 +50,12 @@ class DrawingPanel extends JPanel {
 		this.plugin = plugin;
 		this.data = values;
 		this.definition = definition;			
-		this.mv_cell_count = plugin.getMvCells();
-		this.secs_cell_count = plugin.getSeconds() * 10;
+		this.mvCellCount = plugin.getMvCells();
+		this.secsCellCount = plugin.getSeconds() * 10;
 		this.dim = getPreferredSize();
 		// calculate height and width of the cells
-		this.cellheight = dim.getHeight() / mv_cell_count;
-		this.cellwidth = dim.getWidth() / secs_cell_count;
+		this.cellHeight = dim.getHeight() / mvCellCount;
+		this.cellWidth = dim.getWidth() / secsCellCount;
 		this.start = (int) (start * plugin.getSamplesPerSecond());
 		this.end = data.length;
 		this.offset = start;
@@ -75,7 +75,7 @@ class DrawingPanel extends JPanel {
 		// used to get the current position of the mouse pointer into the information panel
 		this.addMouseMotionListener( new MouseMotionAdapter() {						
 				public void mouseMoved(MouseEvent e) {			
-					double sec = offset + (e.getPoint().getX() / cellwidth * 0.1);
+					double sec = offset + (e.getPoint().getX() / cellWidth * 0.1);
 
 					// lookup for the nearest sample
 					highlightedSample = (int)Math.round(plugin.getSamplesPerSecond() * sec);
@@ -130,19 +130,19 @@ class DrawingPanel extends JPanel {
 		g2.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
 		
 		if(plugin.getDisplayFormat().equals(WaveformPlugin.DEFAULTFORMAT) || isRhythm) {
-			this.secs_cell_count = plugin.getSeconds() * 10;
+			this.secsCellCount = plugin.getSeconds() * 10;
 			this.end = this.start + this.data.length;
 		}
 		else if(plugin.getDisplayFormat().equals(WaveformPlugin.FOURPARTS)) {
-			this.secs_cell_count = (int) (2.5 * 10);
+			this.secsCellCount = (int) (2.5 * 10);
 			this.end = this.start + (int) (2.5 * plugin.getSamplesPerSecond());
 		}
 		else if(plugin.getDisplayFormat().equals(WaveformPlugin.FOURPARTSPLUS)) {
-			this.secs_cell_count = (int) (2.5 * 10);
+			this.secsCellCount = (int) (2.5 * 10);
 			this.end = this.start + (int) (2.5 * plugin.getSamplesPerSecond());
 		}
 		else if(plugin.getDisplayFormat().equals(WaveformPlugin.TWOPARTS)) {
-			this.secs_cell_count = 5 * 10;
+			this.secsCellCount = 5 * 10;
 			this.end = this.start + 5 * plugin.getSamplesPerSecond();
 		}
 
@@ -151,11 +151,11 @@ class DrawingPanel extends JPanel {
 					
 		this.dim = getPreferredSize();
 		// calculate height and width of the cells
-		this.cellheight = dim.getHeight() / this.mv_cell_count;
-		this.cellwidth = dim.getWidth() / this.secs_cell_count;
+		this.cellHeight = dim.getHeight() / this.mvCellCount;
+		this.cellWidth = dim.getWidth() / this.secsCellCount;
 		
 		// calculate the scaling which is dependent to the width	
-		this.scalingWidth =  (float) (cellwidth / ((this.end - this.start) / secs_cell_count ));			
+		this.scalingWidth =  (float) (cellWidth / ((this.end - this.start) / secsCellCount ));			
 		
 		drawGrid(g2);
 		drawGraph(g2);
@@ -168,13 +168,13 @@ class DrawingPanel extends JPanel {
 		g2.setColor(new Color(231, 84, 72));
 		// draw horizontal lines
 		g2.setStroke(new BasicStroke(2.0f));
-		for(int i = 0; i < mv_cell_count; i++) {
-			g2.draw(new Line2D.Double(0, i * cellheight, 
-					dim.getWidth(), i * cellheight));			
+		for(int i = 0; i < mvCellCount; i++) {
+			g2.draw(new Line2D.Double(0, i * cellHeight, 
+					dim.getWidth(), i * cellHeight));			
 		}
 		
 		// draw vertical lines
-		for(int i = 0; i < secs_cell_count; i++ ) {
+		for(int i = 0; i < secsCellCount; i++ ) {
 			// draw every 10th line which represents a full second bigger 
 			if(i % 10 == 0)
 			{
@@ -184,8 +184,8 @@ class DrawingPanel extends JPanel {
 			{
 				g2.setStroke(new BasicStroke(1.0f));
 			}
-			g2.draw(new Line2D.Double(i * cellwidth , 0, 
-					i * cellwidth, dim.getHeight()));
+			g2.draw(new Line2D.Double(i * cellWidth , 0, 
+					i * cellWidth, dim.getHeight()));
 		}
 	}
 	
@@ -200,9 +200,9 @@ class DrawingPanel extends JPanel {
 			// dim.height / 2 is our base line
 			Line2D line = new Line2D.Double(
 					this.scalingWidth * (a - this.start), 
-					(this.dim.height /2 - this.valueScaling * ( (float)(this.data[a] / (float) 1000) * this.cellheight) ), 
+					(this.dim.height /2 - this.valueScaling * ( (float)(this.data[a] / (float) 1000) * this.cellHeight) ), 
 					this.scalingWidth * (b - this.start), 
-					( this.dim.height /2 - this.valueScaling * ( (float)(this.data[b] / (float) 1000) * this.cellheight ) ));
+					( this.dim.height /2 - this.valueScaling * ( (float)(this.data[b] / (float) 1000) * this.cellHeight ) ));
 			g2.draw(line);
 		 }	
 	}
