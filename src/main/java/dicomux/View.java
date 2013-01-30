@@ -47,6 +47,7 @@ import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.text.html.HTMLFrameHyperlinkEvent;
 
 import dicomux.query.QueryPanel;
+import dicomux.settings.SettingsPanel;
 
 /**
  * concrete View for Dicomux
@@ -328,6 +329,16 @@ public class View extends JFrame implements IView {
 		});
 		menu.add(tmp);
 		menu.addSeparator();
+		
+		tmp = new JMenuItem(m_languageBundle.getString("key_settings"));
+		tmp.addActionListener(new ActionListener() {		
+			public void actionPerformed(ActionEvent e) {
+				m_controller.openSettings();
+			}
+		});
+		menu.add(tmp);
+		menu.addSeparator();
+		
 		tmp = new JMenuItem(m_languageBundle.getString("key_closeTab"));
 		tmp.addActionListener(new ActionListener() {		
 			public void actionPerformed(ActionEvent e) {
@@ -343,6 +354,7 @@ public class View extends JFrame implements IView {
 		});
 		menu.add(tmp);
 		menu.addSeparator();
+		
 		tmp = new JMenuItem(m_languageBundle.getString("key_exit"));
 		tmp.addActionListener(new ActionListener() {		
 			public void actionPerformed(ActionEvent e) {
@@ -507,6 +519,10 @@ public class View extends JFrame implements IView {
 					m_tabbedPane.add(m_dialogs.makeWelcomeTab());
 					name = m_languageBundle.getString("key_welcome");
 					break;
+				case SETTINGS:
+					m_tabbedPane.add(m_dialogs.makeSettingsTab());
+					name = m_languageBundle.getString("key_settings");
+					break;					
 				case DICOM_QUERY:
 					m_tabbedPane.add(m_dialogs.makeDicomQueryTab());
 					name = m_languageBundle.getString("key_query");
@@ -571,6 +587,21 @@ public class View extends JFrame implements IView {
 			return content;
 		}
 
+		/**
+		 * convenience method for building an settings tab
+		 * @return a JPanel
+		 */
+		protected JComponent makeSettingsTab() {
+			JPanel content = new JPanel(new BorderLayout(5 , 5), false);
+			content.add(makeMessage(m_languageBundle.getString("key_html_settings")), BorderLayout.NORTH);
+
+			JPanel wrapper = new JPanel(new BorderLayout());
+			wrapper.add(new SettingsPanel(m_controller), BorderLayout.NORTH);
+			content.add(wrapper, BorderLayout.CENTER);
+			
+			return content;
+		}				
+		
 		/**
 		 * convenience method for building an dicom query dialog tab
 		 * @return a JPanel

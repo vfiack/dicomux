@@ -27,8 +27,8 @@ import javax.swing.SwingUtilities;
 import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.Tag;
 
-import dicomux.Config;
 import dicomux.IController;
+import dicomux.settings.Settings;
 
 public class QueryPanel extends JPanel {
 	private IController controller;
@@ -100,7 +100,7 @@ public class QueryPanel extends JPanel {
 	}
 	
 	private URL getWadoUrl(DicomObject selected) throws MalformedURLException  {
-		String wadoUrlPattern = new Config().get("dicomux.pacs.wado");
+		String wadoUrlPattern = controller.getSettings().get("dicomux.pacs.wado");
 		String wadoUrl = wadoUrlPattern
 			.replace("${studyUID}", selected.getString(Tag.StudyInstanceUID))
 			.replace("${seriesUID}", selected.getString(Tag.SeriesInstanceUID))
@@ -112,12 +112,12 @@ public class QueryPanel extends JPanel {
 	private void runQuery() {
 		DicomQuery query = new DicomQuery();
 		
-		Config config = new Config();
-		query.setLocalInfos(config.get("dicomux.local.aet"));
+		Settings settings = controller.getSettings();
+		query.setLocalInfos(settings.get("dicomux.local.aet"));
 		query.setRemoteInfos(
-				config.get("dicomux.pacs.aet"),
-				config.get("dicomux.pacs.host"),
-				config.getInt("dicomux.pacs.port"));
+				settings.get("dicomux.pacs.aet"),
+				settings.get("dicomux.pacs.host"),
+				settings.getInt("dicomux.pacs.port"));
 		
 		String pid = null;
 		if(! patientId.getText().trim().isEmpty())

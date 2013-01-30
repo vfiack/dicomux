@@ -7,6 +7,7 @@ package dicomux;
  */
 public enum TabState {
 	WELCOME,
+	SETTINGS,
 	DICOM_QUERY,
 	FILE_OPEN,
 	DIR_OPEN,

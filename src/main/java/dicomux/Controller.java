@@ -9,6 +9,8 @@ import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.Tag;
 import org.dcm4che2.io.DicomInputStream;
 
+import dicomux.settings.Settings;
+
 /**
  * Controller for Dicomux / Serves as a container for all necessary methods which alter the model
  * @author heidi
@@ -19,6 +21,11 @@ public class Controller implements IController {
 	 * It's very important that plug-ins without any keyFormats are at the end of the list.
 	 */
 	private final Vector<APlugin> m_availblePlugins;
+
+	/**
+	 * holds the settings
+	 */
+	private Settings m_settings;
 	
 	/**
 	 * holds the model of the application
@@ -29,18 +36,21 @@ public class Controller implements IController {
 	 * holds the view of the application
 	 */
 	private IView m_view;
+
 	
 	/**
 	 * default constructor<br/>
 	 * registers the view in the model and vice versa<br>
 	 * calls initialize() of the model
+	 * @param config 
 	 * @param model
 	 * @param view
 	 * @throws Exception 
 	 * @see IModel
 	 * @see IView
 	 */
-	public Controller(IModel model, IView view) {
+	public Controller(Settings settings, IModel model, IView view) {
+		m_settings = settings;
 		m_model = model;
 		m_view = view;
 		
@@ -54,6 +64,10 @@ public class Controller implements IController {
 		}
 		
 		m_availblePlugins.add(new RawPlugin());
+	}
+	
+	public Settings getSettings() {
+		return m_settings;
 	}
 	
 	public void closeAllWorkspaces() {
@@ -77,6 +91,15 @@ public class Controller implements IController {
 			}
 		}
 		m_model.addWorkspace(new TabObject(TabState.ABOUT));
+	}
+	
+	public void openSettings() {
+		for (int i = 0; i < m_model.getWorkspaceCount(); ++i) {
+			switch (m_model.getWorkspace(i).getTabState()) {
+			case SETTINGS: m_model.setWorkspace(i, new TabObject(TabState.SETTINGS, true)); return;
+			}
+		}
+		m_model.addWorkspace(new TabObject(TabState.SETTINGS));
 	}
 	
 	public void openDicomQueryDialog() {

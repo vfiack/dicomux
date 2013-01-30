@@ -3,6 +3,8 @@ package dicomux;
 import java.net.URL;
 import java.util.Locale;
 
+import dicomux.settings.Settings;
+
 /**
  * This is an adapter for IController. This is used during initialization of Dicomux
  * @author heidi
@@ -90,6 +92,18 @@ public class ControllerAdapter implements IController {
 
 
 	public void showErrorMessage(String msg) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	public Settings getSettings() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	public void openSettings() {
 		// TODO Auto-generated method stub
 		
 	}

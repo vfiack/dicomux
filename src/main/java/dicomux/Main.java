@@ -1,6 +1,9 @@
 package dicomux;
 
 import java.io.File;
+import java.io.IOException;
+
+import dicomux.settings.Settings;
 
 /**
  * Launches Dicomux by determining, which model, view and controller shall be used.
@@ -9,6 +12,15 @@ import java.io.File;
  */
 public class Main {
 	public static void main(String[] args) {
+		Settings settings = null;
+		try {
+			settings = new Settings();
+		} catch (IOException e) {
+			System.err.println("Config instantiation failed!");
+			e.printStackTrace();
+			System.exit(1);
+		}
+		
 		// create model and view
 		IView view = new View();
 		IModel model = new Model(view);
@@ -19,7 +31,7 @@ public class Main {
 		// create a controller and register him on the view
 		Controller ctrl;
 		try {
-			ctrl = new Controller(model, view);
+			ctrl = new Controller(settings, model, view);
 			view.registerController(ctrl);
 			
 			// check if we have some files as argument

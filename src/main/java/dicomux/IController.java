@@ -3,12 +3,19 @@ package dicomux;
 import java.net.URL;
 import java.util.Locale;
 
+import dicomux.settings.Settings;
+
 /**
  * all concrete controllers have to implement this interface
  * @author heidi
  *
  */
 public interface IController {
+	/**
+	 * Get the settings
+	 */
+	public Settings getSettings();
+	
 	/**
 	 * closes the currently active workspace
 	 */
@@ -23,6 +30,11 @@ public interface IController {
 	 * Opens the error dialog
 	 */
 	public void showErrorMessage(String msg);
+	
+	/**
+	 * show the settings
+	 */
+	public void openSettings();
 	
 	/**
 	 * opens a query form
