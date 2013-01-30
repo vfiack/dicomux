@@ -2,7 +2,6 @@ package dicomux.waveform;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
@@ -208,26 +207,21 @@ public class WaveformPlugin extends APlugin {
 		
 		// Panel with information about the channel the mouse cursor is over
 		this.infoPanel = new InfoPanel();
-		this.infoPanel.setLayout(new BoxLayout(infoPanel, BoxLayout.LINE_AXIS));
 		this.infoPanel.setPreferredSize(new Dimension(m_content.getWidth(), 70));
 		
-		BoxLayout mlayout = new BoxLayout(m_content, BoxLayout.PAGE_AXIS);
-		m_content.setLayout(mlayout);
+		m_content.setLayout(new BorderLayout());
+
+		JPanel wrap = new JPanel(new BorderLayout());
+		wrap.add(tools, BorderLayout.NORTH);
+		wrap.add(infoPanel, BorderLayout.CENTER);
 		
-		this.tools.setAlignmentX(Component.LEFT_ALIGNMENT);
-		this.infoPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
-		scroll.setAlignmentX(Component.LEFT_ALIGNMENT);
-		
-		m_content.add(this.tools);
-		m_content.add(this.infoPanel);
-		m_content.add(scroll);
+		m_content.add(wrap, BorderLayout.NORTH);
+		m_content.add(scroll, BorderLayout.CENTER);
 		
 		// this gets called when the application is resized
-		m_content.addComponentListener(new ComponentAdapter() {
-		
+		m_content.addComponentListener(new ComponentAdapter() {		
 			public void componentResized(ComponentEvent e) {
-				super.componentResized(e);
-				
+				super.componentResized(e);				
 				repaintPanels();
 			}
 		});
@@ -237,9 +231,6 @@ public class WaveformPlugin extends APlugin {
 	}
 
 	public void updateLanguage(String lang) {
-		if(this.infoPanel != null) {
-			this.infoPanel.updateLanguage();
-		}
 		if(this.tools != null) {
 			this.tools.updateLanguage();
 		}

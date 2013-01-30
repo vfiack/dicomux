@@ -15,6 +15,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.Line2D;
+import java.awt.geom.Rectangle2D;
 
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
@@ -44,7 +45,11 @@ class DrawingPanel extends JPanel {
 	private double valueScaling;
 	private double offset; 
 	private boolean isRhythm;
+	
+	//selected positions for measures
 	private int highlightedSample;
+	private int startSample;
+	private int stopSample;
 	
 	public DrawingPanel(WaveformPlugin plugin, int[] values, double start, ChannelDefinition definition) {
 		this.plugin = plugin;
@@ -61,7 +66,10 @@ class DrawingPanel extends JPanel {
 		this.offset = start;
 		// calculate scaling of the sample values
 		this.valueScaling = this.definition.getScaling();
+		
 		this.highlightedSample = -1;
+		this.startSample = -1;
+		this.stopSample = -1;
 		
 		addListeners();
 		this.isRhythm = false;
@@ -71,31 +79,96 @@ class DrawingPanel extends JPanel {
 		this.isRhythm = mode;
 	}
 	
+	private void setHighlightedSample(int sample) {
+		if(sample < 0 || sample >= data.length) {
+			highlightedSample = -1;
+			plugin.getInfoPanel().setCurrentValues(-1, -1);
+		}
+		else { 
+			highlightedSample = sample;
+			double sec = highlightedSample / (double)plugin.getSamplesPerSecond();
+			double uV = data[highlightedSample] * valueScaling;	
+			plugin.getInfoPanel().setCurrentValues(sec, uV/1000);
+		}			
+	}
+	
+	private void setStartSample(int sample) {
+		plugin.getInfoPanel().setDeltaValues(-1, -1);
+		
+		if(sample < 0 || sample >= data.length) {
+			startSample = -1;
+			plugin.getInfoPanel().setStartValues(-1, -1);
+		}
+		else { 
+			startSample = sample;
+			double sec = startSample / (double)plugin.getSamplesPerSecond();
+			double uV = data[startSample] * valueScaling;	
+			plugin.getInfoPanel().setStartValues(sec, uV/1000);
+			
+			if(stopSample > startSample) {
+				double dsec = (stopSample-startSample) / (double)plugin.getSamplesPerSecond();
+				double duV = (data[stopSample] - data[startSample]) * valueScaling;
+				plugin.getInfoPanel().setDeltaValues(dsec, duV/1000);
+			}
+		}			
+	}
+	
+	private void setStopSample(int sample) {
+		plugin.getInfoPanel().setDeltaValues(-1, -1);
+		
+		if(sample < 0 || sample >= data.length) {
+			stopSample = -1;
+			plugin.getInfoPanel().setStopValues(-1, -1);
+		}
+		else { 
+			stopSample = sample;
+			double sec = stopSample / (double)plugin.getSamplesPerSecond();
+			double uV = data[stopSample] * valueScaling;		
+			plugin.getInfoPanel().setStopValues(sec, uV/1000);
+			
+			if(stopSample > startSample && startSample >= 0) {
+				double dsec = (stopSample-startSample) / (double)plugin.getSamplesPerSecond();
+				double duV = (data[stopSample] - data[startSample]) * valueScaling;
+				plugin.getInfoPanel().setDeltaValues(dsec, duV/1000);
+			}
+		}			
+	}
+	
 	private void addListeners() {
 		// used to get the current position of the mouse pointer into the information panel
-		this.addMouseMotionListener( new MouseMotionAdapter() {						
-				public void mouseMoved(MouseEvent e) {			
-					double sec = offset + (e.getPoint().getX() / cellWidth * 0.1);
-
-					// lookup for the nearest sample
-					highlightedSample = (int)Math.round(plugin.getSamplesPerSecond() * sec);
-					if(highlightedSample >= data.length) {
-						highlightedSample = -1;
-						plugin.getInfoPanel().setSeconds(0);
-						plugin.getInfoPanel().setMiliVolt(0);
-					} else {	
-						sec = highlightedSample / (double)plugin.getSamplesPerSecond();
-						double uV = data[highlightedSample] * valueScaling;		
-						plugin.getInfoPanel().setSeconds(sec);
-						plugin.getInfoPanel().setMiliVolt(uV/1000);
-					}
-					
-					repaint();						
-				}
+		this.addMouseMotionListener( new MouseMotionAdapter() {	
+			public void mouseDragged(MouseEvent e) {
+				mouseMoved(e);
 			}
-		);
+			
+			public void mouseMoved(MouseEvent e) {			
+				double sec = offset + (e.getPoint().getX() / cellWidth * 0.1);
+				setHighlightedSample((int)Math.round(plugin.getSamplesPerSecond() * sec));
+
+				if(highlightedSample >= 0) {
+					if((e.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) == MouseEvent.BUTTON1_DOWN_MASK)
+						setStartSample(highlightedSample);
+					if((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) == MouseEvent.BUTTON3_DOWN_MASK)
+						setStopSample(highlightedSample);
+				}
+				
+				repaint();						
+			}
+		});
 		
 		this.addMouseListener( new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				if(e.getButton() == MouseEvent.BUTTON1)
+					setStartSample(highlightedSample);
+				else if(e.getButton() == MouseEvent.BUTTON3)
+					setStopSample(highlightedSample);
+				else if(e.getButton() == MouseEvent.BUTTON2) {
+					setStartSample(-1);
+					setStopSample(-1);
+				}
+				
+				repaint();
+			}
 			
 			public void mouseEntered(MouseEvent e) {
 				Toolkit toolkit = Toolkit.getDefaultToolkit();  
@@ -105,14 +178,15 @@ class DrawingPanel extends JPanel {
 				setCursor(cursor);
 				
 				plugin.getInfoPanel().setLead(definition.getName());
-				plugin.getInfoPanel().setMaximum(definition.getMaximum_uV()/1000);
-				plugin.getInfoPanel().setMinimum(definition.getMinimum_uV()/1000);
+				plugin.getInfoPanel().setMinMax(definition.getMinimum_uV()/1000, definition.getMaximum_uV()/1000);
+				setStartSample(startSample);
+				setStopSample(stopSample);
 			}
 			
 			public void mouseExited(MouseEvent e) {
 				Cursor normal = new Cursor(Cursor.DEFAULT_CURSOR);
 				setCursor(normal);
-				highlightedSample = -1;
+				setHighlightedSample(-1);
 				repaint();
 			}
 		});
@@ -157,10 +231,11 @@ class DrawingPanel extends JPanel {
 		// calculate the scaling which is dependent to the width	
 		this.scalingWidth =  (float) (cellWidth / ((this.end - this.start) / secsCellCount ));			
 		
+		drawMeasureBackground(g2);
 		drawGrid(g2);
 		drawGraph(g2);
 		drawName(g2);
-		highlightSample(g2);
+		drawMeasureBars(g2);
 	}
 	
 	private void drawGrid(Graphics2D g2) {
@@ -207,12 +282,34 @@ class DrawingPanel extends JPanel {
 		 }	
 	}
 	
-	private void highlightSample(Graphics2D g2) {
-		double x = this.scalingWidth * (highlightedSample - this.start); 
+	private void drawMeasureBackground(Graphics2D g2) {
+		if(startSample < 0 || stopSample < 0 || stopSample <= startSample)
+			return;
+
+		Color background = new Color(230, 230, 230);
+		
+		g2.setColor(background);
+		double startX = this.scalingWidth * (startSample - this.start);
+		double stopX = this.scalingWidth * (stopSample - this.start);
+		Rectangle2D rect = new Rectangle2D.Double(startX, 0, stopX-startX, this.dim.height);
+		g2.fill(rect);
+	}
+	
+	private void drawMeasureBars(Graphics2D g2) {
+		drawBar(g2, Color.CYAN, highlightedSample);
+		drawBar(g2, Color.GREEN, startSample);
+		drawBar(g2, Color.BLUE, stopSample);
+	}
+	
+	private void drawBar(Graphics2D g2, Color color, int sample) {
+		if(sample < 0)
+			return;
+		
+		double x = this.scalingWidth * (sample - this.start); 
 		Line2D line = new Line2D.Double(x, 0, x, this.dim.height);
 		
-		g2.setColor(Color.GREEN);
-		g2.setStroke(new BasicStroke(1f));
+		g2.setColor(color);
+		g2.setStroke(new BasicStroke(1.2f));
 		g2.draw(line);
 	}
 	

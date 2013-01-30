@@ -2,14 +2,11 @@ package dicomux.waveform;
 
 import static dicomux.Translation.tr;
 
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
+import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.text.DecimalFormat;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -17,195 +14,138 @@ class InfoPanel extends JPanel {
 	private static final long serialVersionUID = -470038831713011257L;
 	
 	// labels for the values
+	private JLabel lead;
 	private JLabel maximum;
 	private JLabel minimum;
+
+	private JLabel currentLabel;
 	private JLabel miliVolt;
 	private JLabel seconds;
-	private JLabel lead;
-	// labels for the identification of the values
-	private JLabel maximumLabel;
-	private JLabel minimumLabel;
-	private JLabel positionLabel;
-	private JLabel secondsLabel;
 	
-	private JPanel nameMinMaxPanel;
-	private JPanel positionPanel;
+	private JLabel startLabel;
+	private JLabel startMiliVolt;
+	private JLabel startSeconds;
+	
+	private JLabel stopLabel;
+	private JLabel stopMiliVolt;
+	private JLabel stopSeconds;
+	
+	private JLabel deltaLabel;
+	private JLabel deltaMiliVolt;
+	private JLabel deltaSeconds;
 	
 	public InfoPanel() {
+		super(new GridLayout(3, 5, 2, 0));
+		
+		this.lead = new JLabel(" ");
 		this.maximum = new JLabel();
 		this.minimum = new JLabel();
+		
+		this.currentLabel = new JLabel();
 		this.miliVolt = new JLabel();
 		this.seconds = new JLabel();
-		this.lead = new JLabel(" ");
-		this.maximumLabel = new JLabel();
-		this.minimumLabel = new JLabel();
-		this.positionLabel = new JLabel();
-		this.secondsLabel = new JLabel();
 		
-		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
+		this.startLabel = new JLabel();
+		this.startMiliVolt = new JLabel();
+		this.startSeconds = new JLabel();
 		
-		nameMinMaxPanel = new JPanel();
-		nameMinMaxPanel.setPreferredSize(new Dimension(150, 70));
-		nameMinMaxPanel.setMinimumSize(new Dimension(150, 70));
-		nameMinMaxPanel.setMaximumSize(new Dimension(150, 70));
+		this.stopLabel = new JLabel();
+		this.stopMiliVolt = new JLabel();
+		this.stopSeconds = new JLabel();
 		
-		GridBagLayout nameMinMaxlayout = new GridBagLayout();
-		nameMinMaxPanel.setLayout(nameMinMaxlayout);
+		this.deltaLabel = new JLabel();
+		this.deltaMiliVolt = new JLabel();
+		this.deltaSeconds = new JLabel();
 		
-		GridBagConstraints c1 = new GridBagConstraints();
-		c1.weightx = 0.5;
-		c1.gridwidth = 3;
-		c1.gridx = 0;
-		c1.gridy = 0;
-		c1.ipady = 5;
-		c1.anchor = GridBagConstraints.LINE_START;
+		this.add(lead);
+		this.add(currentLabel);
+		this.add(startLabel);
+		this.add(stopLabel);
+		this.add(deltaLabel);
 		
-		nameMinMaxPanel.add(this.lead, c1);
-		
-		GridBagConstraints c2 = new GridBagConstraints();
-		c2.weightx = 0.5;
-		c2.gridwidth = 2;
-		c2.gridx = 0;
-		c2.gridy = 1;
-		c2.ipady = 5;
-		c2.anchor = GridBagConstraints.LINE_START;
-		
-		this.minimumLabel = new JLabel(tr("wfMinimum"));
-		nameMinMaxPanel.add(this.minimumLabel, c2);
-		
-		GridBagConstraints c3 = new GridBagConstraints();
-		c3.weightx = 0.5;
-		c3.gridx = 1;
-		c3.gridy = 1;
-		c3.ipady = 5;
-		c3.anchor = GridBagConstraints.LINE_END;
-		
-		nameMinMaxPanel.add(this.minimum, c3);
-		
-		GridBagConstraints c4 = new GridBagConstraints();
-		c4.weightx = 0.5;
-		c4.gridwidth = 2;
-		c4.gridx = 0;
-		c4.gridy = 2;
-		c4.ipady = 5;
-		c4.anchor = GridBagConstraints.LINE_START;
-		
-		this.maximumLabel = new JLabel(tr("wfMaximum"));
-		nameMinMaxPanel.add(this.maximumLabel, c4);
-		
-		GridBagConstraints c5 = new GridBagConstraints();
-		c5.weightx = 0.5;
-		c5.gridx = 1;
-		c5.gridy = 2;
-		c5.ipady = 5;
-		c5.anchor = GridBagConstraints.LINE_END;
-		
-		nameMinMaxPanel.add(this.maximum, c5);
-		
-		positionPanel = new JPanel();
-		positionPanel.setPreferredSize(new Dimension(200, 70));
-		positionPanel.setMinimumSize(new Dimension(200, 70));
-		positionPanel.setMaximumSize(new Dimension(200, 70));
-		GridBagLayout positionLayout = new GridBagLayout();
-		positionPanel.setLayout(positionLayout);
-		
-		GridBagConstraints c6 = new GridBagConstraints();
-		c6.weightx = 0.5;
-		c6.gridwidth = 3;
-		c6.gridx = 0;
-		c6.gridy = 3;
-		c6.ipady = 5;
-		c6.anchor = GridBagConstraints.LINE_START;
-		
-		this.positionLabel = new JLabel(tr("wfPosition"));
-		positionPanel.add(this.positionLabel, c6);
-		
-		GridBagConstraints c7 = new GridBagConstraints();
-		c7.weightx = 0.5;
-		c7.gridx = 0;
-		c7.gridy = 4;
-		c7.ipady = 5;
-		c7.anchor = GridBagConstraints.LINE_START;
-		
-		JLabel mv_pos = new JLabel("mV:");
-		positionPanel.add(mv_pos, c7);
-		
-		GridBagConstraints c8 = new GridBagConstraints();
-		c8.weightx = 0.5;
-		c8.gridx = 1;
-		c8.gridy = 4;
-		c8.ipady = 5;
-		c8.anchor = GridBagConstraints.LINE_END;
-		
-		positionPanel.add(this.miliVolt, c8);
-		
-		GridBagConstraints c9 = new GridBagConstraints();
-		c9.weightx = 0.5;
-		c9.gridx = 0;
-		c9.gridy = 5;
-		c9.ipady = 5;
-		c9.anchor = GridBagConstraints.LINE_START;
-		
-		this.secondsLabel = new JLabel(tr("wfSecond"));
-		positionPanel.add(this.secondsLabel, c9);
+		this.add(minimum);
+		this.add(seconds);
+		this.add(startSeconds);
+		this.add(stopSeconds);
+		this.add(deltaSeconds);
 
-		GridBagConstraints c10 = new GridBagConstraints();
-		c10.weightx = 0.5;
-		c10.gridx = 1;
-		c10.gridy = 5;
-		c10.ipady = 5;
-		c10.anchor = GridBagConstraints.LINE_END;
-		
-		positionPanel.add(this.seconds, c10);
-		
-		this.add(nameMinMaxPanel);
-		this.add(Box.createRigidArea(new Dimension(5,0)));
-		this.add(positionPanel);
+		this.add(maximum);
+		this.add(miliVolt);
+		this.add(startMiliVolt);
+		this.add(stopMiliVolt);
+		this.add(deltaMiliVolt);
 	}
 	
 	public void setLead(String lead) {
 		this.lead.setText(lead);
 	}
 	
-	public void setMaximum(double maximum) {
+	public void setMinMax(double minimum, double maximum) {		
+		this.minimum.setText(new DecimalFormat(tr("wfMinimumFormat")).format(minimum));
+		this.maximum.setText(new DecimalFormat(tr("wfMaximumFormat")).format(maximum));
+	}
+	
+	public void setCurrentValues(double seconds, double miliVolt) {
+		if(seconds < 0) {
+			this.currentLabel.setText("");
+			this.seconds.setText("");
+			this.miliVolt.setText("");			
+		} else {
+			this.currentLabel.setText(tr("wfPosition"));
+			this.seconds.setText(new DecimalFormat(tr("wfTimeFormat")).format(seconds));
+			this.miliVolt.setText(new DecimalFormat(tr("wfValueFormat")).format(miliVolt));
+		}
+	}
+	
+	public void setStartValues(double seconds, double miliVolt) {
+		if(seconds < 0) {
+			this.startLabel.setText("");
+			this.startSeconds.setText("");
+			this.startMiliVolt.setText("");			
+		} else {
+			this.startLabel.setText(tr("wfStartPos"));
+			this.startSeconds.setText(new DecimalFormat(tr("wfTimeFormat")).format(seconds));
+			this.startMiliVolt.setText(new DecimalFormat(tr("wfValueFormat")).format(miliVolt));
+		}
+	}
+	
+	public void setStopValues(double seconds, double miliVolt) {
+		if(seconds < 0) {
+			this.stopLabel.setText("");
+			this.stopSeconds.setText("");
+			this.stopMiliVolt.setText("");			
+		} else {
+			this.stopLabel.setText(tr("wfStopPos"));
+			this.stopSeconds.setText(new DecimalFormat(tr("wfTimeFormat")).format(seconds));
+			this.stopMiliVolt.setText(new DecimalFormat(tr("wfValueFormat")).format(miliVolt));
+		}
+	}
+	
+	public void setDeltaValues(double seconds, double miliVolt) {
+		if(seconds < 0) {
+			this.deltaLabel.setText("");
+			this.deltaSeconds.setText("");
+			this.deltaMiliVolt.setText("");			
+		} else {
+			this.deltaLabel.setText(tr("wfDelta"));
+			this.deltaSeconds.setText(new DecimalFormat(tr("wfTimeFormat")).format(seconds));
+			this.deltaMiliVolt.setText(new DecimalFormat(tr("wfValueFormat")).format(miliVolt));
+		}
+	}
+	
+	//--
+	
+	public static void main(String[] args) {
+		InfoPanel panel = new InfoPanel();
+		panel.setMinMax(0, 5);
+		panel.setCurrentValues(5, 15);
+		panel.setStartValues(3, 12);
 		
-		DecimalFormat form = new DecimalFormat("####.##");
-		this.maximum.setText(form.format(maximum));
-	}
-	
-	public void setMinimum(double minimum) {
-		DecimalFormat form = new DecimalFormat("####.##");
-		this.minimum.setText(form.format(minimum));
-	}
-	
-	public void setMiliVolt(double miliVolt) {
-		DecimalFormat form = new DecimalFormat("####.##");
-		this.miliVolt.setText(form.format(miliVolt));
-	}
-	
-	public void setSeconds(double seconds) {
-		DecimalFormat form = new DecimalFormat("####.##");
-		this.seconds.setText(form.format(seconds));
-	}
-	
-	public void paintComponent( Graphics g ) {
-		super.paintComponent(g); 
 		
-	    nameMinMaxPanel.setPreferredSize(new Dimension(150, 70));
-	    nameMinMaxPanel.setMinimumSize(new Dimension(150, 70));
-		nameMinMaxPanel.setMaximumSize(new Dimension(150, 70));
-		
-		positionPanel.setPreferredSize(new Dimension(200, 70));
-		positionPanel.setMinimumSize(new Dimension(200, 70));
-		positionPanel.setMaximumSize(new Dimension(200, 70));
-
+		JFrame frame = new JFrame();
+		frame.getContentPane().add(panel, BorderLayout.CENTER);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(400, 100);
+		frame.setVisible(true);
 	}
-	
-	public void updateLanguage() {
-		this.minimumLabel.setText(tr("wfMinimum"));
-		this.maximumLabel.setText(tr("wfMaximum"));
-		this.positionLabel.setText(tr("wfPosition"));
-		this.secondsLabel.setText(tr("wfSecond"));
-	}
-	
 }
