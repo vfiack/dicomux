@@ -1,11 +1,70 @@
 package dicomux.waveform;
 
+import org.dcm4che2.data.DicomElement;
+import org.dcm4che2.data.DicomObject;
+import org.dcm4che2.data.SpecificCharacterSet;
+import org.dcm4che2.data.Tag;
 
+import dicomux.DicomException;
 
-
-// used to save information about a channel
 class ChannelDefinition {
 	public enum ChannelUnit {uV, mV};
+
+	//--
+	
+	public static ChannelDefinition fromDicom(DicomObject object) throws DicomException {		
+		// read ChannelSensitivity used to calculate the real sample value
+		// ChannelSensitivity is the unit of each waveform sample
+		DicomElement channelSensitivity = object.get(Tag.ChannelSensitivity);
+		if(channelSensitivity == null)
+			throw new DicomException("Could not read ChannelSensitivity");
+		// unfortunately had to go the complicated way and read the value as string
+		String tmp_value = channelSensitivity.getValueAsString(new SpecificCharacterSet("UTF-8"), 50);
+		double sensitivity = Double.parseDouble(tmp_value);
+		
+		// read ChannelSensitivityCorrectionFactor used to calculate the real sample value
+		// ChannelSensitivityCorrectionFactor is a form of calibration of the values
+		DicomElement channelSensitivityCorrection = object.get(Tag.ChannelSensitivityCorrectionFactor);
+		if(channelSensitivityCorrection == null)
+			throw new DicomException("Could not read ChannelSensitivityCorrectionFactor");
+		// and again we are going the long way
+		tmp_value = channelSensitivityCorrection.getValueAsString(new SpecificCharacterSet("UTF-8"), 50);
+		double help = Double.parseDouble(tmp_value);
+		int sensitivityCorrection = (int) help;
+		
+		// read channel source sequence which contains the name of the channel (lead)
+		DicomElement tmpElement =  object.get(Tag.ChannelSourceSequence);
+		if(tmpElement == null)
+			throw new DicomException("Could not read ChannelSourceSequence");
+		// read the DicomObject which contains to get the needed DicomEelements
+		DicomObject channelSS =  tmpElement.getDicomObject();
+		if(channelSS == null) 
+			throw new DicomException("Could not read ChannelSourceSequence DicomObject");
+		// read The name of the channel
+		DicomElement meaning = channelSS.get(Tag.CodeMeaning);
+		if(meaning == null) 
+			throw new DicomException("Could not read Code Meaning");
+		
+		// read the baseline
+		double baseline = object.getDouble(Tag.ChannelBaseline);
+		
+		// read the unit
+		DicomElement sensitivityUnitsSequence = object.get(Tag.ChannelSensitivityUnitsSequence);
+		DicomObject sensitivityUnit = sensitivityUnitsSequence.getDicomObject();
+		String sensitivityUnitValue = sensitivityUnit.getString(Tag.CodeValue);
+		ChannelUnit channelUnit = null;
+		try {
+			channelUnit = ChannelUnit.valueOf(sensitivityUnitValue);
+		} catch(Exception e) {
+			throw new DicomException("Unsupported sensitivity unit: " + sensitivityUnitValue, e);
+		}
+
+		String name = meaning.getValueAsString(new SpecificCharacterSet("UTF-8"), 50);
+
+		return new ChannelDefinition(name, baseline, sensitivity, sensitivityCorrection, channelUnit);
+	}
+	
+	//--
 	
 	private String name;
 	private double baseline;

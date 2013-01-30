@@ -19,11 +19,10 @@ import javax.swing.JScrollPane;
 
 import org.dcm4che2.data.DicomElement;
 import org.dcm4che2.data.DicomObject;
-import org.dcm4che2.data.SpecificCharacterSet;
 import org.dcm4che2.data.Tag;
 
 import dicomux.APlugin;
-import dicomux.waveform.ChannelDefinition.ChannelUnit;
+import dicomux.DicomException;
 
 /**
  * This plug-in is for displaying waveform ecg data in a graphical way.
@@ -79,65 +78,16 @@ public class WaveformPlugin extends APlugin {
 		return "Waveform ECG";
 	}
 	
-	private void readChannelDefinitions(DicomElement channelDef) throws Exception {
+	private void readChannelDefinitions(DicomElement channelDef) throws DicomException {
 		// read the ChannelDefinitionSequence for additional info about the channels
 		if(channelDef == null) 
-			throw new Exception("Could not read ChannelDefinitionSequence");
+			throw new DicomException("Could not read ChannelDefinitionSequence");
 		
 		// iterate over the definitions of the channels
 		this.channelDefinitions = new ChannelDefinition[numberOfChannels];
 		for(int i = 0; i < channelDef.countItems(); i++) {
 			DicomObject object = channelDef.getDicomObject(i);
-			
-			// read ChannelSensitivity used to calculate the real sample value
-			// ChannelSensitivity is the unit of each waveform sample
-			DicomElement channelSensitivity = object.get(Tag.ChannelSensitivity);
-			if(channelSensitivity == null)
-				throw new Exception("Could not read ChannelSensitivity");
-			// unfortunately had to go the complicated way and read the value as string
-			String tmp_value = channelSensitivity.getValueAsString(new SpecificCharacterSet("UTF-8"), 50);
-			double sensitivity = Double.parseDouble(tmp_value);
-			
-			// read ChannelSensitivityCorrectionFactor used to calculate the real sample value
-			// ChannelSensitivityCorrectionFactor is a form of calibration of the values
-			DicomElement channelSensitivityCorrection = object.get(Tag.ChannelSensitivityCorrectionFactor);
-			if(channelSensitivityCorrection == null)
-				throw new Exception("Could not read ChannelSensitivityCorrectionFactor");
-			// and again we are going the long way
-			tmp_value = channelSensitivityCorrection.getValueAsString(new SpecificCharacterSet("UTF-8"), 50);
-			double help = Double.parseDouble(tmp_value);
-			int sensitivityCorrection = (int) help;
-			
-			// read channel source sequence which contains the name of the channel (lead)
-			DicomElement tmpElement =  object.get(Tag.ChannelSourceSequence);
-			if(tmpElement == null)
-				throw new Exception("Could not read ChannelSourceSequence");
-			// read the DicomObject which contains to get the needed DicomEelements
-			DicomObject channelSS =  tmpElement.getDicomObject();
-			if(channelSS == null) 
-				throw new Exception("Could not read ChannelSourceSequence DicomObject");
-			// read The name of the channel
-			DicomElement meaning = channelSS.get(Tag.CodeMeaning);
-			if(meaning == null) 
-				throw new Exception("Could not read Code Meaning");
-			
-			// read the baseline
-			double baseline = object.getDouble(Tag.ChannelBaseline);
-			
-			// read the unit
-			DicomElement sensitivityUnitsSequence = object.get(Tag.ChannelSensitivityUnitsSequence);
-			DicomObject sensitivityUnit = sensitivityUnitsSequence.getDicomObject();
-			String sensitivityUnitValue = sensitivityUnit.getString(Tag.CodeValue);
-			ChannelUnit channelUnit = null;
-			try {
-				channelUnit = ChannelUnit.valueOf(sensitivityUnitValue);
-			} catch(Exception e) {
-				throw new Exception("Unsupported sensitivity unit: " + sensitivityUnitValue, e);
-			}
-
-			String name = meaning.getValueAsString(new SpecificCharacterSet("UTF-8"), 50);
-			// safe name, sensitivity and sensitivityCorrection in a new ChannelDefinition-Object
-			channelDefinitions[i] = new ChannelDefinition(name, baseline, sensitivity, sensitivityCorrection, channelUnit);
+			channelDefinitions[i] = ChannelDefinition.fromDicom(object);
 		}
 	}
 	
