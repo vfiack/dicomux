@@ -3,7 +3,6 @@ package dicomux;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.util.Date;
-import java.util.Locale;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -59,7 +58,7 @@ public class PatientDataPlugin extends APlugin {
 	
 	// TODO implement localization
 
-	public void setLanguage(Locale locale) {
+	public void updateLanguage(String lang) {
 		
 	}
 }

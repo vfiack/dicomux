@@ -9,7 +9,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileOutputStream;
 import java.util.Iterator;
-import java.util.Locale;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -217,7 +216,7 @@ public class RawPlugin extends APlugin {
 	}
 	
 
-	public void setLanguage(Locale locale) {
+	public void updateLanguage(String lang) {
 		// not needed
 	}
 	

@@ -9,7 +9,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Locale;
 import java.util.Vector;
 import java.util.Map.Entry;
 
@@ -372,7 +371,7 @@ public class DirectoryPlugin extends APlugin{
 	}
 
 
-	public void setLanguage(Locale locale) {
+	public void updateLanguage(String lang) {
 		// TODO Auto-generated method stub
 		
 	}

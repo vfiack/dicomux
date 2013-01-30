@@ -1,7 +1,5 @@
 package dicomux;
 
-import java.util.Locale;
-
 /**
  * an interface for all views of Dicomux
  * @author heidi
@@ -31,17 +29,5 @@ public interface IView {
 	 * it is possible that the returned value is -1
 	 * @return the id of the currently active workspace
 	 */
-	public int getActiveWorkspaceId();
-	
-	/**
-	 * for checking the language setting of the view
-	 * @return the current language of the view
-	 */
-	public Locale getLanguage();
-	
-	/**
-	 * sets the language of the view
-	 * @param locale the new language setting
-	 */
-	public void setLanguage(Locale locale);
+	public int getActiveWorkspaceId();	
 }

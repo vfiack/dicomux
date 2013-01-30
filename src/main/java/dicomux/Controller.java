@@ -2,7 +2,6 @@ package dicomux;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Locale;
 import java.util.Vector;
 
 import org.dcm4che2.data.DicomObject;
@@ -165,7 +164,7 @@ public class Controller implements IController {
 			chosenPlugin = suitablePlugins.firstElement().getClass().newInstance();
 			
 			// push the currently used language to the new plug-in
-			chosenPlugin.setLanguage(m_view.getLanguage());
+			chosenPlugin.updateLanguage(Translation.getLocale());
 			
 			// push the DicomObject to the plug-in
 			chosenPlugin.setData(dicomObject);
@@ -243,7 +242,7 @@ public class Controller implements IController {
 			// TODO: Do we have more Plugins in DirectoryMode ??
 			DirectoryPlugin chosenPlugin = new DirectoryPlugin();
 			// push the currently used language to the new plug-in
-			chosenPlugin.setLanguage(m_view.getLanguage());
+			chosenPlugin.updateLanguage(Translation.getLocale());
 			
 			chosenPlugin.setDirFilePath(fileObject.getParent());
 			// push the DicomObject to the plug-in
@@ -269,15 +268,14 @@ public class Controller implements IController {
 	}
 	
 
-	public void setLanguage(Locale locale) {
-		if (locale != null) {
-			m_view.setLanguage(locale);
-			for (int i = 0; i < m_model.getWorkspaceCount(); ++i) {
-				TabObject selectedWorkspace = m_model.getWorkspace(i);
-				APlugin selectedPlugin = selectedWorkspace.getPlugin();
-				if (selectedPlugin != null)
-					selectedPlugin.setLanguage(locale);
-			}
+	public void setLanguage(String lang) {
+		getSettings().set("dicomux.lang", lang);
+		Translation.setLocale(lang);
+		for (int i = 0; i < m_model.getWorkspaceCount(); ++i) {
+			TabObject selectedWorkspace = m_model.getWorkspace(i);
+			APlugin selectedPlugin = selectedWorkspace.getPlugin();
+			if (selectedPlugin != null)
+				selectedPlugin.updateLanguage(lang);
 		}
 	}
 	
@@ -297,7 +295,7 @@ public class Controller implements IController {
 					APlugin selectedPlugin = m_availblePlugins.get(i).getClass().newInstance();
 					
 					// initialize the selected plug-in with all needed data
-					selectedPlugin.setLanguage(m_view.getLanguage());
+					selectedPlugin.updateLanguage(Translation.getLocale());
 					selectedPlugin.setData(tmp.getDicomObj());
 					
 					// bind the plug-in to the workspace and write all changes to the model

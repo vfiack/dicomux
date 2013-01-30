@@ -1,5 +1,7 @@
 package dicomux;
 
+import static dicomux.Translation.tr;
+
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -13,16 +15,8 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.Locale;
-import java.util.ResourceBundle;
 import java.util.Vector;
 
 import javax.swing.BorderFactory;
@@ -38,7 +32,6 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
@@ -94,22 +87,6 @@ public class View extends JFrame implements IView {
 	private IController m_controller = new ControllerAdapter();
 	
 	/**
-	 * The global language setting for the view
-	 */
-	private ResourceBundle m_languageBundle; 
-	
-	/**
-	 * base name of the language files which are located in etc<br/>
-	 * this constant will be used by m_languageBundle
-	 */
-	private final String m_langBaseName = "language";
-	
-	/**
-	 * path to the language setting file
-	 */
-	private String m_pathLanguageSetting = System.getProperty("user.dir") + File.separator + "language.setting";
-
-	/**
 	 * determins whether there is a refresh of the workspace in progress
 	 */
 	private boolean m_refreshInProgress = false;
@@ -126,35 +103,26 @@ public class View extends JFrame implements IView {
 	
 
 	public void notifyView() {
-		refreshAllTabs();
+		if(isVisible())
+			refreshAllTabs();
 	}
 	
 
 	public void registerController(IController controller) {
 		m_controller = controller;
+		
+		//first registration, initialize
+		if(!isVisible()) {
+			initializeApplication();
+			notifyView();
+		}
 	}
 	
 
 	public int getActiveWorkspaceId() {
 		return m_tabbedPane.getSelectedIndex();
 	}
-	
 
-	public Locale getLanguage() {
-		if(m_languageBundle != null)
-			return m_languageBundle.getLocale();
-		else
-			return null;
-	}
-	
-	/**
-	 * creates a new view - Don't forget to register a view and a controller!
-	 */
-	public View() {
-		initializeLanguage(getLanguage());
-		initializeApplication();
-	}
-	
 	/**
 	 * initializes all components of the view
 	 */
@@ -213,85 +181,6 @@ public class View extends JFrame implements IView {
 	}
 	
 	/**
-	 * convenience method - initializes all language settings by checking the config file
-	 * @param loc the language which should be used for setting the language directly<br/>
-	 * if loc is null, the language in the file at m_pathLanguageSetting will be used<br/>
-	 * if the file at m_pathLanguageSetting doesn't exist, get the system.user setting<br/>
-	 * if the language from the file or the system user language is not available, select english
-	 */
-	private void initializeLanguage(Locale loc) {
-		Locale locale = null;
-		
-		if(loc == null){
-			try { // try to load the language setting from file
-				BufferedReader br = new BufferedReader(new FileReader(new File(m_pathLanguageSetting)));
-				String lang = br.readLine();
-				locale = new Locale(lang);
-				br.close();
-			} catch (IOException e) { // get the language of the system
-				locale = new Locale(System.getProperty("user.language"));
-			}
-			
-			// check if the automatically selected language is available - otherwise select english
-			if (!getAvailableLanguages().contains(locale.getLanguage()))
-				locale = new Locale("en");
-		}
-		else{ // set language directly
-			locale = loc;
-		}
-		
-		// set the global language for all GUI Elements (load the ResourceBundle)
-		m_languageBundle = ResourceBundle.getBundle(m_langBaseName, locale);
-		// initialize all localization entries for JFileChooser
-		initializeJFileChooser();
-	}
-	
-	/**
-	 * big and ugly convenience method - initializes the JFileChooser settings
-	 */
-	public void initializeJFileChooser() {
-		UIManager.put("FileChooser.readOnly", Boolean.TRUE);
-		UIManager.put("FileChooser.openDialogTitleText", m_languageBundle.getString("openDialogTitleText"));
-		UIManager.put("FileChooser.saveDialogTitleText", m_languageBundle.getString("saveDialogTitleText"));
-		UIManager.put("FileChooser.saveInLabelText", m_languageBundle.getString("saveInLabelText"));
-		UIManager.put("FileChooser.fileNameHeaderText", m_languageBundle.getString("fileNameHeaderText"));
-		UIManager.put("FileChooser.fileSizeHeaderText", m_languageBundle.getString("fileSizeHeaderText"));
-		UIManager.put("FileChooser.fileTypeHeaderText", m_languageBundle.getString("fileTypeHeaderText"));
-		UIManager.put("FileChooser.fileDateHeaderText", m_languageBundle.getString("fileDateHeaderText"));
-		UIManager.put("FileChooser.fileAttrHeaderText", m_languageBundle.getString("fileAttrHeaderText"));
-		UIManager.put("FileChooser.directoryOpenButtonText", m_languageBundle.getString("directoryOpenButtonText"));
-		UIManager.put("FileChooser.directoryOpenButtonToolTipText", m_languageBundle.getString("directoryOpenButtonToolTipText"));
-		UIManager.put("FileChooser.acceptAllFileFilterText" , m_languageBundle.getString("acceptAllFileFilterText"));
-		UIManager.put("FileChooser.cancelButtonText" , m_languageBundle.getString("cancelButtonText"));
-		UIManager.put("FileChooser.cancelButtonToolTipText" , m_languageBundle.getString("cancelButtonToolTipText"));
-		UIManager.put("FileChooser.detailsViewButtonAccessibleName" , m_languageBundle.getString("detailsViewButtonAccessibleName"));
-		UIManager.put("FileChooser.detailsViewButtonToolTipText" , m_languageBundle.getString("detailsViewButtonToolTipText"));
-		UIManager.put("FileChooser.directoryDescriptionText" , m_languageBundle.getString("directoryDescriptionText"));
-		UIManager.put("FileChooser.fileDescriptionText" , m_languageBundle.getString("fileDescriptionText"));
-		UIManager.put("FileChooser.fileNameLabelText" , m_languageBundle.getString("fileNameLabelText"));
-		UIManager.put("FileChooser.filesOfTypeLabelText" , m_languageBundle.getString("filesOfTypeLabelText"));
-		UIManager.put("FileChooser.helpButtonText" , m_languageBundle.getString("helpButtonText"));
-		UIManager.put("FileChooser.helpButtonToolTipText" , m_languageBundle.getString("helpButtonToolTipText"));
-		UIManager.put("FileChooser.homeFolderAccessibleName" , m_languageBundle.getString("homeFolderAccessibleName"));
-		UIManager.put("FileChooser.homeFolderToolTipText" , m_languageBundle.getString("homeFolderToolTipText"));
-		UIManager.put("FileChooser.listViewButtonAccessibleName" , m_languageBundle.getString("listViewButtonAccessibleName"));
-		UIManager.put("FileChooser.listViewButtonToolTipText" , m_languageBundle.getString("listViewButtonToolTipText"));
-		UIManager.put("FileChooser.lookInLabelText" , m_languageBundle.getString("lookInLabelText"));
-		UIManager.put("FileChooser.newFolderAccessibleName" , m_languageBundle.getString("newFolderAccessibleName"));
-		UIManager.put("FileChooser.newFolderErrorText" , m_languageBundle.getString("newFolderErrorText"));
-		UIManager.put("FileChooser.newFolderToolTipText" , m_languageBundle.getString("newFolderToolTipText"));
-		UIManager.put("FileChooser.openButtonText" , m_languageBundle.getString("openButtonText"));
-		UIManager.put("FileChooser.openButtonToolTipText" , m_languageBundle.getString("openButtonToolTipText"));
-		UIManager.put("FileChooser.refreshActionLabelText" , m_languageBundle.getString("refreshActionLabelText"));
-		UIManager.put("FileChooser.saveButtonText" , m_languageBundle.getString("saveButtonText"));
-		UIManager.put("FileChooser.saveButtonToolTipText" , m_languageBundle.getString("saveButtonToolTipText"));
-		UIManager.put("FileChooser.updateButtonText" , m_languageBundle.getString("updateButtonText"));
-		UIManager.put("FileChooser.updateButtonToolTipText" , m_languageBundle.getString("updateButtonToolTipText"));
-		UIManager.put("FileChooser.upFolderAccessibleName" , m_languageBundle.getString("upFolderAccessibleName"));
-		UIManager.put("FileChooser.upFolderToolTipText" , m_languageBundle.getString("upFolderToolTipText"));
-	}
-	
-	/**
 	 * convenience method - initializes the whole main menu
 	 */
 	private void initializeMenus() {
@@ -306,22 +195,22 @@ public class View extends JFrame implements IView {
 	 * a convenience method for adding a file menu to the main menu
 	 */
 	private void addFileMenu() {
-		JMenu menu = new JMenu(m_languageBundle.getString("key_file"));
-		JMenuItem tmp = new JMenuItem(m_languageBundle.getString("key_dicomQuery"));
+		JMenu menu = new JMenu(tr("key_file"));
+		JMenuItem tmp = new JMenuItem(tr("key_dicomQuery"));
 		tmp.addActionListener(new ActionListener() {		
 			public void actionPerformed(ActionEvent e) {
 				m_controller.openDicomQueryDialog();
 			}
 		});
 		menu.add(tmp);
-		tmp = new JMenuItem(m_languageBundle.getString("key_openFile"));
+		tmp = new JMenuItem(tr("key_openFile"));
 		tmp.addActionListener(new ActionListener() {		
 			public void actionPerformed(ActionEvent e) {
 				m_controller.openDicomFileDialog();
 			}
 		});
 		menu.add(tmp);
-		tmp = new JMenuItem(m_languageBundle.getString("key_openDir"));
+		tmp = new JMenuItem(tr("key_openDir"));
 		tmp.addActionListener(new ActionListener() {		
 			public void actionPerformed(ActionEvent e) {
 				m_controller.openDicomDirectoryDialog();
@@ -330,7 +219,7 @@ public class View extends JFrame implements IView {
 		menu.add(tmp);
 		menu.addSeparator();
 		
-		tmp = new JMenuItem(m_languageBundle.getString("key_settings"));
+		tmp = new JMenuItem(tr("key_settings"));
 		tmp.addActionListener(new ActionListener() {		
 			public void actionPerformed(ActionEvent e) {
 				m_controller.openSettings();
@@ -339,14 +228,14 @@ public class View extends JFrame implements IView {
 		menu.add(tmp);
 		menu.addSeparator();
 		
-		tmp = new JMenuItem(m_languageBundle.getString("key_closeTab"));
+		tmp = new JMenuItem(tr("key_closeTab"));
 		tmp.addActionListener(new ActionListener() {		
 			public void actionPerformed(ActionEvent e) {
 				m_controller.closeWorkspace();
 			}
 		});
 		menu.add(tmp);
-		tmp = new JMenuItem(m_languageBundle.getString("key_closeAllTabs"));
+		tmp = new JMenuItem(tr("key_closeAllTabs"));
 		tmp.addActionListener(new ActionListener() {		
 			public void actionPerformed(ActionEvent e) {
 				m_controller.closeAllWorkspaces();
@@ -355,7 +244,7 @@ public class View extends JFrame implements IView {
 		menu.add(tmp);
 		menu.addSeparator();
 		
-		tmp = new JMenuItem(m_languageBundle.getString("key_exit"));
+		tmp = new JMenuItem(tr("key_exit"));
 		tmp.addActionListener(new ActionListener() {		
 			public void actionPerformed(ActionEvent e) {
 				m_controller.closeApplication();
@@ -369,7 +258,7 @@ public class View extends JFrame implements IView {
 	 * a convenience method for adding a menu for plugin selection to the main menu
 	 */
 	private void addPluginMenu() {
-		m_pluginMenu = new JMenu(m_languageBundle.getString("key_view"));
+		m_pluginMenu = new JMenu(tr("key_view"));
 		addPluginMenuEntries(null);
 		m_menuBar.add(m_pluginMenu);
 	}
@@ -405,15 +294,12 @@ public class View extends JFrame implements IView {
 	private void addLanguageMenu() {
 		ActionListener langAL = new ActionListener() { // the action listener for all language change actions
 		
-			public void actionPerformed(ActionEvent arg0) {
-				// build new Locale
-				Locale newLocale = new Locale(arg0.getActionCommand());
+			public void actionPerformed(ActionEvent ae) {
+				String lang = ae.getActionCommand();
 				
 				// inform the controller what happened
-				m_controller.setLanguage(newLocale);
+				m_controller.setLanguage(lang);
 				
-				// reinitialize the view
-				initializeLanguage(newLocale);
 				initializeMenus();
 				refreshAllTabs();
 				repaint();
@@ -421,15 +307,14 @@ public class View extends JFrame implements IView {
 		};
 		
 		// create a new language menu and add all available languages to it
-		JMenu menu = new JMenu(m_languageBundle.getString("key_language"));
-		Vector<String> langList = getAvailableLanguages();
-		for (String i : langList) {
+		JMenu menu = new JMenu(tr("key_language"));
+		for (String i : getAvailableLanguages()) {
 			JMenuItem tmp = new JMenuItem(i);
 			tmp.addActionListener(langAL);
 			menu.add(tmp);
 		}
 		menu.addSeparator();
-		JMenuItem tmp = new JMenuItem(m_languageBundle.getString("key_languageNotification"));
+		JMenuItem tmp = new JMenuItem(tr("key_languageNotification"));
 		tmp.setEnabled(false);
 		menu.add(tmp);
 		
@@ -438,51 +323,21 @@ public class View extends JFrame implements IView {
 	
 	/**
 	 * convenience method for getting a list of all available languages<br/>
-	 * This method invokes availableLanguages.settings</br>
-	 * If the file is not available, the Vector will be empty.
-	 * @return a Vector containing all available languages in the following form ("de", "en", ...)
+	 * @return an array containing all available languages in the following form ("de", "en", ...)
 	 */
-	private Vector<String> getAvailableLanguages() {
-		URL listFilePath = this.getClass().getClassLoader().getResource("availableLanguages.settings");
-		Vector<String> langs = new Vector<String>(2);
-		if (listFilePath != null) {
-			try {
-				InputStreamReader iStream = new InputStreamReader(listFilePath.openStream()); 
-				BufferedReader listFile = new BufferedReader(iStream);
-				
-				String line = listFile.readLine();
-				while(line != null) {
-					langs.add(line);
-					line = listFile.readLine();
-				}
-				
-				listFile.close();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		
-		return langs;
-	}
-	
-
-	public void setLanguage(Locale locale) {
-		// We try to save the language setting now. We simply want to load it at the next start.
-		try {
-			FileWriter fw = new FileWriter(m_pathLanguageSetting);
-			fw.write(locale.getLanguage());
-			fw.close();
-		} catch (IOException e) {
-			System.err.println("ERROR: Couldn't write language setting to " + m_pathLanguageSetting);
-		}
-	}
+	private String[] getAvailableLanguages() {
+		if(m_controller.getSettings() == null)
+			return new String[0];
+			
+		return m_controller.getSettings().get("dicomux.lang.available").split(",");
+	}	
 	
 	/**
 	 * A convenience method for adding a help menu to the main menu.
 	 */
 	private void addHelpMenu() {
-		JMenu menu = new JMenu(m_languageBundle.getString("key_help"));
-		JMenuItem tmp = new JMenuItem(m_languageBundle.getString("key_about"));
+		JMenu menu = new JMenu(tr("key_help"));
+		JMenuItem tmp = new JMenuItem(tr("key_about"));
 		tmp.addActionListener(new ActionListener() {
 		
 			public void actionPerformed(ActionEvent e) {
@@ -517,31 +372,31 @@ public class View extends JFrame implements IView {
 				switch (tmp.getTabState()) {
 				case WELCOME:
 					m_tabbedPane.add(m_dialogs.makeWelcomeTab());
-					name = m_languageBundle.getString("key_welcome");
+					name = tr("key_welcome");
 					break;
 				case SETTINGS:
 					m_tabbedPane.add(m_dialogs.makeSettingsTab());
-					name = m_languageBundle.getString("key_settings");
+					name = tr("key_settings");
 					break;					
 				case DICOM_QUERY:
 					m_tabbedPane.add(m_dialogs.makeDicomQueryTab());
-					name = m_languageBundle.getString("key_query");
+					name = tr("key_query");
 					break;
 				case FILE_OPEN:
 					m_tabbedPane.add(m_dialogs.makeOpenFileTab());
-					name = m_languageBundle.getString("key_open");
+					name = tr("key_open");
 					break;
 				case DIR_OPEN:
 					m_tabbedPane.add(m_dialogs.makeOpenDirTab());
-					name = m_languageBundle.getString("key_open");
+					name = tr("key_open");
 					break;
 				case ERROR_OPEN:
 					m_tabbedPane.add(m_dialogs.makeErrorOpenTab(tmp.getName()));
-					name = m_languageBundle.getString("key_error");
+					name = tr("key_error");
 					break;
 				case ABOUT:
 					m_tabbedPane.add(m_dialogs.makeAboutTab());
-					name = m_languageBundle.getString("key_about");
+					name = tr("key_about");
 					break;
 				case PLUGIN_ACTIVE:
 					m_tabbedPane.add(tmp.getContent());
@@ -581,7 +436,7 @@ public class View extends JFrame implements IView {
 			JPanel contentHead = new JPanel(new BorderLayout(5, 0), false);
 			content.add(contentHead, BorderLayout.NORTH);
 			
-			contentHead.add(makeMessage(m_languageBundle.getString("key_html_welcome")), BorderLayout.NORTH);
+			contentHead.add(makeMessage(tr("key_html_welcome")), BorderLayout.NORTH);
 			contentHead.add(makeOpenButtons(), BorderLayout.SOUTH);
 			
 			return content;
@@ -593,7 +448,7 @@ public class View extends JFrame implements IView {
 		 */
 		protected JComponent makeSettingsTab() {
 			JPanel content = new JPanel(new BorderLayout(5 , 5), false);
-			content.add(makeMessage(m_languageBundle.getString("key_html_settings")), BorderLayout.NORTH);
+			content.add(makeMessage(tr("key_html_settings")), BorderLayout.NORTH);
 
 			JPanel wrapper = new JPanel(new BorderLayout());
 			wrapper.add(new SettingsPanel(m_controller), BorderLayout.NORTH);
@@ -608,7 +463,7 @@ public class View extends JFrame implements IView {
 		 */
 		protected JComponent makeDicomQueryTab() {
 			JPanel content = new JPanel(new BorderLayout(5 , 5), false);
-			content.add(makeMessage(m_languageBundle.getString("key_html_query")), BorderLayout.NORTH);
+			content.add(makeMessage(tr("key_html_query")), BorderLayout.NORTH);
 
 			JPanel wrapper = new JPanel(new BorderLayout());
 			wrapper.add(new QueryPanel(m_controller), BorderLayout.NORTH);
@@ -623,11 +478,10 @@ public class View extends JFrame implements IView {
 		 */
 		protected JComponent makeOpenFileTab() {
 			JPanel content = new JPanel(new BorderLayout(5 , 5), false);
-			content.add(makeMessage(m_languageBundle.getString("key_html_openFile")), BorderLayout.NORTH);
+			content.add(makeMessage(tr("key_html_openFile")), BorderLayout.NORTH);
 			
 			JFileChooser filechooser = new JFileChooser(m_lastSelectedFilePath);
 			filechooser.setDialogType(JFileChooser.OPEN_DIALOG);
-			filechooser.setLocale(m_languageBundle.getLocale());		// Set the current language to the file chooser!
 			filechooser.addActionListener(new ActionListener() {
 			
 				public void actionPerformed(ActionEvent e) {			// declare what to do if the user presses OK / Cancel
@@ -651,11 +505,10 @@ public class View extends JFrame implements IView {
 		 */
 		protected JComponent makeOpenDirTab() {
 			JPanel content = new JPanel(new BorderLayout(5 , 5), false);
-			content.add(makeMessage(m_languageBundle.getString("key_html_openDir")), BorderLayout.NORTH);
+			content.add(makeMessage(tr("key_html_openDir")), BorderLayout.NORTH);
 			
 			JFileChooser filechooser = new JFileChooser();
 			filechooser.setDialogType(JFileChooser.OPEN_DIALOG);
-			filechooser.setLocale(m_languageBundle.getLocale());		// Set the current language to the file chooser!
 			filechooser.addActionListener(new ActionListener() {
 			
 				public void actionPerformed(ActionEvent e) {			// declare what to do if the user presses OK / Cancel
@@ -680,7 +533,7 @@ public class View extends JFrame implements IView {
 			JPanel contentHead = new JPanel(new BorderLayout(5, 0), false);
 			content.add(contentHead, BorderLayout.NORTH);
 			
-			contentHead.add(makeMessage(m_languageBundle.getString("key_html_errOpenFile")), BorderLayout.NORTH);
+			contentHead.add(makeMessage(tr("key_html_errOpenFile")), BorderLayout.NORTH);
 			contentHead.add(makeOpenButtons(), BorderLayout.CENTER);
 			contentHead.add(makeMessage("Error code: " + msg), BorderLayout.SOUTH);
 			
@@ -704,7 +557,7 @@ public class View extends JFrame implements IView {
 		 * @return the HTML panel
 		 */
 		private JEditorPane getHTMLPane(String propKey) {
-			JEditorPane content = new JEditorPane("text/html", getParsedHTML(m_languageBundle.getString(propKey)));
+			JEditorPane content = new JEditorPane("text/html", getParsedHTML(tr(propKey)));
 			content.setEditable(false);
 			content.setBorder(BorderFactory.createLineBorder(Color.BLACK, 0));
 			
@@ -787,7 +640,7 @@ public class View extends JFrame implements IView {
 		 */
 		private JComponent makeOpenButtons() {
 			JPanel retVal = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0), false);
-			JButton tmp = new JButton(m_languageBundle.getString("key_dicomQuery"));
+			JButton tmp = new JButton(tr("key_dicomQuery"));
 			tmp.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/system-search.png")));
 			tmp.addActionListener(new ActionListener() {			
 				public void actionPerformed(ActionEvent e) {
@@ -796,7 +649,7 @@ public class View extends JFrame implements IView {
 			});
 			retVal.add(tmp);
 			
-			tmp = new JButton(m_languageBundle.getString("key_openFile"));
+			tmp = new JButton(tr("key_openFile"));
 			tmp.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/text-x-generic.png")));
 			tmp.addActionListener(new ActionListener() {			
 				public void actionPerformed(ActionEvent e) {
@@ -805,7 +658,7 @@ public class View extends JFrame implements IView {
 			});
 			retVal.add(tmp);
 			
-			tmp = new JButton(m_languageBundle.getString("key_openDir"));
+			tmp = new JButton(tr("key_openDir"));
 			tmp.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/folder.png")));
 			tmp.addActionListener(new ActionListener() {			
 				public void actionPerformed(ActionEvent e) {
@@ -814,7 +667,7 @@ public class View extends JFrame implements IView {
 			});
 			retVal.add(tmp);
 			
-			tmp = new JButton(m_languageBundle.getString("key_exit"));
+			tmp = new JButton(tr("key_exit"));
 			tmp.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/system-log-out.png")));
 			tmp.addActionListener(new ActionListener() {			
 				public void actionPerformed(ActionEvent e) {
@@ -894,7 +747,7 @@ public class View extends JFrame implements IView {
 			
 			public TabButton() {
 				setPreferredSize(new Dimension(buttonSize, buttonSize));
-				setToolTipText(m_languageBundle.getString("key_closeTab"));
+				setToolTipText(tr("key_closeTab"));
 				setUI(new BasicButtonUI());
 				setContentAreaFilled(false);
 				setFocusable(false);

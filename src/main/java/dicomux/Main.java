@@ -21,6 +21,8 @@ public class Main {
 			System.exit(1);
 		}
 		
+		Translation.setLocale(settings.get("dicomux.lang"));
+		
 		// create model and view
 		IView view = new View();
 		IModel model = new Model(view);

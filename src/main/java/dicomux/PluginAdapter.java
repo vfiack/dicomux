@@ -1,7 +1,5 @@
 package dicomux;
 
-import java.util.Locale;
-
 import org.dcm4che2.data.DicomObject;
 
 /**
@@ -24,7 +22,7 @@ public class PluginAdapter extends APlugin {
 	}
 
 
-	public void setLanguage(Locale locale) {
+	public void updateLanguage(String lang) {
 		// TODO Auto-generated method stub
 
 	}

@@ -1,7 +1,6 @@
 package dicomux;
 
 import java.awt.BorderLayout;
-import java.util.Locale;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -61,5 +60,5 @@ public abstract class APlugin {
 	 * Sets the used language of the plug-in. This method shall be used before calling String getName().
 	 * @param locale
 	 */
-	public abstract void setLanguage(Locale locale);
+	public abstract void updateLanguage(String lang);
 }

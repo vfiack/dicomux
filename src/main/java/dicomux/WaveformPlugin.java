@@ -28,7 +28,6 @@ import java.awt.geom.Line2D;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.text.DecimalFormat;
-import java.util.Locale;
 import java.util.Vector;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -42,6 +41,7 @@ import org.dcm4che2.data.DicomElement;
 import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.SpecificCharacterSet;
 import org.dcm4che2.data.Tag;
+import static dicomux.Translation.tr;
 
 /**
  * This plug-in is for displaying waveform ecg data in a graphical way.
@@ -80,17 +80,6 @@ public class WaveformPlugin extends APlugin {
 	private final String FOURPARTSPLUS = "4x2.5s & RS";
 	private final String TWOPARTS = "2x5s";
 	
-	// Strings used for localization
-	private String labelMinimum;
-	private String labelMaximum;
-	private String labelPosition;
-	private String labelSecond;
-	private String labelDisplayFormat;
-	private String displayFormatDefault;
-	private String displayFormatFourParts;
-	private String displayFormatFourPartsPlus;
-	private String displayFormatTwoParts;
-	
 	public WaveformPlugin() throws Exception {
 		super();
 		m_keyTag.addKey(Tag.Modality, "ECG");
@@ -101,11 +90,9 @@ public class WaveformPlugin extends APlugin {
 		this.fitToPage = true;
 		this.displayFormat = DEFAULTFORMAT;
 		this.displayFormatChanged = false;
-		this.rhythm = null;
-		
+		this.rhythm = null;		
 	}
 	
-
 	public String getName() {
 		return "Waveform ECG";
 	}
@@ -316,35 +303,8 @@ public class WaveformPlugin extends APlugin {
 		this.displayFactorWidth = 1;
 		this.displayFactorHeight = this.numberOfChannels;
 	}
-	
-	// TODO implement if necessary
 
-	public void setLanguage(Locale locale) {
-		if(locale.getLanguage() == "de") {
-			// deutsch
-			this.labelMinimum = "Mimimum";
-			this.labelMaximum = "Maximum";
-			this.labelPosition = "Position";
-			this.labelSecond = "Sekunde";
-			this.labelDisplayFormat = "Anzeigeformat";
-			this.displayFormatDefault = "1x10 Sekunden";
-			this.displayFormatFourParts = "4x2,5 Sekunden";
-			this.displayFormatFourPartsPlus = "4x2,5 Sekunden mit Rhythmusstreifen";
-			this.displayFormatTwoParts = "2X5 Sekunden";	
-		}
-		else {
-		   // englisch (default/dropback)
-			this.labelMinimum = "Minimum";
-			this.labelMaximum = "Maximum";
-			this.labelPosition = "Position";
-			this.labelSecond = "Second";
-			this.labelDisplayFormat = "Display format";
-			this.displayFormatDefault = "1x10 Seconds";
-			this.displayFormatFourParts = "4x2.5 Seconds";
-			this.displayFormatFourPartsPlus = "4x2.5 Seconds with rhythm strip";
-			this.displayFormatTwoParts = "2x5 Seconds";	
-		}
-		
+	public void updateLanguage(String lang) {
 		if(this.infoPanel != null) {
 			this.infoPanel.updateLanguage();
 		}
@@ -844,7 +804,7 @@ public class WaveformPlugin extends APlugin {
 			c2.ipady = 5;
 			c2.anchor = GridBagConstraints.LINE_START;
 			
-			this.minimumLabel = new JLabel(labelMinimum + ":");
+			this.minimumLabel = new JLabel(tr("wfMinimum"));
 			nameMinMaxPanel.add(this.minimumLabel, c2);
 			
 			GridBagConstraints c3 = new GridBagConstraints();
@@ -864,7 +824,7 @@ public class WaveformPlugin extends APlugin {
 			c4.ipady = 5;
 			c4.anchor = GridBagConstraints.LINE_START;
 			
-			this.maximumLabel = new JLabel( labelMaximum + ":");
+			this.maximumLabel = new JLabel(tr("wfMaximum"));
 			nameMinMaxPanel.add(this.maximumLabel, c4);
 			
 			GridBagConstraints c5 = new GridBagConstraints();
@@ -891,7 +851,7 @@ public class WaveformPlugin extends APlugin {
 			c6.ipady = 5;
 			c6.anchor = GridBagConstraints.LINE_START;
 			
-			this.positionLabel = new JLabel(labelPosition + "");
+			this.positionLabel = new JLabel(tr("wfPosition"));
 			positionPanel.add(this.positionLabel, c6);
 			
 			GridBagConstraints c7 = new GridBagConstraints();
@@ -920,7 +880,7 @@ public class WaveformPlugin extends APlugin {
 			c9.ipady = 5;
 			c9.anchor = GridBagConstraints.LINE_START;
 			
-			this.secondsLabel = new JLabel(labelSecond + ":");
+			this.secondsLabel = new JLabel(tr("wfSecond"));
 			positionPanel.add(this.secondsLabel, c9);
 
 			GridBagConstraints c10 = new GridBagConstraints();
@@ -976,10 +936,10 @@ public class WaveformPlugin extends APlugin {
 		}
 		
 		public void updateLanguage() {
-			this.minimumLabel.setText(labelMinimum + ":");
-			this.maximumLabel.setText( labelMaximum + ":");
-			this.positionLabel.setText(labelPosition + "");
-			this.secondsLabel.setText(labelSecond + ":");
+			this.minimumLabel.setText(tr("wfMinimum"));
+			this.maximumLabel.setText(tr("wfMaximum"));
+			this.positionLabel.setText(tr("wfPosition"));
+			this.secondsLabel.setText(tr("wfSecond"));
 		}
 		
 	}
@@ -1281,10 +1241,10 @@ public class WaveformPlugin extends APlugin {
 		
 		private void fillVector() {
 			this.displayFormatsStrings = new Vector<String>();
-			this.displayFormatsStrings.add(displayFormatDefault);
-			this.displayFormatsStrings.add(displayFormatTwoParts);
-			this.displayFormatsStrings.add(displayFormatFourParts);
-			this.displayFormatsStrings.add(displayFormatFourPartsPlus);
+			this.displayFormatsStrings.add(tr("wfFormatDefault"));
+			this.displayFormatsStrings.add(tr("wfFormatTwoParts"));
+			this.displayFormatsStrings.add(tr("wfFormatFourParts"));
+			this.displayFormatsStrings.add(tr("wfFormatFourPartsPlus"));
 		}
 		
 		private void addZoomButtons() {
@@ -1333,7 +1293,7 @@ public class WaveformPlugin extends APlugin {
 		}
 		
 		private void addDisplayFormatComponent() {
-			displayLabel = new JLabel(labelDisplayFormat + ":");
+			displayLabel = new JLabel(tr("wfDisplayFormat"));
 			this.add(displayLabel);
 				
 			displayCombo = new JComboBox(displayFormatsStrings);	
@@ -1342,16 +1302,16 @@ public class WaveformPlugin extends APlugin {
 				public void actionPerformed(ActionEvent e) {
 					JComboBox cb = (JComboBox) e.getSource();
 					String choosen = (String) cb.getSelectedItem();
-					if(choosen.equals(displayFormatDefault)) {
+					if(choosen.equals(tr("wfdisplayFormatDefault"))) {
 						displayFormat = DEFAULTFORMAT;
 					}
-					else if(choosen.equals(displayFormatTwoParts)) {
+					else if(choosen.equals(tr("wfdisplayFormatTwoParts"))) {
 						displayFormat = TWOPARTS;
 					}
-					else if(choosen.equals(displayFormatFourParts)) {
+					else if(choosen.equals(tr("wfdisplayFormatFourParts"))) {
 						displayFormat = FOURPARTS;
 					}
-					else if(choosen.equals(displayFormatFourPartsPlus)) {
+					else if(choosen.equals(tr("wfdisplayFormatFourPartsPlus"))) {
 						displayFormat = FOURPARTSPLUS;
 					}
 					displayFormatChanged = true;

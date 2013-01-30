@@ -1,7 +1,6 @@
 package dicomux;
 
 import java.net.URL;
-import java.util.Locale;
 
 import dicomux.settings.Settings;
 
@@ -73,7 +72,7 @@ public class ControllerAdapter implements IController {
 	}
 
 
-	public void setLanguage(Locale locale) {
+	public void setLanguage(String lang) {
 		// TODO Auto-generated method stub
 
 	}

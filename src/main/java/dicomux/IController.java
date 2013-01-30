@@ -1,7 +1,6 @@
 package dicomux;
 
 import java.net.URL;
-import java.util.Locale;
 
 import dicomux.settings.Settings;
 
@@ -90,7 +89,7 @@ public interface IController {
 	 * informs the model that the language of the application has been changed
 	 * @param locale 
 	 */
-	void setLanguage(Locale locale);
+	void setLanguage(String lang);
 	
 	/**
 	 * sets the active plug-in for the active workspace

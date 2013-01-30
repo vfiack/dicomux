@@ -9,7 +9,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.nio.ByteBuffer;
-import java.util.Locale;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -104,11 +103,6 @@ public class PDFPlugin extends APlugin {
 	JLabel m_pageOfLable;
 	
 	/**
-	 * the Language
-	 */
-	Locale m_locale;
-
-	/**
 	 * page of language Strings
 	 */
 	String m_pageLabel = "Page ", m_ofLabel = " of ";
@@ -141,7 +135,6 @@ public class PDFPlugin extends APlugin {
 		m_pdfPanel.setBackground(Color.WHITE);
 		
 		m_content.add(m_pdfPanel, BorderLayout.CENTER);
-		m_locale =  new Locale(System.getProperty("user.language"));
 	}
 	/**
 	 * convenience method - creates a tools menu and returns it
@@ -404,10 +397,8 @@ public class PDFPlugin extends APlugin {
 //	}
 	
 
-	public void setLanguage(Locale locale) {
-		m_locale = locale;
-		
-		if(m_locale.getLanguage() == "de"){
+	public void updateLanguage(String lang) {
+		if(lang == "de"){
 			m_pageLabel = "Seite "; m_ofLabel = " von ";}
 		else{
 			m_pageLabel = "Page "; m_ofLabel = " of ";}
