@@ -95,10 +95,10 @@ public class DicomQuery {
 		keys.putString(Tag.PatientName, VR.PN, patientName);
 		keys.putString(Tag.StudyDate, VR.DA, dateRange);
 		
-		keys.putNull(Tag.InstanceNumber, VR.IS);
-		keys.putNull(Tag.SOPClassUID, VR.UI);
+		keys.putNull(Tag.StudyInstanceUID, VR.UI);
+		keys.putNull(Tag.SeriesInstanceUID, VR.UI);
 		keys.putNull(Tag.SOPInstanceUID, VR.UI);
-
+		
 		keys.putNull(Tag.StudyID, VR.SH);
 		keys.putNull(Tag.StudyTime, VR.TM);
 		keys.putNull(Tag.StudyDescription, VR.LO);				

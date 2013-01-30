@@ -28,6 +28,7 @@ import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.Tag;
 
 import dicomux.IController;
+import dicomux.query.web.DicomWebQuery;
 import dicomux.settings.Settings;
 
 public class QueryPanel extends JPanel {
@@ -109,10 +110,26 @@ public class QueryPanel extends JPanel {
 		return new URL(wadoUrl);
 	}
 	
-	private void runQuery() {
-		DicomQuery query = new DicomQuery();
-		
+	private void runQuery() {		
 		Settings settings = controller.getSettings();
+		
+		DicomQuery query = null;
+		String qbroker = settings.get("dicomux.qbroker");
+		if(qbroker != null && !qbroker.isEmpty()) {
+			String pacsId = settings.get("dicomux.qbroker.pacsId");
+			try {
+				URL url = new URL(qbroker);
+				query = new DicomWebQuery(pacsId, url);
+			} catch(MalformedURLException e) {
+				//XXX gui error
+				e.printStackTrace();
+				return;
+			}
+		} else {
+			query = new DicomQuery();
+		}
+
+		
 		query.setLocalInfos(settings.get("dicomux.local.aet"));
 		query.setRemoteInfos(
 				settings.get("dicomux.pacs.aet"),

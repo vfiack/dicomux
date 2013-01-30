@@ -25,7 +25,11 @@ public class SettingsPanel extends JPanel {
 	private JTextField remoteHost;
 	private JTextField remotePort;
 	
+	private JTextField qbroker;
+	private JTextField qbrokerPacsId;
+	
 	private JTextField wadoUrl;
+	
 	private JButton apply;
 	
 	public SettingsPanel(IController controller) {
@@ -36,6 +40,8 @@ public class SettingsPanel extends JPanel {
 		this.remoteAET = new JTextField(controller.getSettings().get("dicomux.pacs.aet")); 
 		this.remoteHost = new JTextField(controller.getSettings().get("dicomux.pacs.host")); 
 		this.remotePort = new JTextField(controller.getSettings().get("dicomux.pacs.port")); 
+		this.qbroker = new JTextField(controller.getSettings().get("dicomux.qbroker"));
+		this.qbrokerPacsId = new JTextField(controller.getSettings().get("dicomux.qbroker.pacsId"));
 		this.wadoUrl = new JTextField(controller.getSettings().get("dicomux.pacs.wado"));
 		this.apply = new JButton("Apply");
 		
@@ -62,6 +68,8 @@ public class SettingsPanel extends JPanel {
 		setSetting("dicomux.pacs.aet", remoteAET);
 		setSetting("dicomux.pacs.host", remoteHost);
 		setSetting("dicomux.pacs.port", remotePort);
+		setSetting("dicomux.qbroker", qbroker);
+		setSetting("dicomux.qbroker.pacsId", qbrokerPacsId);
 		setSetting("dicomux.pacs.wado", wadoUrl);
 				
 		JOptionPane.showMessageDialog(this, "Settings applied successfully!");
@@ -125,6 +133,29 @@ public class SettingsPanel extends JPanel {
 		c.gridy = 2;
 		c.weightx = 0;
 		c.insets = noPadding;		
+		panel.add(new JLabel("Query broker: "), c);
+		
+		c.gridx = 1;
+		c.gridwidth = 3;
+		c.weightx = 1;
+		c.insets = rightPadding;
+		panel.add(qbroker, c);
+
+		c.gridx = 4;
+		c.weightx = 0;
+		c.insets = noPadding;		
+		panel.add(new JLabel("Pacs Id: "), c);
+		
+		c.gridx = 5;
+		c.gridwidth = 1;
+		c.weightx = 1;
+		c.insets = rightPadding;
+		panel.add(qbrokerPacsId, c);
+		
+		c.gridx = 0;
+		c.gridy = 3;
+		c.weightx = 0;
+		c.insets = noPadding;		
 		panel.add(new JLabel("Wado URL: "), c);
 		
 		c.gridx = 1;
@@ -132,10 +163,9 @@ public class SettingsPanel extends JPanel {
 		c.weightx = 1;
 		c.insets = rightPadding;
 		panel.add(wadoUrl, c);
-	
-		
+			
 		c.gridx = 1;
-		c.gridy = 3;
+		c.gridy = 4;
 		c.weightx = 0;
 		c.gridwidth = 1;
 		panel.add(apply, c);	
