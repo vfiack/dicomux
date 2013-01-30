@@ -9,6 +9,7 @@ import org.dcm4che2.data.Tag;
 import org.dcm4che2.io.DicomInputStream;
 
 import dicomux.settings.Settings;
+import dicomux.waveform.WaveformPlugin;
 
 /**
  * Controller for Dicomux / Serves as a container for all necessary methods which alter the model

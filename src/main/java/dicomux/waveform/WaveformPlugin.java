@@ -1,57 +1,49 @@
-package dicomux;
+package dicomux.waveform;
 
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.Image;
-import java.awt.Point;
-import java.awt.RenderingHints;
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
-import java.awt.geom.Line2D;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.text.DecimalFormat;
 import java.util.Vector;
+
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+
 import org.dcm4che2.data.DicomElement;
 import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.SpecificCharacterSet;
 import org.dcm4che2.data.Tag;
-import static dicomux.Translation.tr;
+
+import dicomux.APlugin;
+import dicomux.waveform.ChannelDefinition.ChannelUnit;
 
 /**
  * This plug-in is for displaying waveform ecg data in a graphical way.
  * @author norbert
  */
 public class WaveformPlugin extends APlugin {
+	public static final double MAX_ZOOM_OUT = 1.0f;
+	public static final double MAX_ZOOM_IN = 10.0f;
+	public static final double ZOOM_UNIT = 0.5f;
+	public static final double NO_ZOOM = 1.0f;
+	
+	public static final String DEFAULTFORMAT = "1x10s";
+	public static final String FOURPARTS = "4x2.5s";
+	public static final String FOURPARTSPLUS = "4x2.5s & RS";
+	public static final String TWOPARTS = "2x5s";
+	
 	
 	private Vector<DrawingPanel> pannels = new Vector<DrawingPanel>(12);
 	private double zoomLevel;
-	private int mv_cells;
+	private int mvCells;
 	private int seconds;
 	private boolean fitToPage;
 	private JScrollPane scroll;
@@ -61,7 +53,7 @@ public class WaveformPlugin extends APlugin {
 	private ToolPanel tools;
 	private InfoPanel infoPanel;
 	private int numberOfSamples;		
-	private int samples_per_second;
+	private int samplesPerSecond;
 	private int data[][];
 	private ChannelDefinition[] channelDefinitions;
 	private boolean displayFormatChanged;
@@ -69,16 +61,6 @@ public class WaveformPlugin extends APlugin {
 	private int displayFactorHeight;
 	
 	private DrawingPanel rhythm;
-	
-	private final double MAX_ZOOM_OUT = 1.0f;
-	private final double MAX_ZOOM_IN = 10.0f;
-	private final double ZOOM_UNIT = 0.5f;
-	private final double NO_ZOOM = 1.0f;
-	
-	private final String DEFAULTFORMAT = "1x10s";
-	private final String FOURPARTS = "4x2.5s";
-	private final String FOURPARTSPLUS = "4x2.5s & RS";
-	private final String TWOPARTS = "2x5s";
 	
 	public WaveformPlugin() throws Exception {
 		super();
@@ -230,7 +212,7 @@ public class WaveformPlugin extends APlugin {
 		// calculate the seconds		
 		this.numberOfSamples = samples.getInt(true);
 		this.seconds = (int) (numberOfSamples / frequency);
-		this.samples_per_second = numberOfSamples / seconds;
+		this.samplesPerSecond = numberOfSamples / seconds;
 		
 		// read number of channels
 		DicomElement channels = dcm.get(Tag.NumberOfWaveformChannels);
@@ -256,7 +238,7 @@ public class WaveformPlugin extends APlugin {
 		
 		// creating the Panels for each channel 
 		for(int i = 0; i < numberOfChannels; i++) {
-			DrawingPanel drawPannel = new DrawingPanel(data[i], 0, channelDefinitions[i]);
+			DrawingPanel drawPannel = new DrawingPanel(this, data[i], 0, channelDefinitions[i]);
 			channelpane.add(drawPannel);
 			channelpane.add(Box.createRigidArea(new Dimension(0,2)));
 			// add panel to vector, used to refresh all panels (see repaintPanels)
@@ -269,7 +251,7 @@ public class WaveformPlugin extends APlugin {
 		scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		
 		// Panel which includes the Buttons for zooming 
-		this.tools = new ToolPanel();
+		this.tools = new ToolPanel(this);
 		this.tools.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
 		this.tools.setPreferredSize(new Dimension(m_content.getWidth(), 30));
 
@@ -491,7 +473,7 @@ public class WaveformPlugin extends APlugin {
 		
 		// creating the Panels for each channel 
 		for(int i = 0; i < numberOfChannels; i++) {
-			DrawingPanel drawPannel = new DrawingPanel(data[i], 0, channelDefinitions[i]);
+			DrawingPanel drawPannel = new DrawingPanel(this, data[i], 0, channelDefinitions[i]);
 			channelpane.add(drawPannel);
 			channelpane.add(Box.createRigidArea(new Dimension(0,2)));
 			// add panels to vector
@@ -575,7 +557,7 @@ public class WaveformPlugin extends APlugin {
 			{
 				start = 0;
 			}
-			DrawingPanel drawPannel = new DrawingPanel(data[i], start, channelDefinitions[i]);
+			DrawingPanel drawPannel = new DrawingPanel(this, data[i], start, channelDefinitions[i]);
 			channelpane.add(drawPannel);
 			// add panel to vector
 			this.pannels.add(drawPannel);
@@ -675,7 +657,7 @@ public class WaveformPlugin extends APlugin {
 					break;
 			}
 			
-			DrawingPanel drawPannel = new DrawingPanel(data[i], start, channelDefinitions[i]);
+			DrawingPanel drawPannel = new DrawingPanel(this, data[i], start, channelDefinitions[i]);
 			pane.add(drawPannel);
 			// add panel to vector
 			this.pannels.add(drawPannel);
@@ -699,7 +681,7 @@ public class WaveformPlugin extends APlugin {
 			}
 		}
 		
-		this.rhythm = new DrawingPanel(data[rhythm_index], 0, channelDefinitions[rhythm_index]);
+		this.rhythm = new DrawingPanel(this, data[rhythm_index], 0, channelDefinitions[rhythm_index]);
 		this.rhythm.setRhythm(true);
 		
 		this.channelpane.add(pane);
@@ -743,606 +725,67 @@ public class WaveformPlugin extends APlugin {
 			
 			double minmax_uV = Math.max(Math.abs(max), Math.abs(min));
 			double minmax_mV = minmax_uV/1000;
-			this.mv_cells = (int)Math.ceil(minmax_mV) * 2;
+			this.mvCells = (int)Math.ceil(minmax_mV) * 2;
+	}
+
+	//--
+	
+	public void resetZoom() {
+		zoomLevel = NO_ZOOM;
+		fitToPage = true;		
+		repaintPanels();
 	}
 	
-	private class InfoPanel extends JPanel {
-		
-
-		private static final long serialVersionUID = -470038831713011257L;
-		// labels for the values
-		private JLabel maximum;
-		private JLabel minimum;
-		private JLabel miliVolt;
-		private JLabel seconds;
-		private JLabel lead;
-		// labels for the identification of the values
-		private JLabel maximumLabel;
-		private JLabel minimumLabel;
-		private JLabel positionLabel;
-		private JLabel secondsLabel;
-		
-		private JPanel nameMinMaxPanel;
-		private JPanel positionPanel;
-		
-		public InfoPanel() {
-			this.maximum = new JLabel();
-			this.minimum = new JLabel();
-			this.miliVolt = new JLabel();
-			this.seconds = new JLabel();
-			this.lead = new JLabel(" ");
-			this.maximumLabel = new JLabel();
-			this.minimumLabel = new JLabel();
-			this.positionLabel = new JLabel();
-			this.secondsLabel = new JLabel();
+	public void decreaseZoomLevel() {
+		if(zoomLevel <= MAX_ZOOM_OUT)
+			return;
 			
-			this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
-			
-			nameMinMaxPanel = new JPanel();
-			nameMinMaxPanel.setPreferredSize(new Dimension(150, 70));
-			nameMinMaxPanel.setMinimumSize(new Dimension(150, 70));
-			nameMinMaxPanel.setMaximumSize(new Dimension(150, 70));
-			
-			GridBagLayout nameMinMaxlayout = new GridBagLayout();
-			nameMinMaxPanel.setLayout(nameMinMaxlayout);
-			
-			GridBagConstraints c1 = new GridBagConstraints();
-			c1.weightx = 0.5;
-			c1.gridwidth = 3;
-			c1.gridx = 0;
-			c1.gridy = 0;
-			c1.ipady = 5;
-			c1.anchor = GridBagConstraints.LINE_START;
-			
-			nameMinMaxPanel.add(this.lead, c1);
-			
-			GridBagConstraints c2 = new GridBagConstraints();
-			c2.weightx = 0.5;
-			c2.gridwidth = 2;
-			c2.gridx = 0;
-			c2.gridy = 1;
-			c2.ipady = 5;
-			c2.anchor = GridBagConstraints.LINE_START;
-			
-			this.minimumLabel = new JLabel(tr("wfMinimum"));
-			nameMinMaxPanel.add(this.minimumLabel, c2);
-			
-			GridBagConstraints c3 = new GridBagConstraints();
-			c3.weightx = 0.5;
-			c3.gridx = 1;
-			c3.gridy = 1;
-			c3.ipady = 5;
-			c3.anchor = GridBagConstraints.LINE_END;
-			
-			nameMinMaxPanel.add(this.minimum, c3);
-			
-			GridBagConstraints c4 = new GridBagConstraints();
-			c4.weightx = 0.5;
-			c4.gridwidth = 2;
-			c4.gridx = 0;
-			c4.gridy = 2;
-			c4.ipady = 5;
-			c4.anchor = GridBagConstraints.LINE_START;
-			
-			this.maximumLabel = new JLabel(tr("wfMaximum"));
-			nameMinMaxPanel.add(this.maximumLabel, c4);
-			
-			GridBagConstraints c5 = new GridBagConstraints();
-			c5.weightx = 0.5;
-			c5.gridx = 1;
-			c5.gridy = 2;
-			c5.ipady = 5;
-			c5.anchor = GridBagConstraints.LINE_END;
-			
-			nameMinMaxPanel.add(this.maximum, c5);
-			
-			positionPanel = new JPanel();
-			positionPanel.setPreferredSize(new Dimension(200, 70));
-			positionPanel.setMinimumSize(new Dimension(200, 70));
-			positionPanel.setMaximumSize(new Dimension(200, 70));
-			GridBagLayout positionLayout = new GridBagLayout();
-			positionPanel.setLayout(positionLayout);
-			
-			GridBagConstraints c6 = new GridBagConstraints();
-			c6.weightx = 0.5;
-			c6.gridwidth = 3;
-			c6.gridx = 0;
-			c6.gridy = 3;
-			c6.ipady = 5;
-			c6.anchor = GridBagConstraints.LINE_START;
-			
-			this.positionLabel = new JLabel(tr("wfPosition"));
-			positionPanel.add(this.positionLabel, c6);
-			
-			GridBagConstraints c7 = new GridBagConstraints();
-			c7.weightx = 0.5;
-			c7.gridx = 0;
-			c7.gridy = 4;
-			c7.ipady = 5;
-			c7.anchor = GridBagConstraints.LINE_START;
-			
-			JLabel mv_pos = new JLabel("mV:");
-			positionPanel.add(mv_pos, c7);
-			
-			GridBagConstraints c8 = new GridBagConstraints();
-			c8.weightx = 0.5;
-			c8.gridx = 1;
-			c8.gridy = 4;
-			c8.ipady = 5;
-			c8.anchor = GridBagConstraints.LINE_END;
-			
-			positionPanel.add(this.miliVolt, c8);
-			
-			GridBagConstraints c9 = new GridBagConstraints();
-			c9.weightx = 0.5;
-			c9.gridx = 0;
-			c9.gridy = 5;
-			c9.ipady = 5;
-			c9.anchor = GridBagConstraints.LINE_START;
-			
-			this.secondsLabel = new JLabel(tr("wfSecond"));
-			positionPanel.add(this.secondsLabel, c9);
-
-			GridBagConstraints c10 = new GridBagConstraints();
-			c10.weightx = 0.5;
-			c10.gridx = 1;
-			c10.gridy = 5;
-			c10.ipady = 5;
-			c10.anchor = GridBagConstraints.LINE_END;
-			
-			positionPanel.add(this.seconds, c10);
-			
-			this.add(nameMinMaxPanel);
-			this.add(Box.createRigidArea(new Dimension(5,0)));
-			this.add(positionPanel);
-		}
-		
-		public void setLead(String lead) {
-			this.lead.setText(lead);
-		}
-		
-		public void setMaximum(double maximum) {
-			
-			DecimalFormat form = new DecimalFormat("####.##");
-			this.maximum.setText(form.format(maximum));
-		}
-		
-		public void setMinimum(double minimum) {
-			DecimalFormat form = new DecimalFormat("####.##");
-			this.minimum.setText(form.format(minimum));
-		}
-		
-		public void setMiliVolt(double miliVolt) {
-			DecimalFormat form = new DecimalFormat("####.##");
-			this.miliVolt.setText(form.format(miliVolt));
-		}
-		
-		public void setSeconds(double seconds) {
-			DecimalFormat form = new DecimalFormat("####.##");
-			this.seconds.setText(form.format(seconds));
-		}
-		
-		public void paintComponent( Graphics g ) {
-			super.paintComponent(g); 
-			
-		    nameMinMaxPanel.setPreferredSize(new Dimension(150, 70));
-		    nameMinMaxPanel.setMinimumSize(new Dimension(150, 70));
-			nameMinMaxPanel.setMaximumSize(new Dimension(150, 70));
-			
-			positionPanel.setPreferredSize(new Dimension(200, 70));
-			positionPanel.setMinimumSize(new Dimension(200, 70));
-			positionPanel.setMaximumSize(new Dimension(200, 70));
-
-		}
-		
-		public void updateLanguage() {
-			this.minimumLabel.setText(tr("wfMinimum"));
-			this.maximumLabel.setText(tr("wfMaximum"));
-			this.positionLabel.setText(tr("wfPosition"));
-			this.secondsLabel.setText(tr("wfSecond"));
-		}
-		
+		zoomLevel -= ZOOM_UNIT;
+		fitToPage = false;
+		repaintPanels();
 	}
 	
-	/**
-	 * This class handles the drawing of the waveform
-	 * 
-	 * @author norbert
-	 *
-	 */
-	private class DrawingPanel extends JPanel {
+	public void increaseZoomLevel() {
+		if(zoomLevel >= WaveformPlugin.MAX_ZOOM_IN)
+			return;
 		
-		private static final long serialVersionUID = 856943381513072262L;
-		private int[] data;
-		private float scalingWidth;
-		private ChannelDefinition definition;
-		private int mv_cell_count;
-		private int secs_cell_count;
-		private double cellheight;
-		private double cellwidth;
-		private Dimension dim;
-		private int start;
-		private int end;
-		private double valueScaling;
-		private double offset; 
-		private boolean isRhythm;
-		private int highlightedSample;
-		
-		public DrawingPanel(int[] values, double start, ChannelDefinition definition) {
-			super();
-			this.data = values;
-			this.definition = definition;			
-			this.mv_cell_count = mv_cells;
-			this.secs_cell_count = seconds * 10;
-			this.dim = getPreferredSize();
-			// calculate height and width of the cells
-			this.cellheight = dim.getHeight() / mv_cell_count;
-			this.cellwidth = dim.getWidth() / secs_cell_count;
-			this.start = (int) (start * samples_per_second);
-			this.end = data.length;
-			this.offset = start;
-			// calculate scaling of the sample values
-			this.valueScaling = this.definition.getScaling();
-			this.highlightedSample = -1;
-			
-			addListeners();
-			this.isRhythm = false;
-		}
-		
-		public void setRhythm(boolean mode) {
-			this.isRhythm = mode;
-		}
-		
-		private void addListeners() {
-			// used to get the current position of the mouse pointer into the information panel
-			this.addMouseMotionListener( new MouseMotionAdapter() {						
-					public void mouseMoved(MouseEvent e) {			
-						double sec = offset + (e.getPoint().getX() / cellwidth * 0.1);
-
-						// lookup for the nearest sample
-						highlightedSample = (int)Math.round(samples_per_second * sec);
-						if(highlightedSample >= data.length) {
-							highlightedSample = -1;
-							infoPanel.setSeconds(0);
-							infoPanel.setMiliVolt(0);
-						} else {	
-							sec = highlightedSample / (double)samples_per_second;
-							double uV = data[highlightedSample] * valueScaling;		
-							infoPanel.setSeconds(sec);
-							infoPanel.setMiliVolt(uV/1000);
-						}
-						
-						repaint();						
-					}
-				}
-			);
-			
-			this.addMouseListener( new MouseAdapter() {
-				
-				public void mouseEntered(MouseEvent e) {
-					Toolkit toolkit = Toolkit.getDefaultToolkit();  
-					Image image = new ImageIcon(this.getClass().getClassLoader().getResource("images/cursorHand.png")).getImage();					
-					Point hotspot = new Point(7,0);
-					Cursor cursor = toolkit.createCustomCursor(image, hotspot, "dicomux"); 
-					setCursor(cursor);
-					
-					infoPanel.setLead(definition.getName());
-					infoPanel.setMaximum(definition.getMaximum_uV()/1000);
-					infoPanel.setMinimum(definition.getMinimum_uV()/1000);
-				}
-				
-				public void mouseExited(MouseEvent e) {
-					Cursor normal = new Cursor(Cursor.DEFAULT_CURSOR);
-					setCursor(normal);
-					highlightedSample = -1;
-					repaint();
-				}
-			});
-		}		
-		
-		public void paintComponent( Graphics g ) {
-			
-			super.paintComponent(g);
-			final Graphics2D g2 = (Graphics2D) g;
-			
-			// set rendering options
-			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);    
-			g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-			g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
-			g2.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
-			
-			if(displayFormat.equals(DEFAULTFORMAT) || isRhythm) {
-				this.secs_cell_count = seconds * 10;
-				this.end = this.start + this.data.length;
-			}
-			else if(displayFormat.equals(FOURPARTS)) {
-				this.secs_cell_count = (int) (2.5 * 10);
-				this.end = this.start + (int) (2.5 * samples_per_second);
-			}
-			else if(displayFormat.equals(FOURPARTSPLUS)) {
-				this.secs_cell_count = (int) (2.5 * 10);
-				this.end = this.start + (int) (2.5 * samples_per_second);
-			}
-			else if(displayFormat.equals(TWOPARTS)) {
-				this.secs_cell_count = 5 * 10;
-				this.end = this.start + 5 * samples_per_second;
-			}
-
-			//set background color to white
-			this.setBackground(Color.WHITE);
-						
-			this.dim = getPreferredSize();
-			// calculate height and width of the cells
-			this.cellheight = dim.getHeight() / this.mv_cell_count;
-			this.cellwidth = dim.getWidth() / this.secs_cell_count;
-			
-			// calculate the scaling which is dependent to the width	
-			this.scalingWidth =  (float) (cellwidth / ((this.end - this.start) / secs_cell_count ));			
-			
-			drawGrid(g2);
-			drawGraph(g2);
-			drawName(g2);
-			highlightSample(g2);
-		}
-		
-		private void drawGrid(Graphics2D g2) {
-			// set line color
-			g2.setColor(new Color(231, 84, 72));
-			// draw horizontal lines
-			g2.setStroke(new BasicStroke(2.0f));
-			for(int i = 0; i < mv_cell_count; i++) {
-				g2.draw(new Line2D.Double(0, i * cellheight, 
-						dim.getWidth(), i * cellheight));			
-			}
-			
-			// draw vertical lines
-			for(int i = 0; i < secs_cell_count; i++ ) {
-				// draw every 10th line which represents a full second bigger 
-				if(i % 10 == 0)
-				{
-					g2.setStroke(new BasicStroke(2.0f));
-				}
-				else
-				{
-					g2.setStroke(new BasicStroke(1.0f));
-				}
-				g2.draw(new Line2D.Double(i * cellwidth , 0, 
-						i * cellwidth, dim.getHeight()));
-			}
-		}
-		
-		private void drawGraph(Graphics2D g2) {
-			// draw waveform as line using the given values
-			g2.setColor(Color.BLACK);
-			g2.setStroke(new BasicStroke(1.2f));
-			for(int i  = this.start; i < (this.end - 1); i++) {
-				int a = i;
-				int b = i + 1;
-				// draw a line between two points
-				// dim.height / 2 is our base line
-				Line2D line = new Line2D.Double(
-						this.scalingWidth * (a - this.start), 
-						(this.dim.height /2 - this.valueScaling * ( (float)(this.data[a] / (float) 1000) * this.cellheight) ), 
-						this.scalingWidth * (b - this.start), 
-						( this.dim.height /2 - this.valueScaling * ( (float)(this.data[b] / (float) 1000) * this.cellheight ) ));
-				g2.draw(line);
-			 }	
-		}
-		
-		private void highlightSample(Graphics2D g2) {
-			double x = this.scalingWidth * (highlightedSample - this.start); 
-			Line2D line = new Line2D.Double(x, 0, x, this.dim.height);
-			
-			g2.setColor(Color.GREEN);
-			g2.setStroke(new BasicStroke(1f));
-			g2.draw(line);
-		}
-		
-		private void drawName(Graphics2D g2) {
-			g2.setColor(Color.black);			
-			g2.setFont(new Font("SanSerif", Font.BOLD, 12));		
-			g2.drawString(definition.getName(), 5, 15);			
-		}
+		zoomLevel += WaveformPlugin.ZOOM_UNIT;		
+		fitToPage = false;		
+		repaintPanels();
 	}
 	
-	private enum ChannelUnit {uV, mV};
-	
-	// used to save information about a channel
-	private class ChannelDefinition {
-		private String name;
-		private double baseline;
-		private double sensitivity;
-		private int sensitivityCorrection;
-		private ChannelUnit unit;
-		private double minimum_uV;
-		private double maximum_uV;
-					
-		public ChannelDefinition(String name, double baseline,
-				double sensitity, int sensitivityCorrection, 
-				ChannelUnit unit) {
-			this.name = name;
-			this.baseline = baseline;
-			this.sensitivity = sensitity;
-			this.sensitivityCorrection = sensitivityCorrection;
-			this.unit = unit;
-			this.maximum_uV = 0.0;
-			this.minimum_uV = 0.0;
-		}
-		
-		public double getScaling() {
-			int unitScaling;		
-			if(unit == ChannelUnit.uV)
-				unitScaling = 1;
-			else if(unit == ChannelUnit.mV)
-				unitScaling = 1000;
-			else
-				throw new IllegalStateException("Unsupported unit in ChannelDefinition");
-			
-			return sensitivity * sensitivityCorrection * unitScaling;
-		}
-		
-		public String getName() {
-			return name;
-		}
-
-		public double getBaseline() {
-			return baseline;
-		}
-		
-		public double getSensitity() {
-			return sensitivity;
-		}
-
-		public int getSensitivityCorrection() {
-			return sensitivityCorrection;
-		}
-
-		public double getMinimum_uV() {
-			return minimum_uV;
-		}
-
-		public void setMinimum_uV(double minimum) {
-			this.minimum_uV = minimum;
-		}
-
-		public double getMaximum_uV() {
-			return maximum_uV;
-		}
-
-		public void setMaximum_uV(double maximum) {
-			this.maximum_uV = maximum;
-		}
-
-		@Override
-		public String toString() {
-			return "<" + name + ", " + sensitivity + ", " + sensitivityCorrection + ", " + unit + ">";
-		}
+	public void setDisplayFormat(String format) {
+		displayFormat = format;
+		displayFormatChanged = true;
+		repaintPanels();
+		displayFormatChanged = false;
 	}
 	
-	private class ToolPanel extends JPanel {
-		private static final long serialVersionUID = 2827148456926205919L;
-		private JButton zoomOut;
-		private JButton zoomIn;
-		private JButton zoomFit;
-		private JLabel displayLabel;
-		private JComboBox displayCombo;
-		private Vector<String> displayFormatsStrings;
-		
-		public ToolPanel() {
-						
-			fillVector();
-			
-			addZoomButtons();
-			if(numberOfChannels == 12)
-			{
-				addDisplayFormatComponent();
-			}
-		}
-		
-		private void fillVector() {
-			this.displayFormatsStrings = new Vector<String>();
-			this.displayFormatsStrings.add(tr("wfFormatDefault"));
-			this.displayFormatsStrings.add(tr("wfFormatTwoParts"));
-			this.displayFormatsStrings.add(tr("wfFormatFourParts"));
-			this.displayFormatsStrings.add(tr("wfFormatFourPartsPlus"));
-		}
-		
-		private void addZoomButtons() {
-			
-			this.zoomOut = new JButton();
-			this.zoomOut.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoomOut.png")));
-			this.zoomOut.addActionListener(new ActionListener() {
-			
-				public void actionPerformed(ActionEvent arg0) {
-					if(zoomLevel > MAX_ZOOM_OUT)
-					{
-						zoomLevel -= ZOOM_UNIT;
-					}
-					fitToPage = false;
-					
-					repaintPanels();
-				}});
-			this.add(this.zoomOut);		
-			
-			this.zoomIn = new JButton();
-			this.zoomIn.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoomIn.png")));
-			this.zoomIn.addActionListener(new ActionListener() {
-			
-				public void actionPerformed(ActionEvent arg0) {
-					if(zoomLevel < MAX_ZOOM_IN) {
-						zoomLevel += ZOOM_UNIT;
-					}
-					fitToPage = false;
-					
-					repaintPanels();
-				}});
-			this.add(zoomIn);
-			
-			zoomFit = new JButton();
-			zoomFit.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/fitToPage.png")));
-			zoomFit.addActionListener(new ActionListener() {
-			
-				public void actionPerformed(ActionEvent arg0) {
-					zoomLevel = NO_ZOOM;
-					fitToPage = true;
-					
-					repaintPanels();
-					
-				}});
-			this.add(zoomFit);
-		}
-		
-		private void addDisplayFormatComponent() {
-			displayLabel = new JLabel(tr("wfDisplayFormat"));
-			this.add(displayLabel);
-				
-			displayCombo = new JComboBox(displayFormatsStrings);	
-			displayCombo.addActionListener(new ActionListener() {
-
-				public void actionPerformed(ActionEvent e) {
-					JComboBox cb = (JComboBox) e.getSource();
-					String choosen = (String) cb.getSelectedItem();
-					if(choosen.equals(tr("wfdisplayFormatDefault"))) {
-						displayFormat = DEFAULTFORMAT;
-					}
-					else if(choosen.equals(tr("wfdisplayFormatTwoParts"))) {
-						displayFormat = TWOPARTS;
-					}
-					else if(choosen.equals(tr("wfdisplayFormatFourParts"))) {
-						displayFormat = FOURPARTS;
-					}
-					else if(choosen.equals(tr("wfdisplayFormatFourPartsPlus"))) {
-						displayFormat = FOURPARTSPLUS;
-					}
-					displayFormatChanged = true;
-					repaintPanels();
-					displayFormatChanged = false;
-				}
-			});
-			this.add(displayCombo);
+	//-- getters & setters
 	
-		}
-		
-		public void paintComponent( Graphics g ) {
-			super.paintComponent(g); 
-			
-		    this.setPreferredSize(new Dimension(m_content.getWidth(), 35));
-		    this.setSize(new Dimension(m_content.getWidth(), 35));
-		    this.setMinimumSize(new Dimension(m_content.getWidth(), 35));
-			this.setMaximumSize(new Dimension(m_content.getWidth(), 35));
-
-		}
-		
-		public void updateLanguage() {
-			if(numberOfChannels == 12)
-			{
-				this.remove(this.displayLabel);
-				this.remove(this.displayCombo);
-				fillVector();
-				addDisplayFormatComponent();
-			}
-		}
-		
+	public int getNumberOfChannels() {
+		return numberOfChannels;
 	}
+
+	public int getMvCells() {
+		return mvCells;
+	}
+
+	public int getSeconds() {
+		return seconds;
+	}
+
+	public int getSamplesPerSecond() {
+		return samplesPerSecond;
+	}
+
+	public String getDisplayFormat() {
+		return displayFormat;
+	}
+
+	public InfoPanel getInfoPanel() {
+		return infoPanel;
+	}
+	
 	
 }
