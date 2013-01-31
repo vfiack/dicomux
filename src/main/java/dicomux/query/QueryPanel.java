@@ -97,7 +97,7 @@ public class QueryPanel extends JPanel {
 		JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, form, new JScrollPane(result));
 		split.setBorder(BorderFactory.createEmptyBorder());
 		split.setOneTouchExpandable(true);
-		add(split, BorderLayout.CENTER);
+		add(split, BorderLayout.CENTER);		
 	}
 	
 	private URL getWadoUrl(DicomObject selected) throws MalformedURLException  {

@@ -466,11 +466,7 @@ public class View extends JFrame implements IView {
 		private JComponent makeDicomQueryTab() {
 			JPanel content = new JPanel(new BorderLayout(5 , 5), false);
 			content.add(makeMessage(tr("key_html_query")), BorderLayout.NORTH);
-
-			JPanel wrapper = new JPanel(new BorderLayout());
-			wrapper.add(new QueryPanel(m_controller), BorderLayout.NORTH);
-			content.add(wrapper, BorderLayout.CENTER);
-			
+			content.add(new QueryPanel(m_controller), BorderLayout.CENTER);			
 			return content;
 		}	
 		
