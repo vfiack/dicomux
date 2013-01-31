@@ -36,7 +36,7 @@ class DrawingPanel extends JPanel {
 	private float scalingWidth;
 	private ChannelDefinition definition;
 	private int mvCellCount;
-	private int secsCellCount;
+	private double secsCellCount;
 	private double cellHeight;
 	private double cellWidth;
 	private Dimension dim;

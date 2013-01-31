@@ -43,8 +43,6 @@ public class QueryPanel extends JPanel {
 	
 	public QueryPanel(final IController controller) {
 		super(new BorderLayout());
-				
-		System.err.println("new QueryPanel");
 		
 		this.controller = controller;
 		this.patientId = new JTextField();

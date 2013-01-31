@@ -42,7 +42,7 @@ public class WaveformPlugin extends APlugin {
 	private Vector<DrawingPanel> pannels = new Vector<DrawingPanel>(12);
 	private double zoomLevel;
 	private int mvCells;
-	private int seconds;
+	private double seconds;
 	private boolean fitToPage;
 	private JScrollPane scroll;
 	private JPanel channelpane;
@@ -50,6 +50,7 @@ public class WaveformPlugin extends APlugin {
 	private String displayFormat;
 	private ToolPanel tools;
 	private InfoPanel infoPanel;
+	private double frequency;
 	private int numberOfSamples;		
 	private int samplesPerSecond;
 	private int data[][];
@@ -113,7 +114,19 @@ public class WaveformPlugin extends APlugin {
 			byte[] tmp_bytes = waveformData.getBytes();
 			short[] tmp = toShort(tmp_bytes, order);
 			
-			for (int i = 0; i < tmp.length; i++ ) {
+			if(tmp.length/numberOfChannels > numberOfSamples) {
+				//XXX WARNING! What should we do when there is more data than declared ?
+				this.numberOfSamples = tmp.length/numberOfChannels;
+				this.seconds = numberOfSamples / frequency;
+				this.samplesPerSecond = (int)(numberOfSamples / seconds);
+				this.data = new int[numberOfChannels][numberOfSamples];
+				System.err.println("WARNING: " + numberOfSamples + " samples, "
+						+ seconds + " seconds, " +  samplesPerSecond + "sample/sec");
+				
+				//	throw new DicomException("There are more samples than declared!");
+			}
+			
+			for (int i=0; i<tmp.length && i < numberOfChannels*numberOfSamples; i++) {
 				data[i%numberOfChannels][i/numberOfChannels] = (int) tmp[i];
 			}
 		}
@@ -150,7 +163,7 @@ public class WaveformPlugin extends APlugin {
 		if(samplingFrequency == null)
 			throw new Exception("Could not read SamplingFrequency");
 		
-		double frequency = samplingFrequency.getDouble(true);
+		this.frequency = samplingFrequency.getDouble(true);
 		
 		//read number of samples per channel
 		DicomElement samples = dcm.get(Tag.NumberOfWaveformSamples);
@@ -160,8 +173,8 @@ public class WaveformPlugin extends APlugin {
 		
 		// calculate the seconds		
 		this.numberOfSamples = samples.getInt(true);
-		this.seconds = (int) (numberOfSamples / frequency);
-		this.samplesPerSecond = numberOfSamples / seconds;
+		this.seconds = numberOfSamples / frequency;
+		this.samplesPerSecond = (int)(numberOfSamples / seconds);
 		
 		// read number of channels
 		DicomElement channels = dcm.get(Tag.NumberOfWaveformChannels);
@@ -712,7 +725,7 @@ public class WaveformPlugin extends APlugin {
 		return mvCells;
 	}
 
-	public int getSeconds() {
+	public double getSeconds() {
 		return seconds;
 	}
 
