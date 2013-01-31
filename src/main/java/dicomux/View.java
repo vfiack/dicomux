@@ -379,7 +379,7 @@ public class View extends JFrame implements IView {
 					name = tr("key_settings");
 					break;					
 				case DICOM_QUERY:
-					m_tabbedPane.add(m_dialogs.makeDicomQueryTab());
+					m_tabbedPane.add(m_dialogs.getDicomQueryTab());
 					name = tr("key_query");
 					break;
 				case FILE_OPEN:
@@ -427,6 +427,8 @@ public class View extends JFrame implements IView {
 	 * @author heidi
 	 */
 	private class StaticDialogs {
+		private JComponent dicomQueryTab;
+		
 		/**
 		 * convenience method for building an welcome tab
 		 * @return a JPanel
@@ -461,7 +463,7 @@ public class View extends JFrame implements IView {
 		 * convenience method for building an dicom query dialog tab
 		 * @return a JPanel
 		 */
-		protected JComponent makeDicomQueryTab() {
+		private JComponent makeDicomQueryTab() {
 			JPanel content = new JPanel(new BorderLayout(5 , 5), false);
 			content.add(makeMessage(tr("key_html_query")), BorderLayout.NORTH);
 
@@ -470,7 +472,20 @@ public class View extends JFrame implements IView {
 			content.add(wrapper, BorderLayout.CENTER);
 			
 			return content;
-		}		
+		}	
+		
+		/**
+		 * Keep the same query panel so that the search criterias & results are kept between 
+		 * tab refreshs.
+		 * Initializes the component if needed. 
+		 * @return a JPanel
+		 */
+		protected JComponent getDicomQueryTab() {
+			if(dicomQueryTab == null)
+				dicomQueryTab = makeDicomQueryTab();
+			
+			return dicomQueryTab;
+		}
 		
 		/**
 		 * convenience method for building an file open dialog tab

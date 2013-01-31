@@ -147,7 +147,7 @@ public class Controller implements IController {
 		System.exit(0);
 	}
 	
-	private void openDicomObject(String tabName, DicomObject dicomObject) 
+	private void openDicomObject(String tabName, DicomObject dicomObject, boolean newtab) 
 	throws Exception {
 		// look for a suitable plug-in for the opened DicomObject
 		APlugin chosenPlugin = null;
@@ -180,7 +180,10 @@ public class Controller implements IController {
 			tmp.setSuitablePlugins(suitablePlugins);
 			
 			// push the new TabObject to our workspace
-			m_model.setWorkspace(m_view.getActiveWorkspaceId(), tmp);
+			if(newtab) {
+				m_model.addWorkspace(tmp);
+			} else
+				m_model.setWorkspace(m_view.getActiveWorkspaceId(), tmp);
 		}
 		else
 			throw new Exception("No suitable plug-in found!");
@@ -196,7 +199,7 @@ public class Controller implements IController {
 			String date = dicomObject.getString(Tag.StudyDate);
 			String title = patient + " " + date;
 			
-			openDicomObject(title, dicomObject);
+			openDicomObject(title, dicomObject, true);
 		} catch (Exception e) {
 			// something didn't work - let's show an error message
 			TabObject errorTab = new TabObject(TabState.ERROR_OPEN, true);
@@ -215,7 +218,7 @@ public class Controller implements IController {
 			DicomObject dicomObject = din.readDicomObject();
 			din.close();
 			
-			openDicomObject(fileObject.getName(), dicomObject);
+			openDicomObject(fileObject.getName(), dicomObject, false);
 		} catch (Exception e) {
 			// something didn't work - let's show an error message
 			TabObject errorTab = new TabObject(TabState.ERROR_OPEN, true);
