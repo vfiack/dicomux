@@ -7,6 +7,9 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.MalformedURLException;
@@ -53,6 +56,18 @@ public class QueryPanel extends JPanel {
 		this.search = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/system-search.png")));
 		this.result = new JTable();
 		result.setModel(new DicomTableModel());
+		
+		KeyListener searchOnEnterPressed = new KeyAdapter() {
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyCode() == KeyEvent.VK_ENTER)
+					search.doClick();
+			}
+		};
+		patientId.addKeyListener(searchOnEnterPressed);
+		patientLastName.addKeyListener(searchOnEnterPressed);
+		patientFirstName.addKeyListener(searchOnEnterPressed);
+		fromDate.addKeyListener(searchOnEnterPressed);
+		toDate.addKeyListener(searchOnEnterPressed);		
 		
 		this.search.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
