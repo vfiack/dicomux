@@ -297,7 +297,6 @@ public class WaveformPlugin extends APlugin {
 			// height is divided by zoomLevel so the channels will not be too high
 			double width = 0;
 			double height = 0;
-			double rythm_with = m_content.getWidth() - 4;
 
 			if( this.numberOfChannels == 12 && displayFormatChanged) {
 				if(displayFormat.equals(DEFAULTFORMAT)) {
@@ -345,6 +344,9 @@ public class WaveformPlugin extends APlugin {
 			}
 			
 			if(this.rhythm != null) {
+				//XXX alignment & zoom
+				double rythm_with = displayFactorWidth*(width+2); //for hgap in the grid...
+				
 				dim = new Dimension((int) rythm_with, (int) height);
 				this.rhythm.setPreferredSize(dim);
 				this.rhythm.setSize(dim);
@@ -524,7 +526,7 @@ public class WaveformPlugin extends APlugin {
 		pane = new JPanel();
 		pane.setBackground(Color.BLACK);
 		
-		GridLayout layout = new GridLayout(3, 4, 2, 2);
+		GridLayout layout = new GridLayout(3, 4, 2, 2); //XXX hgap
 		pane.setLayout(layout);
 		
 		this.pannels.removeAllElements();
