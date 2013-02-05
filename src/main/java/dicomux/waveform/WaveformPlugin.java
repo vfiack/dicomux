@@ -115,17 +115,15 @@ public class WaveformPlugin extends APlugin {
 			
 			if(tmp.length/numberOfChannels > numberOfSamples) {
 				//XXX WARNING! What should we do when there is more data than declared ?
-				this.numberOfSamples = tmp.length/numberOfChannels;
-				this.seconds = numberOfSamples / frequency;
-				this.samplesPerSecond = (int)(numberOfSamples / seconds);
-				this.data = new int[numberOfChannels][numberOfSamples];
+				//this.numberOfSamples = tmp.length/numberOfChannels;
+				//this.seconds = numberOfSamples / frequency;
+				//this.samplesPerSecond = (int)(numberOfSamples / seconds);
+				//this.data = new int[numberOfChannels][numberOfSamples];
 				System.err.println("WARNING: " + numberOfSamples + " samples, "
 						+ seconds + " seconds, " +  samplesPerSecond + "sample/sec");
-				
-				//	throw new DicomException("There are more samples than declared!");
 			}
 			
-			for (int i=0; i<tmp.length && i < numberOfChannels*numberOfSamples; i++) {
+			for (int i=0; i<tmp.length && i<numberOfChannels*numberOfSamples; i++) {
 				data[i%numberOfChannels][i/numberOfChannels] = (int) tmp[i];
 			}
 		}
