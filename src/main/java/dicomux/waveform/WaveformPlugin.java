@@ -11,7 +11,6 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Vector;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -149,7 +148,7 @@ public class WaveformPlugin extends APlugin {
 	}
 	
 	public void setData(DicomObject dcm) throws Exception {
-		m_content = new JPanel(new BorderLayout(5, 5));
+		m_content = new JPanel(new BorderLayout());
 		
 		// get WaveformSequence
 		DicomElement temp = dcm.get(Tag.WaveformSequence);
@@ -185,30 +184,13 @@ public class WaveformPlugin extends APlugin {
 		
 		readChannelDefinitions(dcm.get(Tag.ChannelDefinitionSequence));		
 		readData(dcm);
-		
 				
-		// this panel will hold all channels and their drawings of the waveform
-		this.channelpane = new JPanel();
-		channelpane.setBackground(Color.BLACK);
-		
-		// using a BoxLayout, top-to-bottom  
-		BoxLayout layout = new BoxLayout(channelpane, BoxLayout.PAGE_AXIS);	
-		channelpane.setLayout(layout);
-		
 		//get minmax
 		getMinMax(data, channelDefinitions);
 		
-		// creating the Panels for each channel 
-		for(int i = 0; i < numberOfChannels; i++) {
-			DrawingPanel drawPannel = new DrawingPanel(this, data[i], 0, channelDefinitions[i]);
-			channelpane.add(drawPannel);
-			channelpane.add(Box.createRigidArea(new Dimension(0,2)));
-			// add panel to vector, used to refresh all panels (see repaintPanels)
-			this.pannels.add(drawPannel);
-		}		
 		
 		// in most cases we have to many channels so we use a scrollpane
-		this.scroll = new JScrollPane(channelpane);
+		this.scroll = new JScrollPane();
 		scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		
@@ -216,14 +198,13 @@ public class WaveformPlugin extends APlugin {
 		this.tools = new ToolPanel(this);
 		this.tools.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
 		this.tools.setPreferredSize(new Dimension(m_content.getWidth(), 30));
-
 		
 		// Panel with information about the channel the mouse cursor is over
 		this.infoPanel = new InfoPanel();
 		this.infoPanel.setPreferredSize(new Dimension(m_content.getWidth(), 70));
 		
-		m_content.setLayout(new BorderLayout());
-
+		displayDefault();
+		
 		JPanel wrap = new JPanel(new BorderLayout());
 		wrap.add(tools, BorderLayout.NORTH);
 		wrap.add(infoPanel, BorderLayout.CENTER);
@@ -232,13 +213,12 @@ public class WaveformPlugin extends APlugin {
 		m_content.add(scroll, BorderLayout.CENTER);
 		
 		// this gets called when the application is resized
-		m_content.addComponentListener(new ComponentAdapter() {		
+		m_content.addComponentListener(new ComponentAdapter() {	
 			public void componentResized(ComponentEvent e) {
-				super.componentResized(e);				
 				repaintPanels();
 			}
 		});
-		
+	
 		this.displayFactorWidth = 1;
 		this.displayFactorHeight = this.numberOfChannels;
 	}
@@ -292,11 +272,6 @@ public class WaveformPlugin extends APlugin {
 	 */
 	private void repaintPanels() {
 		if(!this.pannels.isEmpty()) {
-			Dimension m_content_dim = m_content.getSize();
-			// we take 20 pixels for the scrollbar
-			// height is divided by zoomLevel so the channels will not be too high
-			double width = 0;
-			double height = 0;
 
 			if( this.numberOfChannels == 12 && displayFormatChanged) {
 				if(displayFormat.equals(DEFAULTFORMAT)) {
@@ -325,15 +300,15 @@ public class WaveformPlugin extends APlugin {
 				}
 			}
 			
-			if(fitToPage)
+			Dimension m_content_dim = m_content.getSize();
+			double width = (m_content.getWidth()-3)/displayFactorWidth;
+			double height = (m_content_dim.getHeight() - tools.getHeight() - infoPanel.getHeight()-5)/displayFactorHeight;
+
+			
+			if(!fitToPage)
 			{
-				width = (m_content.getWidth() - (displayFactorWidth * 4)) / displayFactorWidth;
-				height = ((m_content_dim.getHeight() - (displayFactorHeight * 4) - (this.tools.getHeight() + this.infoPanel.getHeight())) - 10) / displayFactorHeight;
-			}
-			else
-			{
-				width = ((m_content.getWidth() - (displayFactorWidth * 4)) / displayFactorWidth) * zoomLevel;
-				height = (((m_content_dim.getHeight() - (displayFactorHeight * 4) - (this.tools.getHeight() + this.infoPanel.getHeight())) - 10) / displayFactorHeight) * zoomLevel;
+				width *= zoomLevel;
+				height *= zoomLevel;
 			}
 			
 			Dimension dim = new Dimension((int) width, (int)height);
@@ -344,10 +319,7 @@ public class WaveformPlugin extends APlugin {
 			}
 			
 			if(this.rhythm != null) {
-				//XXX alignment & zoom
-				double rythm_with = displayFactorWidth*(width+2); //for hgap in the grid...
-				
-				dim = new Dimension((int) rythm_with, (int) height);
+				dim = new Dimension((int)width*displayFactorWidth, (int) height);
 				this.rhythm.setPreferredSize(dim);
 				this.rhythm.setSize(dim);
 				this.rhythm.repaint();
@@ -363,10 +335,7 @@ public class WaveformPlugin extends APlugin {
 		 
 		this.channelpane = new JPanel();
 		channelpane.setBackground(Color.BLACK);
-		
-		// using a BoxLayout, top-to-bottom  
-		BoxLayout layout = new BoxLayout(channelpane, BoxLayout.PAGE_AXIS);	
-		channelpane.setLayout(layout);
+		channelpane.setLayout(new GridLayout(0, 1));
 		
 		// remove all panels, as we are about to create them again
 		this.pannels.removeAllElements();
@@ -431,7 +400,7 @@ public class WaveformPlugin extends APlugin {
 		for(int i = 0; i < numberOfChannels; i++) {
 			DrawingPanel drawPannel = new DrawingPanel(this, data[i], 0, channelDefinitions[i]);
 			channelpane.add(drawPannel);
-			channelpane.add(Box.createRigidArea(new Dimension(0,2)));
+			//channelpane.add(Box.createRigidArea(new Dimension(0,2)));
 			// add panels to vector
 			this.pannels.add(drawPannel);
 		}		
@@ -443,7 +412,7 @@ public class WaveformPlugin extends APlugin {
 		this.channelpane = new JPanel();
 		channelpane.setBackground(Color.BLACK);
 		
-		GridLayout layout = new GridLayout(6, 2, 2, 2);
+		GridLayout layout = new GridLayout(6, 2);
 		channelpane.setLayout(layout);
 		
 		this.pannels.removeAllElements();
@@ -526,7 +495,7 @@ public class WaveformPlugin extends APlugin {
 		pane = new JPanel();
 		pane.setBackground(Color.BLACK);
 		
-		GridLayout layout = new GridLayout(3, 4, 2, 2); //XXX hgap
+		GridLayout layout = new GridLayout(3, 4);
 		pane.setLayout(layout);
 		
 		this.pannels.removeAllElements();
@@ -641,7 +610,6 @@ public class WaveformPlugin extends APlugin {
 		this.rhythm.setRhythm(true);
 		
 		this.channelpane.add(pane);
-		this.channelpane.add(Box.createRigidArea(new Dimension(0,2)));
 		this.channelpane.add(this.rhythm);
 		
 		this.scroll.setViewportView(this.channelpane); 

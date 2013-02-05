@@ -239,6 +239,7 @@ class DrawingPanel extends JPanel {
 		drawGraph(g2);
 		drawName(g2);
 		drawMeasureBars(g2);
+		drawBorder(g2);
 	}
 	
 	private void drawGrid(Graphics2D g2) {
@@ -315,6 +316,13 @@ class DrawingPanel extends JPanel {
 		g2.setStroke(new BasicStroke(1.2f));
 		g2.draw(line);
 	}
+	
+	private void drawBorder(Graphics2D g2) {
+		g2.setColor(Color.GRAY);
+		g2.setStroke(new BasicStroke(2f));
+		g2.drawRect(0, 0, this.dim.width-1, this.dim.height-1);
+	}
+	
 	
 	private void drawName(Graphics2D g2) {
 		g2.setColor(Color.black);			
