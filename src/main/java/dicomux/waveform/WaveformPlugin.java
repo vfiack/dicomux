@@ -340,7 +340,8 @@ public class WaveformPlugin extends APlugin {
 		// remove all panels, as we are about to create them again
 		this.pannels.removeAllElements();
 		
-		// sort Leads
+		// try to sort leads
+		boolean sortable = true;
 		int[][] temp_data = new int[this.data.length][this.data[0].length];
 		ChannelDefinition[] temp_definitions = new ChannelDefinition[this.channelDefinitions.length];
 		for (int i = 0; i < this.data.length; i++) {
@@ -392,16 +393,22 @@ public class WaveformPlugin extends APlugin {
 				temp_data[11] = this.data[i];
 				temp_definitions[11] = this.channelDefinitions[i];
 			}
+			else {
+				//unknown lead, don't sort
+				sortable = false;
+				break;
+			}
 		}
-		this.data = temp_data;
-		this.channelDefinitions = temp_definitions;
+		
+		if(sortable) {
+			this.data = temp_data;
+			this.channelDefinitions = temp_definitions;
+		}
 		
 		// creating the Panels for each channel 
 		for(int i = 0; i < numberOfChannels; i++) {
 			DrawingPanel drawPannel = new DrawingPanel(this, data[i], 0, channelDefinitions[i]);
 			channelpane.add(drawPannel);
-			//channelpane.add(Box.createRigidArea(new Dimension(0,2)));
-			// add panels to vector
 			this.pannels.add(drawPannel);
 		}		
 		
