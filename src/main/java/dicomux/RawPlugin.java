@@ -27,6 +27,7 @@ import javax.swing.tree.TreeCellRenderer;
 import org.dcm4che2.data.DicomElement;
 import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.SpecificCharacterSet;
+import org.dcm4che2.io.DicomOutputStream;
 import org.dcm4che2.util.TagUtils;
 
 /**
@@ -44,7 +45,7 @@ public class RawPlugin extends APlugin {
 	 * the button for showing the DETAILS card
 	 */
 	private JButton m_detailsButton;
-	
+		
 	/**
 	 * the panel with the CardLayout for the main content
 	 */
@@ -70,6 +71,7 @@ public class RawPlugin extends APlugin {
 	 */
 	private String m_currentCard;
 	
+	private DicomObject m_dicom;
 
 	public String getName() {
 		return "Raw Data";
@@ -104,6 +106,8 @@ public class RawPlugin extends APlugin {
 		
 		// create toolbar
 		JPanel tools = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+		tools.add(createSaveButton());
+
 		m_detailsButton = createDetailsButton("images/zoomPart.png");
 		m_detailsButton.setEnabled(false);
 		tools.add(m_detailsButton);
@@ -128,7 +132,6 @@ public class RawPlugin extends APlugin {
 		// create toolbar
 		JPanel tools = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
 		tools.add(createDetailsButton("images/go-previous.png"));
-		tools.add(createSaveButton());
 		detailsCard.add(tools, BorderLayout.NORTH);
 		
 		// create textarea
@@ -156,7 +159,7 @@ public class RawPlugin extends APlugin {
 				if (JFileChooser.APPROVE_SELECTION.equals(e.getActionCommand())) { // the user wants us to save the content
 					saveDicomContent(chooser.getSelectedFile().getPath());
 				}
-				switchToCard("DETAILS");
+				switchToCard("TREE");
 			}
 		});
 		saveCard.add(m_saveDialog, BorderLayout.CENTER);
@@ -206,8 +209,8 @@ public class RawPlugin extends APlugin {
 	 */
 	private void saveDicomContent(String path) {
 		try {
-			FileOutputStream out = new FileOutputStream(path);
-			out.write(m_dicomContent);
+			DicomOutputStream out = new DicomOutputStream(new FileOutputStream(path));
+			out.writeDicomFile(m_dicom);
 			out.close();
 		} catch (Exception e) {
 			// TODO inform the user if something bad happened
@@ -223,6 +226,7 @@ public class RawPlugin extends APlugin {
 
 	public void setData(DicomObject dcm) throws Exception{
 		// create a new DefaultTableModel and extract all DicomElements of the DicomObject into it
+		m_dicom = dcm;
 		m_tree.setModel(new DefaultTreeModel(extractAllDicomElements("/", dcm))); 
 	}
 	
