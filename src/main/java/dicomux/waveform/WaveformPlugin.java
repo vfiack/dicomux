@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
+import java.awt.Toolkit;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.nio.ByteBuffer;
@@ -27,7 +28,7 @@ import dicomux.DicomException;
  * @author norbert
  */
 public class WaveformPlugin extends APlugin {
-	public static final double MAX_ZOOM_OUT = 1.0f;
+	public static final double MAX_ZOOM_OUT = 0.5f;
 	public static final double MAX_ZOOM_IN = 10.0f;
 	public static final double ZOOM_UNIT = 0.5f;
 	public static final double NO_ZOOM = 1.0f;
@@ -42,7 +43,6 @@ public class WaveformPlugin extends APlugin {
 	private double zoomLevel;
 	private int mvCells;
 	private double seconds;
-	private boolean fitToPage;
 	private JScrollPane scroll;
 	private JPanel channelpane;
 	private int numberOfChannels;
@@ -67,7 +67,6 @@ public class WaveformPlugin extends APlugin {
 		m_keyTag.addKey(Tag.WaveformData, null);
 		
 		this.zoomLevel = NO_ZOOM;
-		this.fitToPage = true;
 		this.displayFormat = DEFAULTFORMAT;
 		this.displayFormatChanged = false;
 		this.rhythm = null;		
@@ -280,7 +279,11 @@ public class WaveformPlugin extends APlugin {
 				}
 				if(displayFormat.equals(FOURPARTS)) {
 					this.channelpane = displayFourParts(this.channelpane);
-					this.scroll.setViewportView(this.channelpane); 
+					
+					JPanel wrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+					wrap.add(channelpane);
+					this.scroll.setViewportView(wrap); 
+
 					this.rhythm = null;
 					displayFactorWidth = 4;
 					displayFactorHeight = 3;
@@ -298,17 +301,23 @@ public class WaveformPlugin extends APlugin {
 				}
 			}
 			
-			Dimension m_content_dim = m_content.getSize();
-			double width = (m_content.getWidth()-3)/displayFactorWidth;
-			double height = (m_content_dim.getHeight() - tools.getHeight() - infoPanel.getHeight()-5)/displayFactorHeight;
+
+			//1mm => 3.77 pixels
+			int pixelPerInch = Toolkit.getDefaultToolkit().getScreenResolution();
+			double pixelPerMm = pixelPerInch/25.4;
+			int secWidth = (int)(25*pixelPerMm);
+			int mvHeight = (int)(10*pixelPerMm);
+			int w = (int)(getSeconds()*secWidth);
+			int h = getMvCells()*mvHeight;
 
 			
-			if(!fitToPage)
-			{
-				width *= zoomLevel;
-				height *= zoomLevel;
-			}
+			//Dimension m_content_dim = m_content.getSize();
+			//double width = (m_content.getWidth()-3)/displayFactorWidth;
+			//double height = (m_content_dim.getHeight() - tools.getHeight() - infoPanel.getHeight()-5)/displayFactorHeight;
 			
+			double width = (w/displayFactorWidth) * zoomLevel;
+			double height = h * zoomLevel;
+						
 			Dimension dim = new Dimension((int) width, (int)height);
 			for (DrawingPanel p : this.pannels) {
 				p.setPreferredSize(dim);
@@ -323,14 +332,17 @@ public class WaveformPlugin extends APlugin {
 				this.rhythm.repaint();
 			}
 			
+			Dimension pdim = new Dimension((int)(width*displayFactorWidth), (int)(height*displayFactorHeight));
+			this.channelpane.setPreferredSize(pdim);
+			this.channelpane.setSize(pdim);
+			
 			this.channelpane.repaint();
 			this.scroll.revalidate();
 			m_content.repaint();
 		}
 	}
 	
-	private void displayDefault() {
-		 
+	private void displayDefault() {		 
 		this.channelpane = new JPanel();
 		channelpane.setBackground(Color.BLACK);
 		channelpane.setLayout(new GridLayout(0, 1));
@@ -410,7 +422,9 @@ public class WaveformPlugin extends APlugin {
 			this.pannels.add(drawPannel);
 		}		
 		
-		this.scroll.setViewportView(this.channelpane); 
+		JPanel wrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+		wrap.add(channelpane);
+		this.scroll.setViewportView(wrap); 
 	}
 	
 	private void displayTwoParts() {
@@ -492,8 +506,10 @@ public class WaveformPlugin extends APlugin {
 			// add panel to vector
 			this.pannels.add(drawPannel);
 		}
-		this.scroll.setViewportView(this.channelpane); 
 		
+		JPanel wrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+		wrap.add(channelpane);
+		this.scroll.setViewportView(wrap); 
 	}
 	
 	private JPanel displayFourParts(JPanel pane) {
@@ -617,8 +633,9 @@ public class WaveformPlugin extends APlugin {
 		this.channelpane.add(pane);
 		this.channelpane.add(this.rhythm);
 		
-		this.scroll.setViewportView(this.channelpane); 
-		
+		JPanel wrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+		wrap.add(channelpane);
+		this.scroll.setViewportView(wrap); 
 	}
 	
 	private void getMinMax(int data[][], ChannelDefinition definitions[]) {
@@ -661,7 +678,6 @@ public class WaveformPlugin extends APlugin {
 	
 	public void resetZoom() {
 		zoomLevel = NO_ZOOM;
-		fitToPage = true;		
 		repaintPanels();
 	}
 	
@@ -670,7 +686,6 @@ public class WaveformPlugin extends APlugin {
 			return;
 			
 		zoomLevel -= ZOOM_UNIT;
-		fitToPage = false;
 		repaintPanels();
 	}
 	
@@ -679,7 +694,6 @@ public class WaveformPlugin extends APlugin {
 			return;
 		
 		zoomLevel += WaveformPlugin.ZOOM_UNIT;		
-		fitToPage = false;		
 		repaintPanels();
 	}
 	
