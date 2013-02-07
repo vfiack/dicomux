@@ -31,6 +31,7 @@ import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.Tag;
 
 import dicomux.IController;
+import dicomux.Translation;
 import dicomux.query.web.DicomWebQuery;
 import dicomux.settings.Settings;
 
@@ -197,35 +198,31 @@ public class QueryPanel extends JPanel {
 		c.gridy = 0;
 		c.gridx = 0;
 		c.weightx = 0;
+		c.fill = GridBagConstraints.HORIZONTAL;
 		c.insets = noPadding;
-		panel.add(new JLabel("Patient Id: "), c);
+		panel.add(new JLabel(Translation.tr("query.patientId")), c);
 
 		c.gridx = 1;
-		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1;
 		c.insets = rightPadding;
 		panel.add(patientId, c);
 
 		c.gridx = 2;
-		c.fill = GridBagConstraints.NONE;
 		c.weightx = 0;
 		c.insets = noPadding;
-		panel.add(new JLabel("Last name: "), c);
+		panel.add(new JLabel(Translation.tr("query.lastName")), c);
 		
 		c.gridx = 3;
-		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1;
 		c.insets = rightPadding;
 		panel.add(patientLastName, c);
 		
 		c.gridx = 4;
-		c.fill = GridBagConstraints.NONE;
 		c.weightx = 0;
 		c.insets = noPadding;
-		panel.add(new JLabel("First name: "), c);
+		panel.add(new JLabel(Translation.tr("query.firstName")), c);
 		
 		c.gridx = 5;
-		c.fill = GridBagConstraints.HORIZONTAL;
 		c.weightx = 1;
 		c.insets = rightPadding;
 		panel.add(patientFirstName, c);
@@ -234,7 +231,7 @@ public class QueryPanel extends JPanel {
 		c.gridx = 0;
 		c.weightx = 0;
 		c.insets = noPadding;		
-		panel.add(new JLabel("Date From: "), c);
+		panel.add(new JLabel(Translation.tr("query.dateFrom")), c);
 		
 		c.gridx = 1;
 		c.weightx = 1;
@@ -244,13 +241,12 @@ public class QueryPanel extends JPanel {
 		c.gridx = 2;
 		c.weightx = 0;
 		c.insets = noPadding;		
-		panel.add(new JLabel("To: "), c);
+		panel.add(new JLabel(Translation.tr("query.dateTo")), c);
 		
 		c.gridx = 3;
 		c.weightx = 1;
 		c.insets = rightPadding;
 		panel.add(toDate, c);
-	
 		
 		c.gridx = 6;
 		c.gridy = 0;

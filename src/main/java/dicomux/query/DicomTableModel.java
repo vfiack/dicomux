@@ -8,11 +8,18 @@ import javax.swing.table.AbstractTableModel;
 import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.Tag;
 
+import dicomux.Translation;
+
 public class DicomTableModel extends AbstractTableModel {
 	private final static String[] COLUMNS = {
-		"Date", "Time", 
-		"Patient ID", "Patient Name", 
-		"Study ID", "Description"};
+		"query.col.date",
+		"query.col.time",
+		"query.col.patientId",
+		"query.col.patientName",
+		"query.col.studyId",
+		"query.col.description"
+	};
+	
 	private final static int[] COL_TAGS = {
 		Tag.StudyDate, Tag.StudyTime,
 		Tag.PatientID, Tag.PatientName,
@@ -44,7 +51,7 @@ public class DicomTableModel extends AbstractTableModel {
 	}
 
 	public String getColumnName(int column) {
-		return COLUMNS[column];
+		return Translation.tr(COLUMNS[column]);
 	}
 	
 	public int getRowCount() {
