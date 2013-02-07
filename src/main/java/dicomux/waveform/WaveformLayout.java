@@ -55,8 +55,16 @@ public class WaveformLayout implements LayoutManager {
 		setFormat(format);
 	}
 	
+	public int getSpeed() {
+		return mmPerSecond;
+	}
+	
 	public void setSpeed(int mmPerSecond) {
 		this.mmPerSecond = mmPerSecond;
+	}
+	
+	public int getAmplitude() {
+		return mmPerMillivolt;
 	}
 	
 	public void setAmplitude(int mmPerMillivolt) {

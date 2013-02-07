@@ -8,8 +8,6 @@ import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -22,49 +20,59 @@ import dicomux.waveform.WaveformLayout.Format;
 class ToolPanel extends JPanel {
 	private static final long serialVersionUID = 2827148456926205919L;
 	private WaveformPlugin plugin;
-	private JButton zoomOut;
-	private JButton zoomIn;
-	private JButton zoomFit;
 	private JLabel displayLabel;
 	private JComboBox displayCombo;
 	
 	public ToolPanel(WaveformPlugin plugin) {
 		this.plugin = plugin;
 		
-		addZoomButtons();
+		addZoomComponents();
 		if(plugin.getNumberOfChannels() == 12)
 		{
 			addDisplayFormatComponent();
 		}
 	}
 		
-	private void addZoomButtons() {		
-		this.zoomOut = new JButton();
-		this.zoomOut.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoomOut.png")));
-		this.zoomOut.addActionListener(new ActionListener() {
+	private void addZoomComponents() {	
+		JLabel zoomLabel = new JLabel(tr("wfZoom"));
+		this.add(zoomLabel);
 		
-			public void actionPerformed(ActionEvent arg0) {
-					plugin.decreaseZoomLevel();
-			}});
-		this.add(this.zoomOut);		
+		JComboBox speed = new JComboBox(new Integer[] {5, 10, 15, 20, 25, 30, 35, 40, 50, 75, 100});
+		speed.setRenderer(new BasicComboBoxRenderer() {
+			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+				Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+				((BasicComboBoxRenderer)c).setText(String.valueOf(value) + " mm/s");
+				return c;
+			}
+		});		
+		speed.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JComboBox cb = (JComboBox) e.getSource();
+				plugin.setSpeed((Integer)cb.getSelectedItem());
+			}
+		});
+		speed.setSelectedItem(plugin.getSpeed());
+		speed.setFocusable(false);
+		this.add(speed);
+
 		
-		this.zoomIn = new JButton();
-		this.zoomIn.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoomIn.png")));
-		this.zoomIn.addActionListener(new ActionListener() {
-		
-			public void actionPerformed(ActionEvent arg0) {
-				plugin.increaseZoomLevel();
-			}});
-		this.add(zoomIn);
-		
-		zoomFit = new JButton();
-		zoomFit.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/fitToPage.png")));
-		zoomFit.addActionListener(new ActionListener() {
-		
-			public void actionPerformed(ActionEvent arg0) {
-				plugin.resetZoom();				
-			}});
-		this.add(zoomFit);
+		JComboBox amplitude = new JComboBox(new Integer[] {3, 5, 10, 15, 20, 30});
+		amplitude.setRenderer(new BasicComboBoxRenderer() {
+			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+				Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+				((BasicComboBoxRenderer)c).setText(String.valueOf(value) + " mm/mV");
+				return c;
+			}
+		});		
+		amplitude.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JComboBox cb = (JComboBox) e.getSource();
+				plugin.setAmplitude((Integer)cb.getSelectedItem());
+			}
+		});
+		amplitude.setSelectedItem(plugin.getAmplitude());
+		amplitude.setFocusable(false);
+		this.add(amplitude);
 	}
 	
 	private void addDisplayFormatComponent() {
@@ -86,6 +94,7 @@ class ToolPanel extends JPanel {
 				plugin.setDisplayFormat((Format) cb.getSelectedItem());
 			}
 		});
+		displayCombo.setFocusable(false);
 		this.add(displayCombo);
 	}
 	

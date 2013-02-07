@@ -39,9 +39,7 @@ public class WaveformPlugin extends APlugin {
 	private ChannelDefinition[] channelDefinitions;
 	
 	private WaveformLayout waveformLayout;
-	private int mmPerSecond = 25;
-	private int mmPerMillivolt = 10;
-	
+
 	public WaveformPlugin() throws Exception {
 		super();
 		m_keyTag.addKey(Tag.Modality, "ECG");
@@ -186,7 +184,6 @@ public class WaveformPlugin extends APlugin {
 		this.infoPanel = new InfoPanel();
 		this.infoPanel.setPreferredSize(new Dimension(m_content.getWidth(), 70));
 		
-		resetZoom();
 		addDrawingPanels();
 		displayDefault();
 		
@@ -362,36 +359,21 @@ public class WaveformPlugin extends APlugin {
 
 	//--
 	
-	public void resetZoom() {
-		this.mmPerMillivolt = 10;
-		this.mmPerSecond = 25;
-		
-		this.waveformLayout.setAmplitude(mmPerMillivolt);
+	public int getSpeed() {
+		return waveformLayout.getSpeed();
+	}
+	
+	public void setSpeed(int mmPerSecond) {
 		this.waveformLayout.setSpeed(mmPerSecond);
 		this.channelpane.revalidate();
 	}
 	
-	public void decreaseZoomLevel() {
-		if(this.mmPerMillivolt <= 5)
-			return;
-		
-		this.mmPerMillivolt -= 5;
-		this.mmPerSecond -= 10;
-		
-		this.waveformLayout.setAmplitude(mmPerMillivolt);
-		this.waveformLayout.setSpeed(mmPerSecond);
-		this.channelpane.revalidate();
+	public int getAmplitude() {
+		return waveformLayout.getAmplitude();
 	}
 	
-	public void increaseZoomLevel() {
-		if(this.mmPerMillivolt >= 25)
-			return;
-		
-		this.mmPerMillivolt += 5;
-		this.mmPerSecond += 10;
-		
-		this.waveformLayout.setAmplitude(mmPerMillivolt);
-		this.waveformLayout.setSpeed(mmPerSecond);
+	public void setAmplitude(int mmPerMillivolt) {
+		this.waveformLayout.setAmplitude(mmPerMillivolt);		
 		this.channelpane.revalidate();
 	}
 	
