@@ -2,18 +2,21 @@ package dicomux.waveform;
 
 import static dicomux.Translation.tr;
 
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.Vector;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.plaf.basic.BasicComboBoxRenderer;
 
+import dicomux.Translation;
 import dicomux.waveform.WaveformLayout.Format;
 
 class ToolPanel extends JPanel {
@@ -24,11 +27,9 @@ class ToolPanel extends JPanel {
 	private JButton zoomFit;
 	private JLabel displayLabel;
 	private JComboBox displayCombo;
-	private Vector<String> displayFormatsStrings;
 	
 	public ToolPanel(WaveformPlugin plugin) {
 		this.plugin = plugin;
-		fillVector();
 		
 		addZoomButtons();
 		if(plugin.getNumberOfChannels() == 12)
@@ -36,17 +37,8 @@ class ToolPanel extends JPanel {
 			addDisplayFormatComponent();
 		}
 	}
-	
-	private void fillVector() {
-		this.displayFormatsStrings = new Vector<String>();
-		this.displayFormatsStrings.add(tr("wfFormatDefault"));
-		this.displayFormatsStrings.add(tr("wfFormatTwoParts"));
-		this.displayFormatsStrings.add(tr("wfFormatFourParts"));
-		this.displayFormatsStrings.add(tr("wfFormatFourPartsPlus"));
-	}
-	
-	private void addZoomButtons() {
 		
+	private void addZoomButtons() {		
 		this.zoomOut = new JButton();
 		this.zoomOut.setIcon(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoomOut.png")));
 		this.zoomOut.addActionListener(new ActionListener() {
@@ -79,28 +71,22 @@ class ToolPanel extends JPanel {
 		displayLabel = new JLabel(tr("wfDisplayFormat"));
 		this.add(displayLabel);
 			
-		displayCombo = new JComboBox(displayFormatsStrings);	
+		displayCombo = new JComboBox(Format.values());
+		displayCombo.setRenderer(new BasicComboBoxRenderer() {
+			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+				Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+				((BasicComboBoxRenderer)c).setText(Translation.tr("wfFormat" + value));
+				return c;
+			}
+		});
+		
 		displayCombo.addActionListener(new ActionListener() {
-
 			public void actionPerformed(ActionEvent e) {
 				JComboBox cb = (JComboBox) e.getSource();
-				String choosen = (String) cb.getSelectedItem();
-				if(choosen.equals(tr("wfFormatDefault"))) {
-					plugin.setDisplayFormat(Format.DEFAULT);
-				}
-				else if(choosen.equals(tr("wfFormatTwoParts"))) {
-					plugin.setDisplayFormat(Format.TWOPARTS);
-				}
-				else if(choosen.equals(tr("wfFormatFourParts"))) {
-					plugin.setDisplayFormat(Format.FOURPARTS);
-				}
-				else if(choosen.equals(tr("wfFormatFourPartsPlus"))) {
-					plugin.setDisplayFormat(Format.FOURPARTS_RYTHM);
-				}
+				plugin.setDisplayFormat((Format) cb.getSelectedItem());
 			}
 		});
 		this.add(displayCombo);
-
 	}
 	
 	public void paintComponent( Graphics g ) {
@@ -120,7 +106,6 @@ class ToolPanel extends JPanel {
 		{
 			this.remove(this.displayLabel);
 			this.remove(this.displayCombo);
-			fillVector();
 			addDisplayFormatComponent();
 		}
 	}	
