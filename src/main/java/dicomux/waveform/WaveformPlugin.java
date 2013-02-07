@@ -1,10 +1,12 @@
 package dicomux.waveform;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.List;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -185,6 +187,7 @@ public class WaveformPlugin extends APlugin {
 		this.infoPanel.setPreferredSize(new Dimension(m_content.getWidth(), 70));
 		
 		resetZoom();
+		addDrawingPanels();
 		displayDefault();
 		
 		JPanel wrap = new JPanel(new BorderLayout());
@@ -238,143 +241,32 @@ public class WaveformPlugin extends APlugin {
 		return retdata;
 	}
 	
+	private void addDrawingPanels() {
+		for (int i = 0; i < this.channelDefinitions.length; i++) {
+			DrawingPanel panel = new DrawingPanel(this, data[i], 0, channelDefinitions[i]);
+			channelpane.add(channelDefinitions[i].getName(), panel);
+
+			
+			if(channelDefinitions[i].getName().equalsIgnoreCase("Lead II")) {
+				DrawingPanel rhythm = new DrawingPanel(this, data[i], 0, channelDefinitions[i]);
+				rhythm.setRhythm(true);
+				channelpane.add("rythm", rhythm);
+			}
+		}
+	}
+	
 	private void displayDefault() {		 
 		this.waveformLayout.setFormat(Format.DEFAULT);
-		this.channelpane.removeAll();
+		for(Component c: channelpane.getComponents())
+			((DrawingPanel)c).setTime(0, Integer.MAX_VALUE);
 		
-		// try to sort leads
-		boolean sortable = true;
-		int[][] temp_data = new int[this.data.length][this.data[0].length];
-		ChannelDefinition[] temp_definitions = new ChannelDefinition[this.channelDefinitions.length];
-		for (int i = 0; i < this.data.length; i++) {
-			if(this.channelDefinitions[i].getName().equalsIgnoreCase("Lead I")) {
-				temp_data[0] = this.data[i];
-				temp_definitions[0] = this.channelDefinitions[i]; 
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead II")) {
-				temp_data[1] = this.data[i];
-				temp_definitions[1] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead III")) {
-				temp_data[2] = this.data[i];
-				temp_definitions[2] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead aVR")) {
-				temp_data[3] = this.data[i];
-				temp_definitions[3] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead aVL")) {
-				temp_data[4] = this.data[i];
-				temp_definitions[4] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead aVF")) {
-				temp_data[5] = this.data[i];
-				temp_definitions[5] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead V1")) {
-				temp_data[6] = this.data[i];
-				temp_definitions[6] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead V2")) {
-				temp_data[7] = this.data[i];
-				temp_definitions[7] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead V3")) {
-				temp_data[8] = this.data[i];
-				temp_definitions[8] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead V4")) {
-				temp_data[9] = this.data[i];
-				temp_definitions[9] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead V5")) {
-				temp_data[10] = this.data[i];
-				temp_definitions[10] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead V6")) {
-				temp_data[11] = this.data[i];
-				temp_definitions[11] = this.channelDefinitions[i];
-			}
-			else {
-				//unknown lead, don't sort
-				sortable = false;
-				break;
-			}
-		}
-		
-		if(sortable) {
-			this.data = temp_data;
-			this.channelDefinitions = temp_definitions;
-		}
-		
-		// creating the Panels for each channel 
-		for(int i = 0; i < numberOfChannels; i++) {
-			DrawingPanel drawPannel = new DrawingPanel(this, data[i], 0, channelDefinitions[i]);
-			channelpane.add(drawPannel);
-		}		
-		
+		this.channelpane.revalidate();
 	}
 	
 	private void displayTwoParts() {
 		this.waveformLayout.setFormat(Format.TWOPARTS);
-		this.channelpane.removeAll();
-		
-		// sort Leads
-		int[][] temp_data = new int[this.data.length][this.data[0].length];
-		ChannelDefinition[] temp_definitions = new ChannelDefinition[this.channelDefinitions.length];
-		for (int i = 0; i < this.data.length; i++) {
-			if(this.channelDefinitions[i].getName().equalsIgnoreCase("Lead I")) {
-				temp_data[0] = this.data[i];
-				temp_definitions[0] = this.channelDefinitions[i]; 
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead V1")) {
-				temp_data[1] = this.data[i];
-				temp_definitions[1] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead II")) {
-				temp_data[2] = this.data[i];
-				temp_definitions[2] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead V2")) {
-				temp_data[3] = this.data[i];
-				temp_definitions[3] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead III")) {
-				temp_data[4] = this.data[i];
-				temp_definitions[4] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead V3")) {
-				temp_data[5] = this.data[i];
-				temp_definitions[5] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead aVR")) {
-				temp_data[6] = this.data[i];
-				temp_definitions[6] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead V4")) {
-				temp_data[7] = this.data[i];
-				temp_definitions[7] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead aVL")) {
-				temp_data[8] = this.data[i];
-				temp_definitions[8] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead V5")) {
-				temp_data[9] = this.data[i];
-				temp_definitions[9] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead aVF")) {
-				temp_data[10] = this.data[i];
-				temp_definitions[10] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead V6")) {
-				temp_data[11] = this.data[i];
-				temp_definitions[11] = this.channelDefinitions[i];
-			}
-		}
-		this.data = temp_data;
-		this.channelDefinitions = temp_definitions;
-		
+		List<Component> ordered = waveformLayout.getOrderedComponents(channelpane);
+
 		double start = 0;
 		for(int i = 0; i < numberOfChannels; i++) {
 			if(i != 0 && (i % 2) != 0)
@@ -385,70 +277,14 @@ public class WaveformPlugin extends APlugin {
 			{
 				start = 0;
 			}
-			DrawingPanel drawPannel = new DrawingPanel(this, data[i], start, channelDefinitions[i]);
-			channelpane.add(drawPannel);
+			DrawingPanel drawPannel = (DrawingPanel)ordered.get(i);
+			drawPannel.setTime(start, 5);
 		}
+		this.channelpane.revalidate();
 	}
 	
 	private void displayFourParts() {
 		this.waveformLayout.setFormat(Format.FOURPARTS);
-		this.channelpane.removeAll();
-
-		// sort Leads
-		int[][] temp_data = new int[this.data.length][this.data[0].length];
-		ChannelDefinition[] temp_definitions = new ChannelDefinition[this.channelDefinitions.length];
-		for (int i = 0; i < this.data.length; i++) {
-			if(this.channelDefinitions[i].getName().equalsIgnoreCase("Lead I")) {
-				temp_data[0] = this.data[i];
-				temp_definitions[0] = this.channelDefinitions[i]; 
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead aVR")) {
-				temp_data[1] = this.data[i];
-				temp_definitions[1] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead V1")) {
-				temp_data[2] = this.data[i];
-				temp_definitions[2] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead V4")) {
-				temp_data[3] = this.data[i];
-				temp_definitions[3] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead II")) {
-				temp_data[4] = this.data[i];
-				temp_definitions[4] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead aVL")) {
-				temp_data[5] = this.data[i];
-				temp_definitions[5] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead V2")) {
-				temp_data[6] = this.data[i];
-				temp_definitions[6] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead V5")) {
-				temp_data[7] = this.data[i];
-				temp_definitions[7] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead III")) {
-				temp_data[8] = this.data[i];
-				temp_definitions[8] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead aVF")) {
-				temp_data[9] = this.data[i];
-				temp_definitions[9] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead V3")) {
-				temp_data[10] = this.data[i];
-				temp_definitions[10] = this.channelDefinitions[i];
-			}
-			else if (this.channelDefinitions[i].getName().equalsIgnoreCase("Lead V6")) {
-				temp_data[11] = this.data[i];
-				temp_definitions[11] = this.channelDefinitions[i];
-			}
-		}
-		this.data = temp_data;
-		this.channelDefinitions = temp_definitions;
 		
 		double start = 0;
 		
@@ -477,26 +313,16 @@ public class WaveformPlugin extends APlugin {
 					break;
 			}
 			
-			DrawingPanel drawPannel = new DrawingPanel(this, data[i], start, channelDefinitions[i]);
-			channelpane.add(drawPannel);
+			DrawingPanel drawPannel = (DrawingPanel)waveformLayout.getOrderedComponents(channelpane).get(i);
+			drawPannel.setTime(start, 2.5);
 		}
+		this.channelpane.revalidate();
 	}
 	
 	private void displayFourPartsPlus() {		
 		displayFourParts();
 		this.waveformLayout.setFormat(Format.FOURPARTS_RYTHM);
-				
-		int rhythm_index = 0;
-		for (int i = 0; i < this.channelDefinitions.length; i++) {
-			if(channelDefinitions[i].getName().equalsIgnoreCase("Lead II")) {
-				rhythm_index = i;
-			}
-		}
-		
-		DrawingPanel rhythm = new DrawingPanel(this, data[rhythm_index], 0, channelDefinitions[rhythm_index]);
-		rhythm.setRhythm(true);
-		
-		this.channelpane.add(rhythm);
+		this.channelpane.revalidate();
 	}
 	
 	private void getMinMax(int data[][], ChannelDefinition definitions[]) {						
