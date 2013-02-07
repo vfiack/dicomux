@@ -20,6 +20,8 @@ import java.awt.geom.Rectangle2D;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
+import dicomux.waveform.WaveformLayout.Format;
+
 
 
 /**
@@ -209,19 +211,15 @@ class DrawingPanel extends JPanel {
 		g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_NORMALIZE);
 		g2.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
 		
-		if(plugin.getDisplayFormat().equals(WaveformPlugin.DEFAULTFORMAT) || isRhythm) {
+		if(plugin.getDisplayFormat() == Format.DEFAULT || isRhythm) {
 			this.secsCellCount = plugin.getSeconds() * 10;
 			this.end = this.start + this.data.length;
 		}
-		else if(plugin.getDisplayFormat().equals(WaveformPlugin.FOURPARTS)) {
+		else if(plugin.getDisplayFormat() == Format.FOURPARTS || plugin.getDisplayFormat() == Format.FOURPARTS_RYTHM) {
 			this.secsCellCount = (int) (2.5 * 10);
 			this.end = this.start + (int) (2.5 * plugin.getSamplesPerSecond());
 		}
-		else if(plugin.getDisplayFormat().equals(WaveformPlugin.FOURPARTSPLUS)) {
-			this.secsCellCount = (int) (2.5 * 10);
-			this.end = this.start + (int) (2.5 * plugin.getSamplesPerSecond());
-		}
-		else if(plugin.getDisplayFormat().equals(WaveformPlugin.TWOPARTS)) {
+		else if(plugin.getDisplayFormat() == Format.TWOPARTS) {
 			this.secsCellCount = 5 * 10;
 			this.end = this.start + 5 * plugin.getSamplesPerSecond();
 		}

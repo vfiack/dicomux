@@ -1,18 +1,11 @@
 package dicomux.waveform;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.GridLayout;
-import java.awt.Toolkit;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Vector;
 
-import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
@@ -22,31 +15,19 @@ import org.dcm4che2.data.Tag;
 
 import dicomux.APlugin;
 import dicomux.DicomException;
+import dicomux.waveform.WaveformLayout.Format;
 
 /**
  * This plug-in is for displaying waveform ecg data in a graphical way.
  * @author norbert
  */
-public class WaveformPlugin extends APlugin {
-	public static final double MAX_ZOOM_OUT = 0.5f;
-	public static final double MAX_ZOOM_IN = 10.0f;
-	public static final double ZOOM_UNIT = 0.5f;
-	public static final double NO_ZOOM = 1.0f;
-	
-	public static final String DEFAULTFORMAT = "1x10s";
-	public static final String FOURPARTS = "4x2.5s";
-	public static final String FOURPARTSPLUS = "4x2.5s & RS";
-	public static final String TWOPARTS = "2x5s";
-	
-	
-	private Vector<DrawingPanel> pannels = new Vector<DrawingPanel>(12);
-	private double zoomLevel;
+public class WaveformPlugin extends APlugin {	
 	private int mvCells;
 	private double seconds;
 	private JScrollPane scroll;
 	private JPanel channelpane;
 	private int numberOfChannels;
-	private String displayFormat;
+	private Format displayFormat;
 	private ToolPanel tools;
 	private InfoPanel infoPanel;
 	private double frequency;
@@ -54,11 +35,10 @@ public class WaveformPlugin extends APlugin {
 	private int samplesPerSecond;
 	private int data[][];
 	private ChannelDefinition[] channelDefinitions;
-	private boolean displayFormatChanged;
-	private int displayFactorWidth;
-	private int displayFactorHeight;
 	
-	private DrawingPanel rhythm;
+	private WaveformLayout waveformLayout;
+	private int mmPerSecond = 25;
+	private int mmPerMillivolt = 10;
 	
 	public WaveformPlugin() throws Exception {
 		super();
@@ -66,10 +46,7 @@ public class WaveformPlugin extends APlugin {
 		m_keyTag.addKey(Tag.WaveformSequence, null);
 		m_keyTag.addKey(Tag.WaveformData, null);
 		
-		this.zoomLevel = NO_ZOOM;
-		this.displayFormat = DEFAULTFORMAT;
-		this.displayFormatChanged = false;
-		this.rhythm = null;		
+		this.displayFormat = Format.DEFAULT;
 	}
 	
 	public String getName() {
@@ -190,6 +167,13 @@ public class WaveformPlugin extends APlugin {
 		this.scroll = new JScrollPane();
 		scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+
+		this.waveformLayout = new WaveformLayout(this, Format.DEFAULT);
+		this.channelpane = new JPanel(waveformLayout);
+		JPanel channelwrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+		channelwrap.add(channelpane);
+		this.scroll.setViewportView(channelwrap); 
+
 		
 		// Panel which includes the Buttons for zooming 
 		this.tools = new ToolPanel(this);
@@ -200,6 +184,7 @@ public class WaveformPlugin extends APlugin {
 		this.infoPanel = new InfoPanel();
 		this.infoPanel.setPreferredSize(new Dimension(m_content.getWidth(), 70));
 		
+		resetZoom();
 		displayDefault();
 		
 		JPanel wrap = new JPanel(new BorderLayout());
@@ -208,16 +193,6 @@ public class WaveformPlugin extends APlugin {
 		
 		m_content.add(wrap, BorderLayout.NORTH);
 		m_content.add(scroll, BorderLayout.CENTER);
-		
-		// this gets called when the application is resized
-		m_content.addComponentListener(new ComponentAdapter() {	
-			public void componentResized(ComponentEvent e) {
-				repaintPanels();
-			}
-		});
-	
-		this.displayFactorWidth = 1;
-		this.displayFactorHeight = this.numberOfChannels;
 	}
 
 	public void updateLanguage(String lang) {
@@ -263,92 +238,9 @@ public class WaveformPlugin extends APlugin {
 		return retdata;
 	}
 	
-	
-	/**
-	 * Iterate over all ChannelPanels, set their size to the given Dimension and repaints them
-	 */
-	private void repaintPanels() {
-		if(!this.pannels.isEmpty()) {
-
-			if( this.numberOfChannels == 12 && displayFormatChanged) {
-				if(displayFormat.equals(DEFAULTFORMAT)) {
-					displayDefault();
-					this.rhythm = null;
-					displayFactorHeight = this.numberOfChannels;
-					displayFactorWidth = 1;
-				}
-				if(displayFormat.equals(FOURPARTS)) {
-					this.channelpane = displayFourParts(this.channelpane);
-					
-					JPanel wrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-					wrap.add(channelpane);
-					this.scroll.setViewportView(wrap); 
-
-					this.rhythm = null;
-					displayFactorWidth = 4;
-					displayFactorHeight = 3;
-				}
-				if(displayFormat.equals(FOURPARTSPLUS)) {
-					displayFourPartsPlus();
-					displayFactorWidth = 4;
-					displayFactorHeight = 4;
-				}
-				if(displayFormat.equals(TWOPARTS)) {
-					displayTwoParts(); 
-					this.rhythm = null;
-					displayFactorWidth = 2;
-					displayFactorHeight = 6;
-				}
-			}
-			
-
-			//1mm => 3.77 pixels
-			int pixelPerInch = Toolkit.getDefaultToolkit().getScreenResolution();
-			double pixelPerMm = pixelPerInch/25.4;
-			int secWidth = (int)(25*pixelPerMm);
-			int mvHeight = (int)(10*pixelPerMm);
-			int w = (int)(getSeconds()*secWidth);
-			int h = getMvCells()*mvHeight;
-
-			
-			//Dimension m_content_dim = m_content.getSize();
-			//double width = (m_content.getWidth()-3)/displayFactorWidth;
-			//double height = (m_content_dim.getHeight() - tools.getHeight() - infoPanel.getHeight()-5)/displayFactorHeight;
-			
-			double width = (w/displayFactorWidth) * zoomLevel;
-			double height = h * zoomLevel;
-						
-			Dimension dim = new Dimension((int) width, (int)height);
-			for (DrawingPanel p : this.pannels) {
-				p.setPreferredSize(dim);
-				p.setSize(dim);
-				p.repaint();
-			}
-			
-			if(this.rhythm != null) {
-				dim = new Dimension((int)width*displayFactorWidth, (int) height);
-				this.rhythm.setPreferredSize(dim);
-				this.rhythm.setSize(dim);
-				this.rhythm.repaint();
-			}
-			
-			Dimension pdim = new Dimension((int)(width*displayFactorWidth), (int)(height*displayFactorHeight));
-			this.channelpane.setPreferredSize(pdim);
-			this.channelpane.setSize(pdim);
-			
-			this.channelpane.repaint();
-			this.scroll.revalidate();
-			m_content.repaint();
-		}
-	}
-	
 	private void displayDefault() {		 
-		this.channelpane = new JPanel();
-		channelpane.setBackground(Color.BLACK);
-		channelpane.setLayout(new GridLayout(0, 1));
-		
-		// remove all panels, as we are about to create them again
-		this.pannels.removeAllElements();
+		this.waveformLayout.setFormat(Format.DEFAULT);
+		this.channelpane.removeAll();
 		
 		// try to sort leads
 		boolean sortable = true;
@@ -419,22 +311,14 @@ public class WaveformPlugin extends APlugin {
 		for(int i = 0; i < numberOfChannels; i++) {
 			DrawingPanel drawPannel = new DrawingPanel(this, data[i], 0, channelDefinitions[i]);
 			channelpane.add(drawPannel);
-			this.pannels.add(drawPannel);
 		}		
 		
-		JPanel wrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-		wrap.add(channelpane);
-		this.scroll.setViewportView(wrap); 
 	}
 	
 	private void displayTwoParts() {
-		this.channelpane = new JPanel();
-		channelpane.setBackground(Color.BLACK);
+		this.waveformLayout.setFormat(Format.TWOPARTS);
+		this.channelpane.removeAll();
 		
-		GridLayout layout = new GridLayout(6, 2);
-		channelpane.setLayout(layout);
-		
-		this.pannels.removeAllElements();
 		// sort Leads
 		int[][] temp_data = new int[this.data.length][this.data[0].length];
 		ChannelDefinition[] temp_definitions = new ChannelDefinition[this.channelDefinitions.length];
@@ -503,23 +387,13 @@ public class WaveformPlugin extends APlugin {
 			}
 			DrawingPanel drawPannel = new DrawingPanel(this, data[i], start, channelDefinitions[i]);
 			channelpane.add(drawPannel);
-			// add panel to vector
-			this.pannels.add(drawPannel);
 		}
-		
-		JPanel wrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-		wrap.add(channelpane);
-		this.scroll.setViewportView(wrap); 
 	}
 	
-	private JPanel displayFourParts(JPanel pane) {
-		pane = new JPanel();
-		pane.setBackground(Color.BLACK);
-		
-		GridLayout layout = new GridLayout(3, 4);
-		pane.setLayout(layout);
-		
-		this.pannels.removeAllElements();
+	private void displayFourParts() {
+		this.waveformLayout.setFormat(Format.FOURPARTS);
+		this.channelpane.removeAll();
+
 		// sort Leads
 		int[][] temp_data = new int[this.data.length][this.data[0].length];
 		ChannelDefinition[] temp_definitions = new ChannelDefinition[this.channelDefinitions.length];
@@ -604,22 +478,14 @@ public class WaveformPlugin extends APlugin {
 			}
 			
 			DrawingPanel drawPannel = new DrawingPanel(this, data[i], start, channelDefinitions[i]);
-			pane.add(drawPannel);
-			// add panel to vector
-			this.pannels.add(drawPannel);
+			channelpane.add(drawPannel);
 		}
-		return pane;
 	}
 	
 	private void displayFourPartsPlus() {		
-		JPanel pane = new JPanel();
-		
-		pane = displayFourParts(pane);
-		
-		this.channelpane = new JPanel();
-		this.channelpane.setLayout(new BoxLayout(channelpane, BoxLayout.PAGE_AXIS));
-		this.channelpane.setBackground(Color.BLACK);
-		
+		displayFourParts();
+		this.waveformLayout.setFormat(Format.FOURPARTS_RYTHM);
+				
 		int rhythm_index = 0;
 		for (int i = 0; i < this.channelDefinitions.length; i++) {
 			if(channelDefinitions[i].getName().equalsIgnoreCase("Lead II")) {
@@ -627,19 +493,13 @@ public class WaveformPlugin extends APlugin {
 			}
 		}
 		
-		this.rhythm = new DrawingPanel(this, data[rhythm_index], 0, channelDefinitions[rhythm_index]);
-		this.rhythm.setRhythm(true);
+		DrawingPanel rhythm = new DrawingPanel(this, data[rhythm_index], 0, channelDefinitions[rhythm_index]);
+		rhythm.setRhythm(true);
 		
-		this.channelpane.add(pane);
-		this.channelpane.add(this.rhythm);
-		
-		JPanel wrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-		wrap.add(channelpane);
-		this.scroll.setViewportView(wrap); 
+		this.channelpane.add(rhythm);
 	}
 	
-	private void getMinMax(int data[][], ChannelDefinition definitions[]) {
-						
+	private void getMinMax(int data[][], ChannelDefinition definitions[]) {						
 			for(int i = 0; i < data.length; i++) {
 				double min = 0;
 				double max = 0;
@@ -677,31 +537,50 @@ public class WaveformPlugin extends APlugin {
 	//--
 	
 	public void resetZoom() {
-		zoomLevel = NO_ZOOM;
-		repaintPanels();
+		this.mmPerMillivolt = 10;
+		this.mmPerSecond = 25;
+		
+		this.waveformLayout.setAmplitude(mmPerMillivolt);
+		this.waveformLayout.setSpeed(mmPerSecond);
+		this.channelpane.revalidate();
 	}
 	
 	public void decreaseZoomLevel() {
-		if(zoomLevel <= MAX_ZOOM_OUT)
+		if(this.mmPerMillivolt <= 5)
 			return;
-			
-		zoomLevel -= ZOOM_UNIT;
-		repaintPanels();
+		
+		this.mmPerMillivolt -= 5;
+		this.mmPerSecond -= 10;
+		
+		this.waveformLayout.setAmplitude(mmPerMillivolt);
+		this.waveformLayout.setSpeed(mmPerSecond);
+		this.channelpane.revalidate();
 	}
 	
 	public void increaseZoomLevel() {
-		if(zoomLevel >= WaveformPlugin.MAX_ZOOM_IN)
+		if(this.mmPerMillivolt >= 25)
 			return;
 		
-		zoomLevel += WaveformPlugin.ZOOM_UNIT;		
-		repaintPanels();
+		this.mmPerMillivolt += 5;
+		this.mmPerSecond += 10;
+		
+		this.waveformLayout.setAmplitude(mmPerMillivolt);
+		this.waveformLayout.setSpeed(mmPerSecond);
+		this.channelpane.revalidate();
 	}
 	
-	public void setDisplayFormat(String format) {
+	public void setDisplayFormat(Format format) {
 		displayFormat = format;
-		displayFormatChanged = true;
-		repaintPanels();
-		displayFormatChanged = false;
+		if(displayFormat == Format.DEFAULT)
+			displayDefault();
+		else if(displayFormat == Format.FOURPARTS)
+			displayFourParts();
+		else if(displayFormat == Format.FOURPARTS_RYTHM)
+			displayFourPartsPlus();
+		else if(displayFormat == Format.TWOPARTS)
+			displayTwoParts(); 
+		
+		this.channelpane.revalidate();
 	}
 	
 	//-- getters & setters
@@ -722,13 +601,11 @@ public class WaveformPlugin extends APlugin {
 		return samplesPerSecond;
 	}
 
-	public String getDisplayFormat() {
+	public Format getDisplayFormat() {
 		return displayFormat;
 	}
 
 	public InfoPanel getInfoPanel() {
 		return infoPanel;
-	}
-	
-	
+	}	
 }

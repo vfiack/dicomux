@@ -14,6 +14,8 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import dicomux.waveform.WaveformLayout.Format;
+
 class ToolPanel extends JPanel {
 	private static final long serialVersionUID = 2827148456926205919L;
 	private WaveformPlugin plugin;
@@ -84,16 +86,16 @@ class ToolPanel extends JPanel {
 				JComboBox cb = (JComboBox) e.getSource();
 				String choosen = (String) cb.getSelectedItem();
 				if(choosen.equals(tr("wfFormatDefault"))) {
-					plugin.setDisplayFormat(WaveformPlugin.DEFAULTFORMAT);
+					plugin.setDisplayFormat(Format.DEFAULT);
 				}
 				else if(choosen.equals(tr("wfFormatTwoParts"))) {
-					plugin.setDisplayFormat(WaveformPlugin.TWOPARTS);
+					plugin.setDisplayFormat(Format.TWOPARTS);
 				}
 				else if(choosen.equals(tr("wfFormatFourParts"))) {
-					plugin.setDisplayFormat(WaveformPlugin.FOURPARTS);
+					plugin.setDisplayFormat(Format.FOURPARTS);
 				}
 				else if(choosen.equals(tr("wfFormatFourPartsPlus"))) {
-					plugin.setDisplayFormat(WaveformPlugin.FOURPARTSPLUS);
+					plugin.setDisplayFormat(Format.FOURPARTS_RYTHM);
 				}
 			}
 		});
