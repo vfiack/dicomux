@@ -27,7 +27,7 @@ You can compile with maven : mvn package assembly:assembly
 Then run the generated jar in the target directory : java -jar dicomux*with-dependencies.jar
 
 ### Logo
-<img src="https://github.com/vfiack/dicomux/raw/master/etc/images/logo_big.png" alt="Dicomux Logo" width="30%"/>
+<img src="raw/master/src/main/resources/images/logo_big.png" alt="Dicomux Logo" width="30%"/>
 
 ### Used external libraries
 <table>
