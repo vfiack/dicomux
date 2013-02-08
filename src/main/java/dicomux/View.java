@@ -15,6 +15,7 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.InputStream;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.Vector;
@@ -31,6 +32,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -556,9 +558,8 @@ public class View extends JFrame implements IView {
 		 * @return a JPanel
 		 */
 		protected JComponent makeAboutTab() {
-			JPanel content = new JPanel(new BorderLayout(5 , 5), false);
-			content.add(getHTMLPane("key_html_about"), BorderLayout.CENTER);
-			
+			JScrollPane content = new JScrollPane();
+			content.setViewportView(getHTMLPane("about.html"));			
 			return content;
 		}
 		
@@ -567,8 +568,20 @@ public class View extends JFrame implements IView {
 		 * @param propKey the key from the property files which contains the HTML code we want to render
 		 * @return the HTML panel
 		 */
-		private JEditorPane getHTMLPane(String propKey) {
-			JEditorPane content = new JEditorPane("text/html", getParsedHTML(tr(propKey)));
+		private JEditorPane getHTMLPane(String path) {
+			String source = "Unable to find " + path;
+			InputStream is = getClass().getClassLoader().getResourceAsStream(path);
+			if(is != null) {
+				try {
+					byte[] data = new byte[10*1024];
+					int nread = is.read(data);
+					source = new String(data, 0, nread);
+				} catch(Exception e) {
+					source = "Error loading resource: " + e;
+				}
+			}
+			
+			JEditorPane content = new JEditorPane("text/html", getParsedHTML(source));
 			content.setEditable(false);
 			content.setBorder(BorderFactory.createLineBorder(Color.BLACK, 0));
 			
@@ -599,7 +612,7 @@ public class View extends JFrame implements IView {
 		 * @return parsed HTML code
 		 */
 		private String getParsedHTML(String source) {
-			final String imagePrefix = "<img src=\"";
+			final String imagePrefix = "src=\"";
 			final String imageSuffix = "\"";
 			String src = source;
 			String retVal = new String();
@@ -610,16 +623,14 @@ public class View extends JFrame implements IView {
 				
 				if (startIndex >= 0 && endIndex >= 0 && endIndex > startIndex) {	// we found an image in the HTML code
 					String item = src.substring(startIndex + imagePrefix.length(), endIndex); // extract item file name
-					System.out.println("Parser found item " + item);
 					
 					String imagePath = "";
 					URL filePath = this.getClass().getClassLoader().getResource(item);	// ask classloader for a correct file path
 					if (filePath != null) {
 						imagePath = MessageFormat.format(imagePrefix + "{0}" + imageSuffix, filePath);
-						System.out.println("Classloader found image at " + filePath);
 					}
 					else
-						System.out.println("Classloader couldn't find the file " + item);
+						System.err.println("Classloader couldn't find the file " + item);
 					
 					retVal += src.substring(0, startIndex) + imagePath;		// write our work to the retVal
 					src = src.substring(endIndex + imageSuffix.length());	// trunkate everything before the end of our image
@@ -630,7 +641,6 @@ public class View extends JFrame implements IView {
 				}
 			}
 			
-			System.out.println(retVal);
 			return retVal;
 		}
 		/**
