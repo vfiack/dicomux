@@ -23,7 +23,9 @@ Thomas Heidrich created the logo of Dicomux by deriving from <a href="http://com
 
 ### Compiling & Running
 Dicomux is a Java Application. No binary is provided.
+
 You can compile with maven : mvn package assembly:assembly
+
 Then run the generated jar in the target directory : java -jar dicomux*with-dependencies.jar
 
 ### Logo
