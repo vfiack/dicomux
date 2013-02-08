@@ -37,11 +37,12 @@ class ToolPanel extends JPanel {
 		JLabel zoomLabel = new JLabel(tr("wfZoom"));
 		this.add(zoomLabel);
 		
-		JComboBox speed = new JComboBox(new Integer[] {5, 10, 15, 20, 25, 30, 35, 40, 50, 75, 100});
+		JComboBox speed = new JComboBox(new Integer[] {WaveformLayout.AUTO_SPEED, 5, 10, 15, 20, 25, 30, 35, 40, 50, 75, 100});
 		speed.setRenderer(new BasicComboBoxRenderer() {
 			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
 				Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-				((BasicComboBoxRenderer)c).setText(String.valueOf(value) + " mm/s");
+				String text = ((Integer)value == WaveformLayout.AUTO_SPEED) ? "auto mm/s" : String.valueOf(value) + " mm/s"; 
+				((BasicComboBoxRenderer)c).setText(text);
 				return c;
 			}
 		});		
@@ -51,16 +52,17 @@ class ToolPanel extends JPanel {
 				plugin.setSpeed((Integer)cb.getSelectedItem());
 			}
 		});
-		speed.setSelectedItem(plugin.getSpeed());
+		speed.setSelectedItem(WaveformLayout.AUTO_SPEED);
 		speed.setFocusable(false);
 		this.add(speed);
 
 		
-		JComboBox amplitude = new JComboBox(new Integer[] {3, 5, 10, 15, 20, 30});
+		JComboBox amplitude = new JComboBox(new Integer[] {WaveformLayout.AUTO_AMPLITUDE, 3, 5, 10, 15, 20, 30});
 		amplitude.setRenderer(new BasicComboBoxRenderer() {
 			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
 				Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-				((BasicComboBoxRenderer)c).setText(String.valueOf(value) + " mm/mV");
+				String text = ((Integer)value == WaveformLayout.AUTO_AMPLITUDE) ? "auto mm/mV" : String.valueOf(value) + " mm/mV"; 
+				((BasicComboBoxRenderer)c).setText(text);
 				return c;
 			}
 		});		
@@ -70,7 +72,7 @@ class ToolPanel extends JPanel {
 				plugin.setAmplitude((Integer)cb.getSelectedItem());
 			}
 		});
-		amplitude.setSelectedItem(plugin.getAmplitude());
+		amplitude.setSelectedItem(WaveformLayout.AUTO_AMPLITUDE);
 		amplitude.setFocusable(false);
 		this.add(amplitude);
 	}

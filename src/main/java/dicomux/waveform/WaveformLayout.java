@@ -13,6 +13,10 @@ import java.util.Map;
 
 public class WaveformLayout implements LayoutManager {
 	public enum Format {DEFAULT, TWOPARTS, FOURPARTS, FOURPARTS_RYTHM}
+	public static final int AUTO_AMPLITUDE = -1;
+	public static final int AUTO_SPEED = -1;
+	public static final int DEFAULT_AMPLITUDE = 10;
+	public static final int DEFAULT_SPEED = 25;
 		
 	private static final String[] orderTwoParts = {
 		"lead i", "lead v1", 
@@ -55,18 +59,10 @@ public class WaveformLayout implements LayoutManager {
 		setFormat(format);
 	}
 	
-	public int getSpeed() {
-		return mmPerSecond;
-	}
-	
 	public void setSpeed(int mmPerSecond) {
 		this.mmPerSecond = mmPerSecond;
 	}
-	
-	public int getAmplitude() {
-		return mmPerMillivolt;
-	}
-	
+		
 	public void setAmplitude(int mmPerMillivolt) {
 		this.mmPerMillivolt = mmPerMillivolt;
 	}
@@ -151,13 +147,24 @@ public class WaveformLayout implements LayoutManager {
 		int secWidth = (int)(mmPerSecond*pixelPerMm);
 		int mvHeight = (int)(mmPerMillivolt*pixelPerMm);
 
-		if(format == Format.DEFAULT)
-			dim.width += (int)(plugin.getSeconds()*secWidth)/displayFactorWidth;
-		else
-			dim.width += (int)(10*secWidth); //limit to 10s
-			
-		dim.height += displayFactorHeight * plugin.getMvCells()*mvHeight;
+		double seconds = (format == Format.DEFAULT) ? plugin.getSeconds() : 10; 
+		
+		if(mmPerMillivolt == AUTO_AMPLITUDE) {
+			//auto height, based on the scrollpane size
+			double h = parent.getParent().getParent().getSize().height;
+			int auto = (int)(h / plugin.getMvCells() / displayFactorHeight);
+			mvHeight = Math.min(auto, (int)(DEFAULT_AMPLITUDE*pixelPerMm));
+		}
+		
+		if(mmPerSecond == AUTO_SPEED) {
+			//auto width, based on the scrollpane size
+			double w = parent.getParent().getParent().getSize().width;
+			int auto = (int)(w / seconds);			
+			secWidth = Math.min(auto, (int)(DEFAULT_SPEED*pixelPerMm));
+		}
 
+		dim.width += (int)(seconds*secWidth);			
+		dim.height += displayFactorHeight * plugin.getMvCells()*mvHeight;
 		return dim;		
 	}
 	

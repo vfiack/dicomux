@@ -4,6 +4,8 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.List;
@@ -193,6 +195,11 @@ public class WaveformPlugin extends APlugin {
 		
 		m_content.add(wrap, BorderLayout.NORTH);
 		m_content.add(scroll, BorderLayout.CENTER);
+		m_content.addComponentListener(new ComponentAdapter() {
+			public void componentResized(ComponentEvent e) {
+				channelpane.revalidate();
+			}
+		});
 	}
 
 	public void updateLanguage(String lang) {
@@ -359,17 +366,9 @@ public class WaveformPlugin extends APlugin {
 
 	//--
 	
-	public int getSpeed() {
-		return waveformLayout.getSpeed();
-	}
-	
 	public void setSpeed(int mmPerSecond) {
 		this.waveformLayout.setSpeed(mmPerSecond);
 		this.channelpane.revalidate();
-	}
-	
-	public int getAmplitude() {
-		return waveformLayout.getAmplitude();
 	}
 	
 	public void setAmplitude(int mmPerMillivolt) {
