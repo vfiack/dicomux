@@ -30,12 +30,13 @@ class InfoPanel extends JPanel {
 	private JLabel stopMiliVolt;
 	private JLabel stopSeconds;
 	
-	private JLabel deltaLabel;
-	private JLabel deltaMiliVolt;
-	private JLabel deltaSeconds;
+	private JLabel selectionLabel;
+	private JLabel selectionDifference;
+	private JLabel selectionAmplitude;
+	private JLabel selectionSeconds;
 	
 	public InfoPanel() {
-		super(new GridLayout(3, 5, 2, 0));
+		super(new GridLayout(4, 5, 2, 0));
 		
 		this.lead = new JLabel(" ");
 		this.maximum = new JLabel();
@@ -53,27 +54,34 @@ class InfoPanel extends JPanel {
 		this.stopMiliVolt = new JLabel();
 		this.stopSeconds = new JLabel();
 		
-		this.deltaLabel = new JLabel();
-		this.deltaMiliVolt = new JLabel();
-		this.deltaSeconds = new JLabel();
+		this.selectionLabel = new JLabel();
+		this.selectionDifference = new JLabel();
+		this.selectionAmplitude = new JLabel();
+		this.selectionSeconds = new JLabel();
 		
 		this.add(lead);
 		this.add(currentLabel);
 		this.add(startLabel);
 		this.add(stopLabel);
-		this.add(deltaLabel);
+		this.add(selectionLabel);
 		
 		this.add(minimum);
 		this.add(seconds);
 		this.add(startSeconds);
 		this.add(stopSeconds);
-		this.add(deltaSeconds);
+		this.add(selectionSeconds);
 
 		this.add(maximum);
 		this.add(miliVolt);
 		this.add(startMiliVolt);
 		this.add(stopMiliVolt);
-		this.add(deltaMiliVolt);
+		this.add(selectionDifference);
+		
+		this.add(new JLabel());
+		this.add(new JLabel());
+		this.add(new JLabel());
+		this.add(new JLabel());
+		this.add(selectionAmplitude);
 	}
 	
 	public void setLead(String lead) {
@@ -121,15 +129,17 @@ class InfoPanel extends JPanel {
 		}
 	}
 	
-	public void setDeltaValues(double seconds, double miliVolt) {
+	public void setSelectionValues(double seconds, double diff_mV, double amplitude_mV) {
 		if(seconds < 0) {
-			this.deltaLabel.setText("");
-			this.deltaSeconds.setText("");
-			this.deltaMiliVolt.setText("");			
+			this.selectionLabel.setText("");
+			this.selectionSeconds.setText("");
+			this.selectionDifference.setText("");		
+			this.selectionAmplitude.setText("");	
 		} else {
-			this.deltaLabel.setText(tr("wfDelta"));
-			this.deltaSeconds.setText(new DecimalFormat(tr("wfTimeFormat")).format(seconds));
-			this.deltaMiliVolt.setText(new DecimalFormat(tr("wfValueFormat")).format(miliVolt));
+			this.selectionLabel.setText(tr("wfSelection"));
+			this.selectionSeconds.setText(new DecimalFormat(tr("wfTimeFormat")).format(seconds));
+			this.selectionDifference.setText(new DecimalFormat(tr("wfValueFormat")).format(diff_mV));
+			this.selectionAmplitude.setText(new DecimalFormat(tr("wfValueFormat")).format(amplitude_mV));
 		}
 	}
 	

@@ -109,7 +109,7 @@ class DrawingPanel extends JPanel {
 	}
 	
 	private void setStartSample(int sample) {
-		plugin.getInfoPanel().setDeltaValues(-1, -1);
+		plugin.getInfoPanel().setSelectionValues(-1, -1, -1);
 		
 		if(sample < 0 || sample >= data.length) {
 			startSample = -1;
@@ -121,16 +121,13 @@ class DrawingPanel extends JPanel {
 			double uV = data[startSample] * valueScaling;	
 			plugin.getInfoPanel().setStartValues(sec, uV/1000);
 			
-			if(stopSample > startSample) {
-				double dsec = (stopSample-startSample) / (double)plugin.getSamplesPerSecond();
-				double duV = (data[stopSample] - data[startSample]) * valueScaling;
-				plugin.getInfoPanel().setDeltaValues(dsec, duV/1000);
-			}
+			if(stopSample > startSample)
+				setSelection();
 		}			
 	}
 	
 	private void setStopSample(int sample) {
-		plugin.getInfoPanel().setDeltaValues(-1, -1);
+		plugin.getInfoPanel().setSelectionValues(-1, -1, -1);
 		
 		if(sample < 0 || sample >= data.length) {
 			stopSample = -1;
@@ -142,12 +139,27 @@ class DrawingPanel extends JPanel {
 			double uV = data[stopSample] * valueScaling;		
 			plugin.getInfoPanel().setStopValues(sec, uV/1000);
 			
-			if(stopSample > startSample && startSample >= 0) {
-				double dsec = (stopSample-startSample) / (double)plugin.getSamplesPerSecond();
-				double duV = (data[stopSample] - data[startSample]) * valueScaling;
-				plugin.getInfoPanel().setDeltaValues(dsec, duV/1000);
-			}
+			if(stopSample > startSample && startSample >= 0)
+				setSelection();
 		}			
+	}
+	
+	private void setSelection() {
+		double time = (stopSample-startSample) / (double)plugin.getSamplesPerSecond();
+		double diff_uV = (data[stopSample] - data[startSample]) * valueScaling;
+						
+		int min = Integer.MAX_VALUE;
+		int max = Integer.MIN_VALUE;
+		for(int i=startSample;i<=stopSample;i++) {
+			if(data[i] > max)
+				max = data[i];
+			if(data[i] < min)
+				min = data[i];
+		}
+		double amplitude_uV = (max-min) * valueScaling;
+		
+		
+		plugin.getInfoPanel().setSelectionValues(time, diff_uV/1000, amplitude_uV/1000);
 	}
 	
 	private void addListeners() {
