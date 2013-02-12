@@ -14,7 +14,7 @@ import java.util.Map;
 public class WaveformLayout implements LayoutManager {
 	public enum Format {DEFAULT, TWOPARTS, FOURPARTS, FOURPARTS_RYTHM}
 	public static final int AUTO_AMPLITUDE = -1;
-	public static final int AUTO_SPEED = -1;
+	public static final float AUTO_SPEED = -1f;
 	public static final int DEFAULT_AMPLITUDE = 10;
 	public static final int DEFAULT_SPEED = 25;
 		
@@ -44,7 +44,7 @@ public class WaveformLayout implements LayoutManager {
 	private WaveformPlugin plugin;	
 	private Map<String, Component> components;
 
-	private int mmPerSecond = 25;
+	private float mmPerSecond = 25;
 	private int mmPerMillivolt = 10;
 	
 	private Format format;	
@@ -59,7 +59,7 @@ public class WaveformLayout implements LayoutManager {
 		setFormat(format);
 	}
 	
-	public void setSpeed(int mmPerSecond) {
+	public void setSpeed(float mmPerSecond) {
 		this.mmPerSecond = mmPerSecond;
 	}
 		

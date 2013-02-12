@@ -37,11 +37,20 @@ class ToolPanel extends JPanel {
 		JLabel zoomLabel = new JLabel(tr("wfZoom"));
 		this.add(zoomLabel);
 		
-		JComboBox speed = new JComboBox(new Integer[] {WaveformLayout.AUTO_SPEED, 5, 10, 15, 20, 25, 30, 35, 40, 50, 75, 100});
-		speed.setRenderer(new BasicComboBoxRenderer() {
+		JComboBox speed = new JComboBox(new Float[] {WaveformLayout.AUTO_SPEED, 12.5f, 25f, 50f, 100f});
+		speed.setRenderer(new BasicComboBoxRenderer() {			
 			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
 				Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-				String text = ((Integer)value == WaveformLayout.AUTO_SPEED) ? "auto mm/s" : String.valueOf(value) + " mm/s"; 
+				
+				String text;
+				float val = (Float)value;
+				if(val == WaveformLayout.AUTO_SPEED)
+					text = "auto mm/s";
+				else if(val == Math.floor(val))
+					text = String.valueOf((int)val) + " mm/s";
+				else
+					text = String.valueOf(val) + "mm/s";
+				
 				((BasicComboBoxRenderer)c).setText(text);
 				return c;
 			}
@@ -49,7 +58,7 @@ class ToolPanel extends JPanel {
 		speed.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				JComboBox cb = (JComboBox) e.getSource();
-				plugin.setSpeed((Integer)cb.getSelectedItem());
+				plugin.setSpeed((Float)cb.getSelectedItem());
 			}
 		});
 		speed.setSelectedItem(WaveformLayout.AUTO_SPEED);

@@ -366,7 +366,7 @@ public class WaveformPlugin extends APlugin {
 
 	//--
 	
-	public void setSpeed(int mmPerSecond) {
+	public void setSpeed(float mmPerSecond) {
 		this.waveformLayout.setSpeed(mmPerSecond);
 		this.channelpane.revalidate();
 	}
