@@ -1,6 +1,10 @@
 package dicomux.query;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
@@ -25,6 +29,11 @@ public class DicomTableModel extends AbstractTableModel {
 		Tag.PatientID, Tag.PatientName,
 		Tag.StudyID, Tag.StudyDescription
 	};
+
+	private DateFormat dicomDateFormat = new SimpleDateFormat("yyyyMMdd");
+	private DateFormat readableDateFormat = DateFormat.getDateInstance();
+	private DateFormat dicomTimeFormat = new SimpleDateFormat("HHmmss");
+	private DateFormat readableTimeFormat = DateFormat.getTimeInstance();
 	
 	private List<DicomObject> data;
 	
@@ -59,7 +68,26 @@ public class DicomTableModel extends AbstractTableModel {
 	}
 		
 	public Object getValueAt(int rowIndex, int columnIndex) {
-		return data.get(rowIndex).getString(COL_TAGS[columnIndex]);
+		int tag = COL_TAGS[columnIndex];
+		String value = data.get(rowIndex).getString(tag);
+		
+		if(tag == Tag.StudyDate) {
+			try {
+				Date d = dicomDateFormat.parse(value);
+				value = readableDateFormat.format(d);
+			} catch(ParseException e) {
+				//unable to convert date, ignore
+			}
+		} else if(tag == Tag.StudyTime) {
+			try {
+				Date d = dicomTimeFormat.parse(value);
+				value = readableTimeFormat.format(d);
+			} catch(ParseException e) {
+				//unable to convert date, ignore
+			}
+		}
+		
+		return value;
 	}
 		
 }
