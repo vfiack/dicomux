@@ -8,6 +8,13 @@
 			<name>DCM4che Repository</name>
 			<url>http://www.dcm4che.org/maven2/</url>
 		</repository>
+		
+		<repository>
+			<id>elca-repository</id>
+			<name>ELCA Repository</name>
+			<url>http://public-el4.elca-services.ch/el4j/maven2repository/</url>
+		</repository>
+		
 	</repositories>
 
 	<!-- déclaration du projet  -->
@@ -79,11 +86,9 @@
 
 		<!-- swing components (date picker, ...) -->
 		<dependency>
-			<groupId>com.michaelbaranov</groupId>
+			<groupId>net.sf.microba</groupId>
 			<artifactId>microba</artifactId>
-			<version>0.4.4.3</version>
-			<systemPath>${basedir}/lib/microba-0.4.4.3.jar</systemPath>
-			<scope>system</scope>
+			<version>0.4.4.3</version>			
 		</dependency>
 
 		<!-- json for web query broker -->
