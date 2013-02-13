@@ -45,5 +45,8 @@ Then run the generated jar in the target directory : java -jar dicomux*with-depe
  <tr>
   <td>jai-imageio</td><td>BSD 3-clause</td><td><a href="https://jai-imageio.dev.java.net/">jai-imageio.dev.java.net</a></td>
  </tr>
+ <tr>
+  <td>microba</td><td>BSD</td><td><a href="http://microba.sourceforge.net/">microba.sourceforge.net/</a></td>
+ </tr>
 </table>
 

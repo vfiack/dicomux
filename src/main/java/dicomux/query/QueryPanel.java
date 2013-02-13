@@ -14,6 +14,10 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -30,6 +34,8 @@ import javax.swing.SwingUtilities;
 import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.Tag;
 
+import com.michaelbaranov.microba.calendar.DatePicker;
+
 import dicomux.IController;
 import dicomux.Translation;
 import dicomux.query.web.DicomWebQuery;
@@ -40,10 +46,12 @@ public class QueryPanel extends JPanel {
 	private JTextField patientId;
 	private JTextField patientLastName;
 	private JTextField patientFirstName;
-	private JTextField fromDate;
-	private JTextField toDate;
+	private DatePicker fromDate;
+	private DatePicker toDate;
 	private JButton search;
 	private JTable result;
+	
+	
 	
 	public QueryPanel(final IController controller) {
 		super(new BorderLayout());
@@ -52,8 +60,8 @@ public class QueryPanel extends JPanel {
 		this.patientId = new JTextField();
 		this.patientLastName = new JTextField(); 
 		this.patientFirstName = new JTextField(); 
-		this.fromDate = new JTextField(); 
-		this.toDate = new JTextField();
+		this.fromDate = new DatePicker(null); 
+		this.toDate = new DatePicker(null);
 		this.search = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/system-search.png")));
 		this.result = new JTable();
 		result.setModel(new DicomTableModel());
@@ -166,16 +174,31 @@ public class QueryPanel extends JPanel {
 			pname += patientFirstName.getText().trim() + "*";
 		}
 		
+
 		String dateRange = null;
-		if(! fromDate.getText().trim().isEmpty())
-			dateRange = fromDate.getText().trim();
-		if(! toDate.getText().trim().isEmpty()) {
-			if(dateRange == null)
-				dateRange = "";
-			else 
-				dateRange += "-";
-			
-			dateRange += toDate.getText().trim();
+		Date from = fromDate.getDate();
+		Date to = toDate.getDate();
+		
+		//only one date specified, take a 3 month range starting or ending at this date
+		if(from != null && to == null) {
+			Calendar cal = Calendar.getInstance();
+			cal.setTime(from);
+			cal.add(Calendar.MONTH, 3);
+			to = cal.getTime();
+		} else if(from == null && to != null) {
+			Calendar cal = Calendar.getInstance();
+			cal.setTime(to);
+			cal.add(Calendar.MONTH, -3);
+			from = cal.getTime();
+		}
+					
+		//a date range is specified, format
+		if(from != null && to != null) {
+			DateFormat dicomDateFormat = new SimpleDateFormat("yyyyMMdd");
+		
+			dateRange = dicomDateFormat.format(from);
+			dateRange += "-";
+			dateRange += dicomDateFormat.format(to);
 		}
 		
 		try {

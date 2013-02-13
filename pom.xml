@@ -77,6 +77,15 @@
 			<version>1.2</version>
 		</dependency>
 
+		<!-- swing components (date picker, ...) -->
+		<dependency>
+			<groupId>com.michaelbaranov</groupId>
+			<artifactId>microba</artifactId>
+			<version>0.4.4.3</version>
+			<systemPath>${basedir}/lib/microba-0.4.4.3.jar</systemPath>
+			<scope>system</scope>
+		</dependency>
+
 		<!-- json for web query broker -->
 		<dependency>
 			<groupId>org.json</groupId>
