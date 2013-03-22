@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 
 public class WaveformLayout implements LayoutManager {
 	public enum Format {DEFAULT, TWOPARTS, FOURPARTS, FOURPARTS_RYTHM}
@@ -153,14 +156,14 @@ public class WaveformLayout implements LayoutManager {
 			//auto height, based on the scrollpane size
 			double h = parent.getParent().getParent().getSize().height;
 			int auto = (int)(h / plugin.getMvCells() / displayFactorHeight);
-			mvHeight = Math.min(auto, (int)(DEFAULT_AMPLITUDE*pixelPerMm));
+			mvHeight = max(1, min(auto, (int)(DEFAULT_AMPLITUDE*pixelPerMm)));
 		}
 		
 		if(mmPerSecond == AUTO_SPEED) {
 			//auto width, based on the scrollpane size
 			double w = parent.getParent().getParent().getSize().width;
 			int auto = (int)(w / seconds);			
-			secWidth = Math.min(auto, (int)(DEFAULT_SPEED*pixelPerMm));
+			secWidth = max(1, min(auto, (int)(DEFAULT_SPEED*pixelPerMm)));
 		}
 
 		dim.width += (int)(seconds*secWidth);			
