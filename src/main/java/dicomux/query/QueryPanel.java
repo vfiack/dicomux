@@ -65,6 +65,7 @@ public class QueryPanel extends JPanel {
 		this.search = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/system-search.png")));
 		this.result = new JTable();
 		result.setModel(new DicomTableModel());
+		result.getColumnModel().getColumn(0).setMaxWidth(20);
 		
 		KeyListener searchOnEnterPressed = new KeyAdapter() {
 			public void keyPressed(KeyEvent e) {
@@ -205,6 +206,7 @@ public class QueryPanel extends JPanel {
 			query.connect();
 			List<DicomObject> objects = query.query(pid, pname, dateRange);
 			result.setModel(new DicomTableModel(objects));
+			result.getColumnModel().getColumn(0).setMaxWidth(20);
 			query.close();
 		} catch(Exception e) {
 			controller.showErrorMessage(e.getMessage());

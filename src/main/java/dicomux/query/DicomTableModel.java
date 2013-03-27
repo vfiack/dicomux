@@ -7,15 +7,28 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import javax.swing.ImageIcon;
 import javax.swing.table.AbstractTableModel;
 
 import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.Tag;
+import org.dcm4che2.data.UID;
 
 import dicomux.Translation;
 
+//pour l'icone
+//Waveform: SOPClassUID 1.2.840.10008.5.1.4.1.1.9*
+//PDF: SOPUID: 1.2.840.10008.5.1.4.1.1.104.1
+
+
 public class DicomTableModel extends AbstractTableModel {
+	private static final String[] KNOWN_WAVEFORM_SOP_CLASSES = {
+		UID.TwelveLeadECGWaveformStorage,
+		UID.GeneralECGWaveformStorage,
+		UID.AmbulatoryECGWaveformStorage};
+	
 	private final static String[] COLUMNS = {
+		"",
 		"query.col.date",
 		"query.col.time",
 		"query.col.patientId",
@@ -25,6 +38,7 @@ public class DicomTableModel extends AbstractTableModel {
 	};
 	
 	private final static int[] COL_TAGS = {
+		Tag.SOPClassUID,
 		Tag.StudyDate, Tag.StudyTime,
 		Tag.PatientID, Tag.PatientName,
 		Tag.StudyID, Tag.StudyDescription
@@ -38,7 +52,7 @@ public class DicomTableModel extends AbstractTableModel {
 	private List<DicomObject> data;
 	
 	public DicomTableModel() {
-		this.data = Collections.emptyList();
+		this.data = Collections.emptyList();	
 	}
 	
 	public DicomTableModel(List<DicomObject> data) {
@@ -52,6 +66,9 @@ public class DicomTableModel extends AbstractTableModel {
 	//--
 	
 	public Class<?> getColumnClass(int columnIndex) {
+		if(COL_TAGS[columnIndex] == Tag.SOPClassUID)
+			return ImageIcon.class;
+		
 		return String.class;
 	}
 
@@ -71,17 +88,27 @@ public class DicomTableModel extends AbstractTableModel {
 		int tag = COL_TAGS[columnIndex];
 		String value = data.get(rowIndex).getString(tag);
 		
+		if(tag == Tag.SOPClassUID) {
+			if(contains(KNOWN_WAVEFORM_SOP_CLASSES, value))
+				return new ImageIcon(getClass().getClassLoader().getResource("images/types/waveform.png"));
+			if(UID.EncapsulatedPDFStorage.equals(value))
+				return new ImageIcon(getClass().getClassLoader().getResource("images/types/pdf.png"));
+			return new ImageIcon(getClass().getClassLoader().getResource("images/types/unknown.png"));
+		}
+		
 		if(tag == Tag.StudyDate) {
 			try {
 				Date d = dicomDateFormat.parse(value);
-				value = readableDateFormat.format(d);
+				return readableDateFormat.format(d);
 			} catch(ParseException e) {
 				//unable to convert date, ignore
 			}
-		} else if(tag == Tag.StudyTime) {
+		}
+		
+		if(tag == Tag.StudyTime) {
 			try {
 				Date d = dicomTimeFormat.parse(value);
-				value = readableTimeFormat.format(d);
+				return readableTimeFormat.format(d);
 			} catch(ParseException e) {
 				//unable to convert date, ignore
 			}
@@ -90,4 +117,14 @@ public class DicomTableModel extends AbstractTableModel {
 		return value;
 	}
 		
+	//--
+	
+	private boolean contains(String[] array, String value) {
+		for(String s: array) {
+			if(s.equals(value))
+				return true;
+		}
+		
+		return false;
+	}
 }

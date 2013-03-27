@@ -98,11 +98,11 @@ public class DicomQuery {
 		keys.putNull(Tag.StudyInstanceUID, VR.UI);
 		keys.putNull(Tag.SeriesInstanceUID, VR.UI);
 		keys.putNull(Tag.SOPInstanceUID, VR.UI);
+		keys.putNull(Tag.SOPClassUID, VR.UI);
 		
 		keys.putNull(Tag.StudyID, VR.SH);
 		keys.putNull(Tag.StudyTime, VR.TM);
 		keys.putNull(Tag.StudyDescription, VR.LO);				
-		
 		
 		int priority = 0;
 		int cancelAfter = Integer.MAX_VALUE;
