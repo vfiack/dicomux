@@ -3,15 +3,20 @@ package dicomux;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -106,6 +111,11 @@ public class PDFPlugin extends APlugin {
 	 * page of language Strings
 	 */
 	String m_pageLabel = "Page ", m_ofLabel = " of ";
+
+	/**
+	 * Keeps the content of the encapsulated pdf, so we can export it later
+	 */
+	private byte[] pdfBytes;
 	
 	/**
 	 * @throws Exception 
@@ -142,6 +152,9 @@ public class PDFPlugin extends APlugin {
 	 */
 	public JPanel createToolsMenu(){
 		JPanel tools = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+		
+		if(Desktop.isDesktopSupported()) 
+			tools.add(createOpenExternalButton());
 		
 		tools.add(createZoomPartButton());
 //		tools.add(createZoomInButton());
@@ -181,6 +194,34 @@ public class PDFPlugin extends APlugin {
 		});
 		return m_zoomPartModeToggleButton;
 	}
+	
+	/**
+	 * convenience method - creates m_zoomModeToggleButton and returns it
+	 * @return the new button :-)
+	 */
+	public JButton createOpenExternalButton() {
+		JButton button = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/open-pdf.png")));
+		button.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				try {					
+					File temp = File.createTempFile("dicomux-", ".pdf");
+					temp.deleteOnExit();
+
+					FileOutputStream fos = new FileOutputStream(temp);
+					fos.write(pdfBytes);
+					fos.close();
+
+					Desktop.getDesktop().open(temp);						
+				} catch(Exception ex) {
+					ex.printStackTrace();
+					JOptionPane.showMessageDialog(m_content, "Error exporting file:\n" + ex.toString(), "Dicomux", JOptionPane.ERROR_MESSAGE);
+				}
+			}
+		});
+		
+		return button;		
+	}
+	
 	
 //	/**
 //	 * convenience method - creates m_zoomInModeToggleButton and returns it
@@ -315,8 +356,9 @@ public class PDFPlugin extends APlugin {
 
 	public void setData(DicomObject dcm) throws Exception {
 		if (dcm != null) {
-			DicomElement element = dcm.get(Tag.EncapsulatedDocument);
+			DicomElement element = dcm.get(Tag.EncapsulatedDocument);			
 			if (element != null) {
+				this.pdfBytes = element.getBytes();
 				ByteBuffer buf = ByteBuffer.wrap(element.getBytes());
 				
 				m_pdfFile = new PDFFile(buf);
