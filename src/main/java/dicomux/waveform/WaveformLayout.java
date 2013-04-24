@@ -1,5 +1,8 @@
 package dicomux.waveform;
 
+import static java.lang.Math.max;
+import static java.lang.Math.min;
+
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -7,11 +10,14 @@ import java.awt.Insets;
 import java.awt.LayoutManager;
 import java.awt.Toolkit;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import static java.lang.Math.max;
-import static java.lang.Math.min;
+import java.util.Set;
+
+import dicomux.waveform.WaveformLayout.Format;
 
 
 public class WaveformLayout implements LayoutManager {
@@ -20,32 +26,9 @@ public class WaveformLayout implements LayoutManager {
 	public static final float AUTO_SPEED = -1f;
 	public static final int DEFAULT_AMPLITUDE = 10;
 	public static final int DEFAULT_SPEED = 25;
-		
-	private static final String[] orderTwoParts = {
-		"lead i", "lead v1", 
-		"lead ii", "lead v2",
-		"lead iii", "lead v3", 
-		"lead avr", "lead v4", 
-		"lead avl", "lead v5",
-		"lead avf", "lead v6"		
-	};
-	
-	private static final String[] orderFourParts = {
-		"lead i", "lead avr", "lead v1", "lead v4", 
-		"lead ii", "lead avl", "lead v2", "lead v5",
-		"lead iii", "lead avf", "lead v3",  "lead v6"		
-	};
-	
-	private static final String[] orderFourPartsRythm = {
-		"lead i", "lead avr", "lead v1", "lead v4", 
-		"lead ii", "lead avl", "lead v2", "lead v5",
-		"lead iii", "lead avf", "lead v3",  "lead v6",
-		"rythm"
-	};
-	
 	
 	private WaveformPlugin plugin;	
-	private Map<String, Component> components;
+	private LinkedHashMap<String, Component> components; //insertion order is important for layout
 
 	private float mmPerSecond = 25;
 	private int mmPerMillivolt = 10;
@@ -57,7 +40,7 @@ public class WaveformLayout implements LayoutManager {
 	
 	public WaveformLayout(WaveformPlugin plugin, Format format) {
 		this.plugin = plugin;
-		this.components = new HashMap<String, Component>();
+		this.components = new LinkedHashMap<String, Component>();
 		
 		setFormat(format);
 	}
@@ -89,34 +72,15 @@ public class WaveformLayout implements LayoutManager {
 	}
 	
 	public List<Component> getOrderedComponents(Container parent) {
-		List<Component> list = new ArrayList<Component>(parent.getComponentCount());
-		
-		if(format == Format.DEFAULT) {
-			//default, don't sort, return everything except rythm
-			for(Component c: parent.getComponents()) {
-				if((c instanceof DrawingPanel) && ((DrawingPanel)c).isRythm()) {
-					//don't add rythm
-				} else {
-					list.add(c);
-				}
-			}
-			return list;			
-		}
-
-		//specified format, respect lead order
-		String[] order = {};
-		if(format == Format.TWOPARTS)
-			order = orderTwoParts;
-		else if(format == Format.FOURPARTS)
-			order = orderFourParts;
-		else if(format == Format.FOURPARTS_RYTHM)
-			order = orderFourPartsRythm;
-		
-		for(String lead: order) {
-			list.add(components.get(lead));
+		Layout[] layouts = {new StandardLayout(), new FallbackLayout()};
+		for(Layout layout: layouts) {
+			if(layout.matches(components.keySet()))
+				return layout.getSortedComponents(format, components);
 		}
 		
-		return list;
+		//maybe not a 12 lead ?
+		System.err.println("ooops, no layout!");
+		return Collections.emptyList();		
 	}
 	
 	//--
@@ -215,4 +179,118 @@ public class WaveformLayout implements LayoutManager {
 		}
 
 	}
+}
+
+interface Layout {
+	boolean matches(Set<String> leadNames);
+	List<Component> getSortedComponents(Format format, LinkedHashMap<String, Component> components);
+}
+
+class StandardLayout implements Layout {
+	public boolean matches(Set<String> leadNames) {
+		return leadNames.containsAll(Arrays.asList(
+				"lead i", "lead v1", 
+				"lead ii", "lead v2",
+				"lead iii", "lead v3", 
+				"lead avr", "lead v4", 
+				"lead avl", "lead v5",
+				"lead avf", "lead v6",
+				"rythm"));
+	}
+
+	public 	List<Component> getSortedComponents(Format format, LinkedHashMap<String, Component> components) {
+		List<Component> list = new ArrayList<Component>(components.size());
+
+		String[] order = {};
+		switch(format) {
+			case TWOPARTS:
+				order = new String[] {
+						"lead i", "lead v1", 
+						"lead ii", "lead v2",
+						"lead iii", "lead v3", 
+						"lead avr", "lead v4", 
+						"lead avl", "lead v5",
+						"lead avf", "lead v6"};
+				break;
+			case FOURPARTS:
+				order = new String[] {					
+						"lead i", "lead avr", "lead v1", "lead v4", 
+						"lead ii", "lead avl", "lead v2", "lead v5",
+						"lead iii", "lead avf", "lead v3",  "lead v6"};
+				break;
+			case FOURPARTS_RYTHM:
+				order = new String[] {
+						"lead i", "lead avr", "lead v1", "lead v4", 
+						"lead ii", "lead avl", "lead v2", "lead v5",
+						"lead iii", "lead avf", "lead v3",  "lead v6",
+						"rythm"};
+				break;
+			default:
+				order = new String[] {"lead i", "lead ii", "lead iii", 
+						"lead avr","lead avl","lead avf", 
+						"lead v1", "lead v2", "lead v3", 
+						"lead v4", "lead v5", "lead v6"};
+		}
+				
+		for(String lead: order) {
+			list.add(components.get(lead));
+		}
+		
+		return list;
+	}	
+}
+
+class FallbackLayout implements Layout {
+	public boolean matches(Set<String> leadNames) {
+		//accept all
+		return true;
+	}
+
+	public List<Component> getSortedComponents(Format format, LinkedHashMap<String, Component> components) {
+		List<Component> insertorder = new ArrayList<Component>(components.size());
+		Component rythm = null;
+		//default, don't sort, separate rythm
+		for(Component c: components.values()) {
+			if((c instanceof DrawingPanel) && ((DrawingPanel)c).isRythm()) {
+				rythm = c;
+			} else {
+				insertorder.add(c);
+			}
+		}
+		
+		//by default, rythm is the second lead
+		if(rythm == null)
+			rythm = insertorder.get(1);
+		
+		List<Component> list = new ArrayList<Component>(insertorder.size());		
+		switch(format) {
+			case TWOPARTS:
+				for(int i=0;i<6;i++) {
+					list.add(insertorder.get(i));
+					list.add(insertorder.get(6+i));
+				}
+				break;
+			case FOURPARTS:
+				for(int i=0;i<3;i++) {
+					list.add(insertorder.get(i));
+					list.add(insertorder.get(3+i));
+					list.add(insertorder.get(6+i));
+					list.add(insertorder.get(9+i));
+				}
+				break;
+			case FOURPARTS_RYTHM:
+				for(int i=0;i<3;i++) {
+					list.add(insertorder.get(i));
+					list.add(insertorder.get(3+i));
+					list.add(insertorder.get(6+i));
+					list.add(insertorder.get(9+i));
+				}
+				list.add(rythm);
+				break;
+			default:
+				list = insertorder;				
+		}
+		
+		return list;
+	}	
 }
