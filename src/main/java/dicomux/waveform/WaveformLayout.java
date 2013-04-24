@@ -29,6 +29,7 @@ public class WaveformLayout implements LayoutManager {
 	
 	private WaveformPlugin plugin;	
 	private LinkedHashMap<String, Component> components; //insertion order is important for layout
+	private Layout layout;
 
 	private float mmPerSecond = 25;
 	private int mmPerMillivolt = 10;
@@ -71,16 +72,22 @@ public class WaveformLayout implements LayoutManager {
         }
 	}
 	
-	public List<Component> getOrderedComponents(Container parent) {
-		Layout[] layouts = {new StandardLayout(), new FallbackLayout()};
-		for(Layout layout: layouts) {
-			if(layout.matches(components.keySet()))
-				return layout.getSortedComponents(format, components);
+	private Layout getMatchingLayout() {
+		if(this.layout == null) {
+			Layout[] layouts = {new StandardLayout(), new FallbackLayout()};
+			for(Layout layout: layouts) {
+				if(layout.matches(components.keySet())) {
+					this.layout = layout;
+					break;
+				}
+			}
 		}
 		
-		//maybe not a 12 lead ?
-		System.err.println("ooops, no layout!");
-		return Collections.emptyList();		
+		return this.layout;
+	}
+	
+	public List<Component> getOrderedComponents(Container parent) {
+		return getMatchingLayout().getSortedComponents(format, components);
 	}
 	
 	//--
@@ -120,7 +127,7 @@ public class WaveformLayout implements LayoutManager {
 			//auto height, based on the scrollpane size
 			double h = parent.getParent().getParent().getSize().height;
 			int auto = (int)(h / plugin.getMvCells() / displayFactorHeight);
-			mvHeight = max((int)pixelPerMm, min(auto, (int)(DEFAULT_AMPLITUDE*pixelPerMm)));
+			mvHeight = max((int)pixelPerMm, min(auto, (int)(DEFAULT_AMPLITUDE*pixelPerMm)));					
 		}
 		
 		if(mmPerSecond == AUTO_SPEED) {
@@ -129,7 +136,7 @@ public class WaveformLayout implements LayoutManager {
 			int auto = (int)(w / seconds);			
 			secWidth = max((int)pixelPerMm, min(auto, (int)(DEFAULT_SPEED*pixelPerMm)));
 		}
-
+		
 		dim.width += (int)(seconds*secWidth);			
 		dim.height += displayFactorHeight * plugin.getMvCells()*mvHeight;
 		return dim;		
