@@ -26,6 +26,7 @@ import dicomux.waveform.WaveformLayout.Format;
  * @author norbert
  */
 public class WaveformPlugin extends APlugin {	
+	private DicomObject dicomObject;
 	private int mvCells;
 	private double seconds;
 	private JScrollPane scroll;
@@ -124,6 +125,7 @@ public class WaveformPlugin extends APlugin {
 	}
 	
 	public void setData(DicomObject dcm) throws Exception {
+		this.dicomObject = dcm;
 		m_content = new JPanel(new BorderLayout());
 		
 		// get WaveformSequence
@@ -195,6 +197,7 @@ public class WaveformPlugin extends APlugin {
 		
 		m_content.add(wrap, BorderLayout.NORTH);
 		m_content.add(scroll, BorderLayout.CENTER);
+		m_content.add(new Annotations(dicomObject), BorderLayout.EAST);
 		m_content.addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent e) {
 				channelpane.revalidate();
@@ -391,6 +394,10 @@ public class WaveformPlugin extends APlugin {
 	}
 	
 	//-- getters & setters
+	
+	public DicomObject getDicomObject() {
+		return dicomObject;
+	}
 	
 	public int getNumberOfChannels() {
 		return numberOfChannels;
