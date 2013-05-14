@@ -1,39 +1,77 @@
 package dicomux.waveform;
 
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JToggleButton;
 import javax.swing.table.AbstractTableModel;
 
 import org.dcm4che2.data.DicomElement;
 import org.dcm4che2.data.DicomObject;
 import org.dcm4che2.data.Tag;
 
+import dicomux.Translation;
+
 public class Annotations extends JPanel {
-	private List<Annotation> annotations;
-	private String text;
+	private static final List<String> FILTER = Arrays.asList(
+		"patient name", "patient sex", "birth date",
+		"electrode placement", 
+		"rr interval", "pr interval",
+		"qrs duration", "qt interval", "qtc interval", 
+		"qrs axis", "pp interval", "p axis", "p duration");
 	
+	private List<Annotation> annotations;
+	private List<Annotation> annotationsFiltered;	
+	private String text;	
 	
 	public Annotations(DicomObject dcm) {
 		super(new BorderLayout());
 		
 		this.annotations = new ArrayList<Annotations.Annotation>();
+		this.annotationsFiltered = new ArrayList<Annotations.Annotation>();
+		
 		this.text = "";
 		
+		readPatientData(dcm);
 		readAcquisitionContext(dcm);
-		readWaveformAnnotations(dcm);
+		readWaveformAnnotations(dcm);		
+		filterAnnotations();
 		
-		this.add(new JLabel(text), BorderLayout.NORTH);
-		
-		JTable table = new JTable(new AnnotationTableModel(annotations));
+		final JTable table = new JTable(new AnnotationTableModel(annotationsFiltered));
 		JScrollPane scroll = new JScrollPane(table);
 		this.add(scroll, BorderLayout.CENTER);
+
+		final JToggleButton filter = new JToggleButton(Translation.tr("annotations.filter"), true);
+		filter.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				if(filter.isSelected())
+					table.setModel(new AnnotationTableModel(annotationsFiltered));
+				else
+					table.setModel(new AnnotationTableModel(annotations));
+			}
+		});
+		this.add(filter, BorderLayout.NORTH);
+		
+		JTextArea area = new JTextArea(text);
+		area.setEditable(false);
+		area.setWrapStyleWord(true);
+		area.setLineWrap(true);
+		this.add(area, BorderLayout.SOUTH);
 	}	
+	
+	private void readPatientData(DicomObject dcm) {
+		annotations.add(new Annotation("Patient Name", dcm.getString(Tag.PatientName)));
+		annotations.add(new Annotation("Patient Sex", dcm.getString(Tag.PatientSex)));
+		annotations.add(new Annotation("Birth Date", dcm.getString(Tag.PatientBirthDate)));
+	}
 	
 	private void readAcquisitionContext(DicomObject dcm) {
 		DicomElement sequence = dcm.get(Tag.AcquisitionContextSequence);
@@ -98,6 +136,14 @@ public class Annotations extends JPanel {
 		}
 	}
 	
+	private void filterAnnotations() {
+		this.annotationsFiltered.clear();
+		for(Annotation a: annotations) {
+			if(FILTER.contains(a.name.toLowerCase()))
+				annotationsFiltered.add(a);
+		}
+	}
+	
 	class Annotation {
 		public final String name;
 		public final String value;
@@ -106,7 +152,7 @@ public class Annotations extends JPanel {
 		public final String annotationGroup;
 
 		public Annotation(String name, String value) {
-			this(name, value, "", "", "Acquisition");
+			this(name, value, "", "", "");
 		}
 
 		public Annotation(String name, String value, String unit, String channel, String annotationGroup) {
@@ -132,7 +178,7 @@ public class Annotations extends JPanel {
 		
 		@Override
 		public String getColumnName(int column) {
-			return COLUMNS[column];
+			return Translation.tr("annotation." + COLUMNS[column]);
 		}
 
 		@Override
