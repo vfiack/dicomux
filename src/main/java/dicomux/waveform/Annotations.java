@@ -120,8 +120,14 @@ public class Annotations extends JPanel {
 					String unit =  item.get(Tag.MeasurementUnitsCodeSequence).getDicomObject(0).getString(Tag.CodeValue);
 					String value = item.getString(Tag.NumericValue);
 					String channel = item.getString(Tag.ReferencedWaveformChannels);
-					String annotationGroup = item.getString(Tag.AnnotationGroupNumber);				
+					String annotationGroup = item.getString(Tag.AnnotationGroupNumber);										
 					annotations.add(new Annotation(name, value, unit, channel, annotationGroup));
+					
+					//special case for RR Interval, we want to compute the bpm
+					if("RR Interval".equalsIgnoreCase(name) && "ms".equals(unit)) {
+						int bpm = 60000/Integer.valueOf(value);
+						annotations.add(new Annotation(name, String.valueOf(bpm), "bpm", channel, "computed"));
+					}
 					continue;
 				} 
 				
