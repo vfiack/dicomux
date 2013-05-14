@@ -8,9 +8,7 @@ import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -28,26 +26,11 @@ class ToolPanel extends JPanel {
 	public ToolPanel(WaveformPlugin plugin) {
 		this.plugin = plugin;
 		
-		addAnnotationsComponents();
 		addZoomComponents();
 		if(plugin.getNumberOfChannels() == 12)
 		{
 			addDisplayFormatComponent();
 		}
-	}
-	
-	private void addAnnotationsComponents() {
-		JButton btn = new JButton("Annotations");
-		btn.addActionListener(new ActionListener() {			
-			public void actionPerformed(ActionEvent e) {
-				JFrame jf = new JFrame("Annotations");
-				jf.getContentPane().add(new Annotations(plugin.getDicomObject()));
-				jf.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-				jf.pack();
-				jf.setVisible(true);
-			}
-		});
-		this.add(btn);
 	}
 		
 	private void addZoomComponents() {	

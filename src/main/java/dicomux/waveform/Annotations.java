@@ -123,7 +123,7 @@ public class Annotations extends JPanel {
 	}
 	
 	class AnnotationTableModel extends AbstractTableModel {
-		private final String[] COLUMNS = new String[] {"name", "value", "channel", "group"};
+		private final String[] COLUMNS = new String[] {"name", "value"};
 		private List<Annotation> data;
 		
 		public AnnotationTableModel(List<Annotation> data) {
@@ -154,13 +154,8 @@ public class Annotations extends JPanel {
 				return a.name;
 			if(columnIndex == 1)
 				return a.value + " " + a.unit;
-			if(columnIndex == 2)
-				return a.channel;
-			if(columnIndex == 3)
-				return a.annotationGroup;
 
 			return null;
 		}
-		
 	}
 }

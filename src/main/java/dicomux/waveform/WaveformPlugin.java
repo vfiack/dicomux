@@ -6,12 +6,15 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.List;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 
 import org.dcm4che2.data.DicomElement;
 import org.dcm4che2.data.DicomObject;
@@ -195,11 +198,30 @@ public class WaveformPlugin extends APlugin {
 		wrap.add(tools, BorderLayout.NORTH);
 		wrap.add(infoPanel, BorderLayout.CENTER);
 		
+		final JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
+				scroll, new Annotations(dicomObject)); 
+		split.setOneTouchExpandable(true);
+		
+		split.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY, new PropertyChangeListener() {
+			public void propertyChange(PropertyChangeEvent evt) {
+				channelpane.revalidate();
+			}
+		});
+		
+		
 		m_content.add(wrap, BorderLayout.NORTH);
-		m_content.add(scroll, BorderLayout.CENTER);
-		m_content.add(new Annotations(dicomObject), BorderLayout.EAST);
+		m_content.add(split, BorderLayout.CENTER);
 		m_content.addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent e) {
+				int rightSize = 230;
+				int toggleLeft = 1;
+				int toggleRight = split.getWidth() - split.getDividerSize() - 1;
+				
+				if(split.getDividerLocation() > toggleLeft && split.getDividerLocation() < toggleRight)
+					split.setDividerLocation(split.getWidth()-rightSize);
+				else
+					split.setLastDividerLocation(split.getWidth()-rightSize);
+				
 				channelpane.revalidate();
 			}
 		});
