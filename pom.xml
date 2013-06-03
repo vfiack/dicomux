@@ -8,16 +8,16 @@
 			<name>DCM4che Repository</name>
 			<url>http://www.dcm4che.org/maven2/</url>
 		</repository>
-		
+
 		<repository>
 			<id>elca-repository</id>
 			<name>ELCA Repository</name>
 			<url>http://public-el4.elca-services.ch/el4j/maven2repository/</url>
 		</repository>
-		
+
 	</repositories>
 
-	<!-- déclaration du projet  -->
+	<!-- déclaration du projet -->
 	<groupId>dicomux</groupId>
 	<artifactId>dicomux</artifactId>
 	<packaging>jar</packaging>
@@ -55,6 +55,13 @@
 	</build>
 
 	<dependencies>
+		<!-- command line for arg parsing -->
+		<dependency>
+			<groupId>commons-cli</groupId>
+			<artifactId>commons-cli</artifactId>
+			<version>1.2</version>
+		</dependency>
+
 		<!-- dcm4che -->
 		<dependency>
 			<groupId>dcm4che</groupId>
@@ -88,7 +95,7 @@
 		<dependency>
 			<groupId>net.sf.microba</groupId>
 			<artifactId>microba</artifactId>
-			<version>0.4.4.3</version>			
+			<version>0.4.4.3</version>
 		</dependency>
 
 		<!-- json for web query broker -->

@@ -16,7 +16,17 @@ public class Settings {
 	}
 
 	public void set(String key, String value) {
-		prefs.put(key, value);
+		set(key, value, true);
+	}
+	
+	public void set(String key, String value, boolean persistent) {
+		if(value == null)
+			value = "";
+		
+		if(persistent)			
+			prefs.put(key, value);
+		else
+			config.setProperty(key, value);
 	}
 	
 	public String get(String key) {
@@ -27,5 +37,4 @@ public class Settings {
 	public int getInt(String key) {
 		return Integer.valueOf(get(key));
 	}
-	
 }

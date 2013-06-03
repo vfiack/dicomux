@@ -3,6 +3,8 @@ package dicomux;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.cli.*;
+
 import dicomux.settings.Settings;
 
 /**
@@ -12,9 +14,25 @@ import dicomux.settings.Settings;
  */
 public class Main {
 	public static void main(String[] args) {
+		Options options = new Options();
+		options.addOption("appkey", true, "AppKey intrahus");
+		CommandLineParser parser = new BasicParser();
+		CommandLine cmdline = null;
+		
+		try {
+			cmdline = parser.parse(options, args);
+		} catch (ParseException e) {
+			System.err.println(e.getMessage());
+			HelpFormatter formatter = new HelpFormatter();
+			formatter.printHelp("dicomux", options);
+			System.exit(1);
+		}
+		
+		
 		Settings settings = null;
 		try {
 			settings = new Settings();
+			settings.set("intrahus.appkey", cmdline.getOptionValue("appkey"), false);
 		} catch (IOException e) {
 			System.err.println("Config instantiation failed!");
 			e.printStackTrace();

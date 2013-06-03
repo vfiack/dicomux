@@ -12,8 +12,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -127,11 +129,18 @@ public class QueryPanel extends JPanel {
 	
 	private URL getWadoUrl(DicomObject selected) throws MalformedURLException  {
 		String wadoUrlPattern = controller.getSettings().get("dicomux.pacs.wado");
+		String appKey = controller.getSettings().get("intrahus.appkey");
 		String wadoUrl = wadoUrlPattern
 			.replace("${studyUID}", selected.getString(Tag.StudyInstanceUID))
 			.replace("${seriesUID}", selected.getString(Tag.SeriesInstanceUID))
 			.replace("${objectUID}", selected.getString(Tag.SOPInstanceUID));
-
+		
+		try {
+			wadoUrl += "&appkey=" + URLEncoder.encode(appKey, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			//should not happen, utf-8 is standard. 			
+		}
+		
 		return new URL(wadoUrl);
 	}
 	
@@ -141,10 +150,11 @@ public class QueryPanel extends JPanel {
 		DicomQuery query = null;
 		String qbroker = settings.get("dicomux.qbroker");
 		if(qbroker != null && !qbroker.isEmpty()) {
+			String appKey = settings.get("intrahus.appkey");
 			String pacsId = settings.get("dicomux.qbroker.pacsId");
 			try {
 				URL url = new URL(qbroker);
-				query = new DicomWebQuery(pacsId, url);
+				query = new DicomWebQuery(appKey, pacsId, url);
 			} catch(MalformedURLException e) {
 				//XXX gui error
 				e.printStackTrace();

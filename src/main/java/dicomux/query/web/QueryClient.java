@@ -28,8 +28,9 @@ public class QueryClient {
     //-- 
     
     //find-ecg?pacs=getest&patientId=164956&patientName=toto&dateRange=xxx
-    public QueryResult findECG(String patientId, String patientName, String dateRange) throws IOException {
+    public QueryResult findECG(String appkey, String patientId, String patientName, String dateRange) throws IOException {
         return call("find-ecg", 
+        		"appkey", appkey,
         		"patientId", patientId, 
         		"patientName", patientName, 
         		"dateRange", dateRange);

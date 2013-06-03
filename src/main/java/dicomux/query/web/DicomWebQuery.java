@@ -23,9 +23,11 @@ import dicomux.query.DicomQuery;
  * This avoids having to declare each client as a modality in the pacs. 
  */
 public class DicomWebQuery extends DicomQuery {
+	private String appKey;
 	private QueryClient qclient;
 
-	public DicomWebQuery(String pacsId, URL url) {
+	public DicomWebQuery(String appKey, String pacsId, URL url) {
+		this.appKey = appKey;
 		this.qclient = new QueryClient(pacsId, url);
 	}
 	
@@ -50,7 +52,7 @@ public class DicomWebQuery extends DicomQuery {
 		if(dateRange == null)
 			dateRange = "";
 		
-		QueryResult qr = qclient.findECG(patientId, patientName, dateRange);
+		QueryResult qr = qclient.findECG(appKey, patientId, patientName, dateRange);
 		if(! qr.getSuccess())
 			throw new IOException(qr.getMessage());
 		
