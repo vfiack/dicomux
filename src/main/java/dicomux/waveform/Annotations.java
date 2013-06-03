@@ -35,8 +35,8 @@ public class Annotations extends JPanel {
 	public Annotations(DicomObject dcm) {
 		super(new BorderLayout());
 		
-		this.annotations = new ArrayList<Annotations.Annotation>();
-		this.annotationsFiltered = new ArrayList<Annotations.Annotation>();
+		this.annotations = new ArrayList<Annotation>();
+		this.annotationsFiltered = new ArrayList<Annotation>();
 		
 		this.text = "";
 		
@@ -132,9 +132,15 @@ public class Annotations extends JPanel {
 				} 
 				
 				//case 3: temporal value
-				//name, channel, annot group
-				//TemporalRangeType: POINT
-				//ReferencedSamplePosition: int
+				if("POINT".equals(item.getString(Tag.TemporalRangeType))) {
+					String name = item.get(Tag.ConceptNameCodeSequence).getDicomObject(0).getString(Tag.CodeMeaning);
+					String unit = item.getString(Tag.TemporalRangeType);
+					String value = item.getString(Tag.ReferencedSamplePositions);
+					String channel = item.getString(Tag.ReferencedWaveformChannels);
+					String annotationGroup = item.getString(Tag.AnnotationGroupNumber);										
+					annotations.add(new Annotation(name, value, unit, channel, annotationGroup));
+					continue;
+				}
 			} catch(Exception e) {
 				e.printStackTrace();
 				continue;
@@ -150,28 +156,8 @@ public class Annotations extends JPanel {
 		}
 	}
 	
-	class Annotation {
-		public final String name;
-		public final String value;
-		public final String unit;
-		public final String channel;
-		public final String annotationGroup;
-
-		public Annotation(String name, String value) {
-			this(name, value, "", "", "");
-		}
-
-		public Annotation(String name, String value, String unit, String channel, String annotationGroup) {
-			this.name = name;
-			this.value = value;
-			this.unit = unit;
-			this.channel = channel;
-			this.annotationGroup = annotationGroup;
-		}
-
-		public String toString() {
-			return name + ": " + value + " " + unit;
-		}	
+	public List<Annotation> getAnnotations() {
+		return annotations;
 	}
 	
 	class AnnotationTableModel extends AbstractTableModel {

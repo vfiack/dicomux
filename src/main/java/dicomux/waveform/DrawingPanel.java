@@ -16,6 +16,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
@@ -32,6 +33,7 @@ class DrawingPanel extends JPanel {
 	
 	private WaveformPlugin plugin;
 	private int[] data;
+	private List<Annotation> annotations;
 	private float scalingWidth;
 	private ChannelDefinition definition;
 	private int mvCellCount;
@@ -95,6 +97,10 @@ class DrawingPanel extends JPanel {
 		this.isRhythm = mode;
 	}
 	
+	public void setAnnotations(List<Annotation> annotations) {
+		this.annotations = annotations;
+	}
+	
 	private void setHighlightedSample(int sample) {
 		if(sample < 0 || sample >= data.length) {
 			highlightedSample = -1;
@@ -156,11 +162,11 @@ class DrawingPanel extends JPanel {
 			if(data[i] < min)
 				min = data[i];
 		}
-		double amplitude_uV = (max-min) * valueScaling;
-		
+		double amplitude_uV = (max-min) * valueScaling;		
 		
 		plugin.getInfoPanel().setSelectionValues(time, diff_uV/1000, amplitude_uV/1000);
 	}
+	
 	
 	private void addListeners() {
 		// used to get the current position of the mouse pointer into the information panel
@@ -249,13 +255,13 @@ class DrawingPanel extends JPanel {
 		drawName(g2);
 		drawMeasureBars(g2);
 		drawBorder(g2);
+		drawAnnotations(g2);
 	}
 	
 	private void drawGrid(Graphics2D g2) {
-		// set line color
-		g2.setColor(new Color(231, 84, 72));
 		// draw horizontal lines
-		g2.setStroke(new BasicStroke(2.0f));
+		g2.setColor(new Color(231, 84, 72));
+		g2.setStroke(new BasicStroke(1.0f));
 		for(int i = 0; i < mvCellCount; i++) {
 			g2.draw(new Line2D.Double(0, i * cellHeight, 
 					dim.getWidth(), i * cellHeight));			
@@ -326,9 +332,39 @@ class DrawingPanel extends JPanel {
 		g2.draw(line);
 	}
 	
+	private void drawHalfBar(Graphics2D g2, Color color, int sample) {
+		if(sample < 0)
+			return;
+		
+		double x = this.scalingWidth * (sample - this.start); 
+		int h = this.dim.height/5;
+		Line2D line = new Line2D.Double(x, h, x, this.dim.height-h);
+		
+		g2.setColor(color);
+		g2.setStroke(new BasicStroke(1.2f));
+		g2.draw(line);
+	}
+	
+	private void drawAnnotations(Graphics2D g2) {
+		if(annotations == null)
+			return;
+		
+		for(Annotation a: annotations) {			
+			if("ms".equals(a.unit)) {
+				int ms = Integer.valueOf(a.value);
+				int sample = (int)(ms * (double)plugin.getSamplesPerSecond()) / 1000;
+				drawHalfBar(g2, Color.BLUE, sample);
+			}	
+			else if("POINT".equals(a.unit)) {
+				int sample = Integer.valueOf(a.value);
+				drawHalfBar(g2, Color.BLUE, sample);
+			}
+		}
+	}
+	
 	private void drawBorder(Graphics2D g2) {
 		g2.setColor(Color.GRAY);
-		g2.setStroke(new BasicStroke(2f));
+		g2.setStroke(new BasicStroke(1f));
 		g2.drawRect(0, 0, this.dim.width-1, this.dim.height-1);
 	}
 	

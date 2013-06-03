@@ -10,6 +10,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -43,6 +44,7 @@ public class WaveformPlugin extends APlugin {
 	private int samplesPerSecond;
 	private int data[][];
 	private ChannelDefinition[] channelDefinitions;
+	private Annotations annotations;
 	
 	private WaveformLayout waveformLayout;
 
@@ -181,6 +183,8 @@ public class WaveformPlugin extends APlugin {
 		channelwrap.add(channelpane);
 		this.scroll.setViewportView(channelwrap); 
 
+		this.annotations = new Annotations(dicomObject);
+
 		
 		// Panel which includes the Buttons for zooming 
 		this.tools = new ToolPanel(this);
@@ -197,9 +201,9 @@ public class WaveformPlugin extends APlugin {
 		JPanel wrap = new JPanel(new BorderLayout());
 		wrap.add(tools, BorderLayout.NORTH);
 		wrap.add(infoPanel, BorderLayout.CENTER);
-		
+				
 		final JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
-				scroll, new Annotations(dicomObject)); 
+				scroll, annotations); 
 		split.setOneTouchExpandable(true);
 		
 		split.addPropertyChangeListener(JSplitPane.DIVIDER_LOCATION_PROPERTY, new PropertyChangeListener() {
@@ -273,8 +277,19 @@ public class WaveformPlugin extends APlugin {
 	private void addDrawingPanels() {
 		for (int i = 0; i < this.channelDefinitions.length; i++) {
 			DrawingPanel panel = new DrawingPanel(this, data[i], 0, channelDefinitions[i]);
-			channelpane.add(channelDefinitions[i].getName(), panel);
-
+			channelpane.add(channelDefinitions[i].getName(), panel);		
+			
+			/*
+			//XXX Annotations a controller par une combobox / des boutons
+			List<Annotation> panelAnnotations = new ArrayList<Annotation>();
+			for(Annotation a: annotations.getAnnotations()) {
+				if(String.valueOf(i+1).equals(a.channel)) {
+					if("QRS Onset".equals(a.name) || "QRS Offset".equals(a.name))
+						panelAnnotations.add(a);
+				}
+			}
+			panel.setAnnotations(panelAnnotations);
+			*/
 			
 			if(channelDefinitions[i].getName().equalsIgnoreCase("Lead II")) {
 				DrawingPanel rhythm = new DrawingPanel(this, data[i], 0, channelDefinitions[i]);
