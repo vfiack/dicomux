@@ -260,8 +260,8 @@ class DrawingPanel extends JPanel {
 	
 	private void drawGrid(Graphics2D g2) {
 		// draw horizontal lines
-		g2.setColor(new Color(231, 84, 72));
-		g2.setStroke(new BasicStroke(1.0f));
+		g2.setColor(new Color(231, 84, 72, 200));
+		g2.setStroke(new BasicStroke(0.5f));
 		for(int i = 0; i < mvCellCount; i++) {
 			g2.draw(new Line2D.Double(0, i * cellHeight, 
 					dim.getWidth(), i * cellHeight));			
@@ -272,11 +272,11 @@ class DrawingPanel extends JPanel {
 			// draw every 10th line which represents a full second bigger 
 			if(i % 10 == 0)
 			{
-				g2.setStroke(new BasicStroke(2.0f));
+				g2.setStroke(new BasicStroke(1.0f));
 			}
 			else
 			{
-				g2.setStroke(new BasicStroke(1.0f));
+				g2.setStroke(new BasicStroke(0.5f));
 			}
 			g2.draw(new Line2D.Double(i * cellWidth , 0, 
 					i * cellWidth, dim.getHeight()));
