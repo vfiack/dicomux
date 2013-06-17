@@ -230,8 +230,7 @@ class DrawingPanel extends JPanel {
 		});
 	}		
 	
-	public void paintComponent( Graphics g ) {
-		
+	public void paintComponent(Graphics g) {		
 		super.paintComponent(g);
 		final Graphics2D g2 = (Graphics2D) g;
 		
@@ -369,9 +368,10 @@ class DrawingPanel extends JPanel {
 	}
 	
 	
-	private void drawName(Graphics2D g2) {
+	private void drawName(Graphics2D g2) {	
 		g2.setColor(Color.black);			
 		g2.setFont(new Font("SanSerif", Font.BOLD, 12));		
-		g2.drawString(definition.getName(), 5, 15);			
+		g2.drawString(definition.getName(), 
+				g2.getClipBounds().x + 5, g2.getClipBounds().y + 15);			
 	}
 }

@@ -4,8 +4,11 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.nio.ByteBuffer;
@@ -178,9 +181,19 @@ public class WaveformPlugin extends APlugin {
 
 		this.waveformLayout = new WaveformLayout(this, Format.DEFAULT);
 		this.channelpane = new JPanel(waveformLayout);
-		JPanel channelwrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+		final JPanel channelwrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
 		channelwrap.add(channelpane);
 		this.scroll.setViewportView(channelwrap); 
+		
+		AdjustmentListener adjustmentListener = new AdjustmentListener() {			
+			public void adjustmentValueChanged(AdjustmentEvent e) {
+				channelwrap.repaint();
+			}
+		};
+		
+		this.scroll.getHorizontalScrollBar().addAdjustmentListener(adjustmentListener);
+		this.scroll.getVerticalScrollBar().addAdjustmentListener(adjustmentListener);
+		
 
 		this.annotations = new Annotations(dicomObject);
 
