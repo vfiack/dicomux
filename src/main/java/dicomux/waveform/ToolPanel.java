@@ -121,6 +121,11 @@ class ToolPanel extends JPanel {
 
 	}
 	
+	public void selectDisplayFormat(Format format) {
+		if(displayCombo != null)
+			displayCombo.setSelectedItem(format);
+	}
+	
 	public void updateLanguage() {
 		if(plugin.getNumberOfChannels() == 12)
 		{

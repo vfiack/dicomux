@@ -11,14 +11,12 @@ import java.awt.LayoutManager;
 import java.awt.Toolkit;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import dicomux.waveform.WaveformLayout.Format;
-
 
 public class WaveformLayout implements LayoutManager {
 	public enum Format {DEFAULT, TWOPARTS, FOURPARTS, FOURPARTS_RYTHM}

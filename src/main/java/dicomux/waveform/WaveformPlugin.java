@@ -10,7 +10,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -196,7 +195,9 @@ public class WaveformPlugin extends APlugin {
 		this.infoPanel.setPreferredSize(new Dimension(m_content.getWidth(), 70));
 		
 		addDrawingPanels();
-		displayDefault();
+		
+		Format format = numberOfChannels == 12 ? Format.FOURPARTS_RYTHM : Format.DEFAULT;
+		setDisplayFormat(format);
 		
 		JPanel wrap = new JPanel(new BorderLayout());
 		wrap.add(tools, BorderLayout.NORTH);
@@ -427,6 +428,7 @@ public class WaveformPlugin extends APlugin {
 		else if(displayFormat == Format.TWOPARTS)
 			displayTwoParts(); 
 		
+		this.tools.selectDisplayFormat(format);
 		this.channelpane.revalidate();
 	}
 	
