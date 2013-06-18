@@ -1,14 +1,20 @@
 package dicomux.waveform;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Toolkit;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
+import java.awt.print.PrinterException;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.nio.ByteBuffer;
@@ -31,7 +37,7 @@ import dicomux.waveform.WaveformLayout.Format;
  * This plug-in is for displaying waveform ecg data in a graphical way.
  * @author norbert
  */
-public class WaveformPlugin extends APlugin {	
+public class WaveformPlugin extends APlugin implements Printable {	
 	private DicomObject dicomObject;
 	private int mvCells;
 	private double seconds;
@@ -425,9 +431,17 @@ public class WaveformPlugin extends APlugin {
 		this.channelpane.revalidate();
 	}
 	
+	public float getSpeed() {
+		return waveformLayout.getSpeed();
+	}
+	
 	public void setAmplitude(int mmPerMillivolt) {
 		this.waveformLayout.setAmplitude(mmPerMillivolt);		
 		this.channelpane.revalidate();
+	}
+	
+	public int getAmplitude() {
+		return (int)waveformLayout.getAmplitude();
 	}
 	
 	public void setDisplayFormat(Format format) {
@@ -445,8 +459,31 @@ public class WaveformPlugin extends APlugin {
 		this.channelpane.revalidate();
 	}
 	
-	//-- getters & setters
+	//--
 	
+	public int print(Graphics g, PageFormat pf, int page) throws PrinterException {
+		if(page > 0)
+			return NO_SUCH_PAGE;
+		
+		for(Component c: waveformLayout.getOrderedComponents(channelpane)) {
+			c.setBackground(Color.WHITE);
+			((DrawingPanel)c).setHighlightedSample(-1);
+		}
+		
+		int pixelPerInch = Toolkit.getDefaultToolkit().getScreenResolution();
+		double dotsPerPixel = 72.0 / pixelPerInch; 
+				
+		Graphics2D g2d = (Graphics2D)g;
+        g2d.scale(dotsPerPixel, dotsPerPixel);
+        g2d.translate(pf.getImageableX(), pf.getImageableY());
+        
+        channelpane.paintComponents(g2d);
+ 
+        return PAGE_EXISTS;		
+	}
+	
+	//-- getters & setters
+		
 	public DicomObject getDicomObject() {
 		return dicomObject;
 	}

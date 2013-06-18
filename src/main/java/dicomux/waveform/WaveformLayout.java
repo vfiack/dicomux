@@ -184,6 +184,14 @@ public class WaveformLayout implements LayoutManager {
 		}
 
 	}
+
+	public float getSpeed() {
+		return mmPerSecond;
+	}
+
+	public float getAmplitude() {
+		return mmPerMillivolt;
+	}
 }
 
 interface Layout {

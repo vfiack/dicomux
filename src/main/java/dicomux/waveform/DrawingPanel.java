@@ -101,7 +101,7 @@ class DrawingPanel extends JPanel {
 		this.annotations = annotations;
 	}
 	
-	private void setHighlightedSample(int sample) {
+	public void setHighlightedSample(int sample) {
 		if(sample < 0 || sample >= data.length) {
 			highlightedSample = -1;
 			plugin.getInfoPanel().setCurrentValues(-1, -1);
@@ -285,7 +285,7 @@ class DrawingPanel extends JPanel {
 	private void drawGraph(Graphics2D g2) {
 		// draw waveform as line using the given values
 		g2.setColor(Color.BLACK);
-		g2.setStroke(new BasicStroke(1.2f));
+		g2.setStroke(new BasicStroke(1f));
 		for(int i  = this.start; i < (this.end - 1); i++) {
 			int a = i;
 			int b = i + 1;
@@ -363,14 +363,14 @@ class DrawingPanel extends JPanel {
 	
 	private void drawBorder(Graphics2D g2) {
 		g2.setColor(Color.GRAY);
-		g2.setStroke(new BasicStroke(1f));
+		g2.setStroke(new BasicStroke(0.5f));
 		g2.drawRect(0, 0, this.dim.width-1, this.dim.height-1);
 	}
 	
 	
 	private void drawName(Graphics2D g2) {	
 		g2.setColor(Color.black);			
-		g2.setFont(new Font("SanSerif", Font.BOLD, 12));		
+		g2.setFont(new Font("SanSerif", Font.BOLD, 11));		
 		g2.drawString(definition.getName(), 
 				g2.getClipBounds().x + 5, g2.getClipBounds().y + 15);			
 	}
