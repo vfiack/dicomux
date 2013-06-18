@@ -156,6 +156,7 @@ public class View extends JFrame implements IView {
 		setLocation(new Point (screenCenterPoint.x - getSize().width / 2,
 								screenCenterPoint.y - getSize().height / 2));
 		setVisible(true);
+		setExtendedState(getExtendedState()|JFrame.MAXIMIZED_BOTH);
 	}
 	
 	/**
