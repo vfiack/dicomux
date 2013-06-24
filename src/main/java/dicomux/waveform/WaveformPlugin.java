@@ -46,7 +46,6 @@ public class WaveformPlugin extends APlugin implements Printable {
 	private int numberOfChannels;
 	private Format displayFormat;
 	private ToolPanel tools;
-	private InfoPanel infoPanel;
 	private double frequency;
 	private int numberOfSamples;		
 	private int samplesPerSecond;
@@ -209,19 +208,11 @@ public class WaveformPlugin extends APlugin implements Printable {
 		this.tools.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
 		this.tools.setPreferredSize(new Dimension(m_content.getWidth(), 30));
 		
-		// Panel with information about the channel the mouse cursor is over
-		this.infoPanel = new InfoPanel();
-		this.infoPanel.setPreferredSize(new Dimension(m_content.getWidth(), 70));
-		
 		addDrawingPanels();
 		
 		Format format = numberOfChannels == 12 ? Format.FOURPARTS_RYTHM : Format.DEFAULT;
 		setDisplayFormat(format);
 		
-		JPanel wrap = new JPanel(new BorderLayout());
-		wrap.add(tools, BorderLayout.NORTH);
-		wrap.add(infoPanel, BorderLayout.CENTER);
-				
 		final JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
 				scroll, annotations); 
 		split.setOneTouchExpandable(true);
@@ -233,7 +224,7 @@ public class WaveformPlugin extends APlugin implements Printable {
 		});
 		
 		
-		m_content.add(wrap, BorderLayout.NORTH);
+		m_content.add(tools, BorderLayout.NORTH);
 		m_content.add(split, BorderLayout.CENTER);
 		m_content.addComponentListener(new ComponentAdapter() {
 			public void componentResized(ComponentEvent e) {
@@ -507,8 +498,8 @@ public class WaveformPlugin extends APlugin implements Printable {
 	public Format getDisplayFormat() {
 		return displayFormat;
 	}
-
-	public InfoPanel getInfoPanel() {
-		return infoPanel;
-	}	
+	
+	public Annotations getAnnotations() {
+		return annotations;
+	}
 }

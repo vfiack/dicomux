@@ -16,6 +16,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.text.DecimalFormat;
 import java.util.List;
 
 import javax.swing.ImageIcon;
@@ -104,28 +105,39 @@ class DrawingPanel extends JPanel {
 	public void setHighlightedSample(int sample) {
 		if(sample < 0 || sample >= data.length) {
 			highlightedSample = -1;
-			plugin.getInfoPanel().setCurrentValues(-1, -1);
+			plugin.getAnnotations().setMeasure("cursor time", "-", "", "");
+			plugin.getAnnotations().setMeasure("cursor value", "-", "", "");
 		}
 		else { 
 			highlightedSample = sample;
 			double sec = highlightedSample / (double)plugin.getSamplesPerSecond();
 			double uV = data[highlightedSample] * valueScaling;	
-			plugin.getInfoPanel().setCurrentValues(sec, uV/1000);
+			
+			DecimalFormat format = new DecimalFormat("##.####;-##.####");
+			plugin.getAnnotations().setMeasure("cursor time", "-", format.format(sec*1000), "ms");
+			plugin.getAnnotations().setMeasure("cursor value", "-", format.format(uV/1000), "mV");
 		}			
 	}
 	
 	private void setStartSample(int sample) {
-		plugin.getInfoPanel().setSelectionValues(-1, -1, -1);
+		plugin.getAnnotations().removeMeasure("duration", definition.getName());
+		plugin.getAnnotations().removeMeasure("difference", definition.getName());
+		plugin.getAnnotations().removeMeasure("amplitude", definition.getName());
 		
 		if(sample < 0 || sample >= data.length) {
 			startSample = -1;
-			plugin.getInfoPanel().setStartValues(-1, -1);
+			
+			plugin.getAnnotations().removeMeasure("start time", definition.getName());
+			plugin.getAnnotations().removeMeasure("start value", definition.getName());
 		}
 		else { 
 			startSample = sample;
 			double sec = startSample / (double)plugin.getSamplesPerSecond();
 			double uV = data[startSample] * valueScaling;	
-			plugin.getInfoPanel().setStartValues(sec, uV/1000);
+			
+			DecimalFormat format = new DecimalFormat("##.####;-##.####");			
+			plugin.getAnnotations().setMeasure("start time", definition.getName(), format.format(sec*1000), "ms");
+			plugin.getAnnotations().setMeasure("start value", definition.getName(), format.format(uV/1000), "mV");
 			
 			if(stopSample > startSample)
 				setSelection();
@@ -133,17 +145,24 @@ class DrawingPanel extends JPanel {
 	}
 	
 	private void setStopSample(int sample) {
-		plugin.getInfoPanel().setSelectionValues(-1, -1, -1);
+		plugin.getAnnotations().removeMeasure("duration", definition.getName());
+		plugin.getAnnotations().removeMeasure("difference", definition.getName());
+		plugin.getAnnotations().removeMeasure("amplitude", definition.getName());
 		
 		if(sample < 0 || sample >= data.length) {
 			stopSample = -1;
-			plugin.getInfoPanel().setStopValues(-1, -1);
+
+			plugin.getAnnotations().removeMeasure("stop time", definition.getName());
+			plugin.getAnnotations().removeMeasure("stop value", definition.getName());
 		}
 		else { 
 			stopSample = sample;
 			double sec = stopSample / (double)plugin.getSamplesPerSecond();
 			double uV = data[stopSample] * valueScaling;		
-			plugin.getInfoPanel().setStopValues(sec, uV/1000);
+
+			DecimalFormat format = new DecimalFormat("##.####;-##.####");
+			plugin.getAnnotations().setMeasure("stop time", definition.getName(), format.format(sec*1000), "ms");
+			plugin.getAnnotations().setMeasure("stop value", definition.getName(), format.format(uV/1000), "mV");
 			
 			if(stopSample > startSample && startSample >= 0)
 				setSelection();
@@ -164,7 +183,11 @@ class DrawingPanel extends JPanel {
 		}
 		double amplitude_uV = (max-min) * valueScaling;		
 		
-		plugin.getInfoPanel().setSelectionValues(time, diff_uV/1000, amplitude_uV/1000);
+		//duration, difference, amplitude
+		DecimalFormat format = new DecimalFormat("##.####;-##.####");
+		plugin.getAnnotations().setMeasure("duration", definition.getName(), format.format(time*1000), "ms");
+		plugin.getAnnotations().setMeasure("difference", definition.getName(), format.format(diff_uV/1000), "mV");
+		plugin.getAnnotations().setMeasure("amplitude", definition.getName(), format.format(amplitude_uV/1000), "mV");
 	}
 	
 	
@@ -213,8 +236,10 @@ class DrawingPanel extends JPanel {
 				
 				setBackground(new Color(255, 255, 215));
 				
-				plugin.getInfoPanel().setLead(definition.getName());
-				plugin.getInfoPanel().setMinMax(definition.getMinimum_uV()/1000, definition.getMaximum_uV()/1000);
+				DecimalFormat format = new DecimalFormat("##.####;-##.####");
+				plugin.getAnnotations().setMeasure("minimum", definition.getName(), format.format(definition.getMinimum_uV()/1000), "mV");
+				plugin.getAnnotations().setMeasure("maximum", definition.getName(), format.format(definition.getMaximum_uV()/1000), "mV");
+				
 				setStartSample(startSample);
 				setStopSample(stopSample);
 			}
@@ -222,6 +247,9 @@ class DrawingPanel extends JPanel {
 			public void mouseExited(MouseEvent e) {
 				Cursor normal = new Cursor(Cursor.DEFAULT_CURSOR);
 				setCursor(normal);
+
+				plugin.getAnnotations().removeMeasure("minimum", definition.getName());
+				plugin.getAnnotations().removeMeasure("maximum", definition.getName());
 				
 				setBackground(Color.WHITE);
 				setHighlightedSample(-1);

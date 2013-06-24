@@ -51,6 +51,7 @@ class ToolPanel extends JPanel {
 		printButton.addActionListener(new ActionListener() {			
 			public void actionPerformed(ActionEvent e) {
 				final PrinterJob job = PrinterJob.getPrinterJob();
+				job.setJobName("ECG");
 				PageFormat pf = job.defaultPage();
 
 				Paper paper = new Paper();

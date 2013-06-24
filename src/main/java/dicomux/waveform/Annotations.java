@@ -1,10 +1,13 @@
 package dicomux.waveform;
 
 import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -30,14 +33,17 @@ public class Annotations extends JPanel {
 	
 	private List<Annotation> annotations;
 	private List<Annotation> annotationsFiltered;	
+	private List<Annotation> measures;
 	private String text;	
+	
+	private JTable measureTable;
 	
 	public Annotations(DicomObject dcm) {
 		super(new BorderLayout());
 		
 		this.annotations = new ArrayList<Annotation>();
 		this.annotationsFiltered = new ArrayList<Annotation>();
-		
+		this.measures = new ArrayList<Annotation>();
 		this.text = "";
 		
 		readPatientData(dcm);
@@ -45,26 +51,39 @@ public class Annotations extends JPanel {
 		readWaveformAnnotations(dcm);		
 		filterAnnotations();
 		
-		final JTable table = new JTable(new AnnotationTableModel(annotationsFiltered));
-		JScrollPane scroll = new JScrollPane(table);
-		this.add(scroll, BorderLayout.CENTER);
+		JPanel annotationPanel = new JPanel(new BorderLayout());		
+		final JTable annotationTable = new JTable(new AnnotationTableModel(annotationsFiltered));
+		JScrollPane annotationScroll = new JScrollPane(annotationTable);
+		annotationPanel.add(annotationScroll, BorderLayout.CENTER);
 
 		final JToggleButton filter = new JToggleButton(Translation.tr("annotations.filter"), true);
 		filter.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				if(filter.isSelected())
-					table.setModel(new AnnotationTableModel(annotationsFiltered));
+					annotationTable.setModel(new AnnotationTableModel(annotationsFiltered));
 				else
-					table.setModel(new AnnotationTableModel(annotations));
+					annotationTable.setModel(new AnnotationTableModel(annotations));
 			}
 		});
-		this.add(filter, BorderLayout.NORTH);
+		annotationPanel.add(filter, BorderLayout.NORTH);
+		
+		this.measureTable = new JTable(new MeasureTableModel(measures));
+		JScrollPane measureScroll = new JScrollPane(measureTable);
+		
+		JPanel wrapper = new JPanel(new GridLayout(2, 1));
+		wrapper.add(annotationPanel);
+		wrapper.add(measureScroll);
+				
+		this.add(wrapper, BorderLayout.CENTER);
 		
 		JTextArea area = new JTextArea(text);
 		area.setEditable(false);
 		area.setWrapStyleWord(true);
 		area.setLineWrap(true);
 		this.add(area, BorderLayout.SOUTH);
+		
+		this.setMeasure("cursor time", "-", "", "");
+		this.setMeasure("cursor value", "-", "", "");
 	}	
 	
 	private void readPatientData(DicomObject dcm) {
@@ -160,6 +179,58 @@ public class Annotations extends JPanel {
 		return annotations;
 	}
 	
+	public List<Annotation> getMeasures() {
+		return measures;
+	}
+	
+	public void setMeasure(String name, String channel, String value, String unit) {
+		Annotation annotation = new Annotation(name, value, unit, channel, "measure"); 
+		
+		int oldIndex = -1;
+		for(int i=0; i<measures.size();i ++) {
+			Annotation a = measures.get(i);
+			if(a.channel.equals(annotation.channel) && a.name.equals(annotation.name)) {
+				oldIndex = i;
+				break;
+			}
+		}
+		
+		if(oldIndex >= 0) {
+			measures.add(oldIndex, annotation);
+			measures.remove(oldIndex+1);
+		} else {
+			measures.add(annotation);
+		}
+		
+		Collections.sort(measures, new Comparator<Annotation>() {
+			public int compare(Annotation o1, Annotation o2) {
+				int channel = o1.channel.compareTo(o2.channel);
+				if(channel != 0)
+					return channel;
+				
+				return o1.name.compareTo(o2.name);
+			}
+		});
+		
+		((MeasureTableModel)measureTable.getModel()).fireTableDataChanged();
+	}
+	
+	public boolean removeMeasure(String name, String channel) {
+		for(int i=0; i<measures.size();i ++) {
+			Annotation a = measures.get(i);
+			if(a.channel.equals(channel) && a.name.equals(name)) {
+				measures.remove(i);
+				((MeasureTableModel)measureTable.getModel()).fireTableDataChanged();
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	
+	//--
+	
 	class AnnotationTableModel extends AbstractTableModel {
 		private final String[] COLUMNS = new String[] {"name", "value"};
 		private List<Annotation> data;
@@ -191,6 +262,52 @@ public class Annotations extends JPanel {
 			if(columnIndex == 0)
 				return a.name;
 			if(columnIndex == 1)
+				return a.value + " " + a.unit;
+
+			return null;
+		}
+	}
+	
+	//--
+	
+	class MeasureTableModel extends AbstractTableModel {
+		private final String[] COLUMNS = new String[] {"channel", "name", "value"};
+		private List<Annotation> data;
+		
+		public MeasureTableModel(List<Annotation> data) {
+			this.data = data;
+		}
+		
+		@Override
+		public void fireTableDataChanged() {		
+			super.fireTableDataChanged();
+		}
+		
+		@Override
+		public String getColumnName(int column) {
+			return Translation.tr("measure." + COLUMNS[column]);
+		}
+
+		@Override
+		public Class<?> getColumnClass(int columnIndex) {
+			return String.class;
+		}
+
+		public int getRowCount() {
+			return data.size();
+		}
+
+		public int getColumnCount() {
+			return COLUMNS.length;
+		}
+
+		public Object getValueAt(int rowIndex, int columnIndex) {
+			Annotation a = data.get(rowIndex);
+			if(columnIndex == 0)
+				return a.channel;
+			if(columnIndex == 1)
+				return a.name;
+			if(columnIndex == 2)
 				return a.value + " " + a.unit;
 
 			return null;
