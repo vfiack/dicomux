@@ -33,6 +33,7 @@ import org.dcm4che2.data.Tag;
 import dicomux.APlugin;
 import dicomux.DicomException;
 import dicomux.waveform.WaveformLayout.Format;
+import static dicomux.Translation.tr;
 
 /**
  * This plug-in is for displaying waveform ecg data in a graphical way.
@@ -468,13 +469,13 @@ public class WaveformPlugin extends APlugin implements Printable {
 		g2d.setFont(Font.decode("Arial-PLAIN-10"));
 	
 		//patient info
-		g2d.drawString("Patient Name: " 
+		g2d.drawString(tr("print.patientName") 
 				+ annotations.getAnnotation("patient name").value
-				+ "        Patient Sex: "
+				+ "        " + tr("print.patientSex")
 				+ annotations.getAnnotation("patient sex").value
-				+ "        Birth Date: "
+				+ "        " + tr("print.birthDate")
 				+ annotations.getAnnotation("birth date").value
-				+ "        Patient Id: "
+				+ "        " + tr("print.patientId")
 				+ dicomObject.getString(Tag.PatientID)
 				, 40, 25);
 				
@@ -486,13 +487,13 @@ public class WaveformPlugin extends APlugin implements Printable {
 			studyDescription = studyDescription.substring(0, 80) + "[...]";
 		
 		
-		g2d.drawString("Study Date: "
+		g2d.drawString(tr("print.studyDate")
 				+ dicomObject.getString(Tag.StudyDate)
-				+ "        Study Time: "
+				+ "        " + tr("print.studyTime")
 				+ dicomObject.getString(Tag.StudyTime)
-				+ "        Study Id: " 
+				+ "        " + tr("print.studyId")
 				+ dicomObject.getString(Tag.StudyID)
-				+ "        Description: "
+				+ "        " + tr("print.description")
 				+ studyDescription
 				, 40, 35);
 		
