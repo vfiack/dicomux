@@ -39,7 +39,7 @@ import dicomux.waveform.WaveformLayout.Format;
  */
 public class WaveformPlugin extends APlugin implements Printable {	
 	private DicomObject dicomObject;
-	private int mvCells;
+	private double mvCells;
 	private double seconds;
 	private JScrollPane scroll;
 	private JPanel channelpane;
@@ -412,7 +412,8 @@ public class WaveformPlugin extends APlugin implements Printable {
 			
 			double minmax_uV = Math.max(Math.abs(max), Math.abs(min));
 			double minmax_mV = minmax_uV/1000;
-			this.mvCells = (int)Math.ceil(minmax_mV) * 2;
+			double margin = 0.3; //small margin to avoid having the graph touching the channel border
+			this.mvCells = minmax_mV * 2 + margin;
 	}
 
 	//--
@@ -483,7 +484,7 @@ public class WaveformPlugin extends APlugin implements Printable {
 		return numberOfChannels;
 	}
 
-	public int getMvCells() {
+	public double getMvCells() {
 		return mvCells;
 	}
 

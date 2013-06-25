@@ -37,7 +37,7 @@ class DrawingPanel extends JPanel {
 	private List<Annotation> annotations;
 	private float scalingWidth;
 	private ChannelDefinition definition;
-	private int mvCellCount;
+	private double mvCellCount;
 	private double secsCellCount;
 	private double cellHeight;
 	private double cellWidth;
@@ -289,9 +289,11 @@ class DrawingPanel extends JPanel {
 		// draw horizontal lines
 		g2.setColor(new Color(231, 84, 72, 200));
 		g2.setStroke(new BasicStroke(0.5f));
+		double padding = (mvCellCount - Math.floor(mvCellCount))/2;
+		int shift = (int)(padding * cellHeight);
 		for(int i = 0; i < mvCellCount; i++) {
-			g2.draw(new Line2D.Double(0, i * cellHeight, 
-					dim.getWidth(), i * cellHeight));			
+			g2.draw(new Line2D.Double(0, i * cellHeight + shift, 
+					dim.getWidth(), i * cellHeight + shift));			
 		}
 		
 		// draw vertical lines
