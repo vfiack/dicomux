@@ -16,6 +16,7 @@ import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
 import javax.print.attribute.standard.OrientationRequested;
 import javax.print.attribute.standard.PageRanges;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -45,8 +46,10 @@ class ToolPanel extends JPanel {
 	}
 
 	private void addPrintButton() {
-		JButton printButton = new JButton("Print");
+		JButton printButton = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/printer.png")));
+		printButton.setToolTipText(tr("wfPrint"));
 		this.add(printButton);
+		this.add(new JLabel("            ")); //spacer
 
 		printButton.addActionListener(new ActionListener() {			
 			public void actionPerformed(ActionEvent e) {
