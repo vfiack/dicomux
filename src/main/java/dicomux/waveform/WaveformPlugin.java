@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
@@ -461,13 +462,56 @@ public class WaveformPlugin extends APlugin implements Printable {
 			c.setBackground(Color.WHITE);
 			((DrawingPanel)c).setHighlightedSample(-1);
 		}
-		
-		int pixelPerInch = Toolkit.getDefaultToolkit().getScreenResolution();
-		double dotsPerPixel = 72.0 / pixelPerInch; 
-				
+
 		Graphics2D g2d = (Graphics2D)g;
-        g2d.scale(dotsPerPixel, dotsPerPixel);
-        g2d.translate(pf.getImageableX(), pf.getImageableY());
+		g2d.setColor(Color.BLACK);
+		g2d.setFont(Font.decode("Arial-PLAIN-10"));
+	
+		//patient info
+		g2d.drawString("Patient Name: " 
+				+ annotations.getAnnotation("patient name").value
+				+ "        Patient Sex: "
+				+ annotations.getAnnotation("patient sex").value
+				+ "        Birth Date: "
+				+ annotations.getAnnotation("birth date").value
+				+ "        Patient Id: "
+				+ dicomObject.getString(Tag.PatientID)
+				, 40, 25);
+				
+		//study info
+		String studyDescription = dicomObject.getString(Tag.StudyDescription);
+		if(studyDescription == null)
+			studyDescription = "";
+		if(studyDescription.length() > 80)
+			studyDescription = studyDescription.substring(0, 80) + "[...]";
+		
+		
+		g2d.drawString("Study Date: "
+				+ dicomObject.getString(Tag.StudyDate)
+				+ "        Study Time: "
+				+ dicomObject.getString(Tag.StudyTime)
+				+ "        Study Id: " 
+				+ dicomObject.getString(Tag.StudyID)
+				+ "        Description: "
+				+ studyDescription
+				, 40, 35);
+		
+		String comment = annotations.getText();
+		String[] commentLines = comment.split("\r\n", 4);
+		for(int i=0;i<commentLines.length;i++) {
+			String line = commentLines[i];
+			if(line.length() > 150)
+				line = line.substring(0, 150) + "[...]";
+			g2d.drawString(line , 40, 50 + i*10);
+		}
+		
+		//so that the paper measurement are corrects
+		int pixelPerInch = Toolkit.getDefaultToolkit().getScreenResolution();
+		double dotsPerPixel = 72.0 / pixelPerInch; 				
+        g2d.scale(dotsPerPixel, dotsPerPixel); 
+        
+        //margins
+        g2d.translate(50, 110);
         
         channelpane.paintComponents(g2d);
  

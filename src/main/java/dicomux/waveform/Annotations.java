@@ -175,6 +175,20 @@ public class Annotations extends JPanel {
 		}
 	}
 	
+	public Annotation getAnnotation(String name) {
+		for(Annotation a: annotations) {
+			if(name.equalsIgnoreCase(a.name)) {
+				return a;
+			}
+		}
+		
+		return new Annotation(name, "");
+	}
+	
+	public String getText() {
+		return text;
+	}
+	
 	public List<Annotation> getAnnotations() {
 		return annotations;
 	}
