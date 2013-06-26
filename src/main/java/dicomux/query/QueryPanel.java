@@ -124,7 +124,17 @@ public class QueryPanel extends JPanel {
 		JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, form, new JScrollPane(result));
 		split.setBorder(BorderFactory.createEmptyBorder());
 		split.setOneTouchExpandable(true);
-		add(split, BorderLayout.CENTER);		
+		add(split, BorderLayout.CENTER);	
+		
+		autoSearch();		
+	}
+	
+	private void autoSearch() {
+		String patientId = controller.getSettings().get("pacs.patientId");
+		if(patientId != null && patientId.length() > 0) {
+			this.patientId.setText(patientId);
+			this.search.doClick();
+		}
 	}
 	
 	private URL getWadoUrl(DicomObject selected) throws MalformedURLException  {

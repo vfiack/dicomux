@@ -1,9 +1,13 @@
 package dicomux;
 
-import java.io.File;
 import java.io.IOException;
 
-import org.apache.commons.cli.*;
+import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 
 import dicomux.settings.Settings;
 
@@ -16,6 +20,7 @@ public class Main {
 	public static void main(String[] args) {
 		Options options = new Options();
 		options.addOption("appkey", true, "AppKey intrahus");
+		options.addOption("patientId", true, "Patient ID for pacs auto search");
 		CommandLineParser parser = new BasicParser();
 		CommandLine cmdline = null;
 		
@@ -53,23 +58,13 @@ public class Main {
 		try {
 			ctrl = new Controller(settings, model, view);
 			view.registerController(ctrl);
-			
-			// check if we have some files as argument
-			if(args.length >0){
-				for (String arg : args) {
-					File f = new File(arg); 
-					// check if it is a file
-					if(f.exists() && f.isFile()){
-						//check if it is a directory file
-						if(arg.toLowerCase().contains("dir")) {
-							ctrl.openDicomDirectory(arg);
-						}
-						else{
-							ctrl.openDicomFile(arg);
-						}
-					}
-				}
+						
+			if(cmdline.getOptionValue("patientId") != null) {
+				settings.set("pacs.patientId", cmdline.getOptionValue("patientId"), false);
+				ctrl.openDicomQueryDialog();
 			}
+
+			
 		} catch (Exception e) {
 			System.err.println("Controller instantiation failed!");
 			e.printStackTrace();
