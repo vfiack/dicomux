@@ -261,6 +261,17 @@ class DrawingPanel extends JPanel {
 	public void paintComponent(Graphics g) {		
 		super.paintComponent(g);
 		final Graphics2D g2 = (Graphics2D) g;
+		paintComponent(g, true);
+	}
+	
+	public void printComponent(Graphics g) {		
+		super.printComponent(g);
+		paintComponent(g, false);
+	}
+	
+	private void paintComponent(Graphics g, boolean clipLeadName) {		
+		super.paintComponent(g);
+		final Graphics2D g2 = (Graphics2D) g;
 		
 		// set rendering options
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);    
@@ -279,7 +290,7 @@ class DrawingPanel extends JPanel {
 		drawMeasureBackground(g2);
 		drawGrid(g2);
 		drawGraph(g2);
-		drawName(g2);
+		drawName(g2, clipLeadName);
 		drawMeasureBars(g2);
 		drawBorder(g2);
 		drawAnnotations(g2);
@@ -398,10 +409,18 @@ class DrawingPanel extends JPanel {
 	}
 	
 	
-	private void drawName(Graphics2D g2) {	
+	private void drawName(Graphics2D g2, boolean clipLeadName) {	
 		g2.setColor(Color.black);			
-		g2.setFont(new Font("SanSerif", Font.BOLD, 11));		
-		g2.drawString(definition.getName(), 
-				g2.getClipBounds().x + 5, g2.getClipBounds().y + 15);			
+		g2.setFont(new Font("SanSerif", Font.BOLD, 11));	
+		
+		int x = 5;
+		int y = 15;
+		
+		if(clipLeadName) {
+			x += g2.getClipBounds().x;
+			y += g2.getClipBounds().y;
+		}
+
+		g2.drawString(definition.getName(), x, y);		
 	}
 }

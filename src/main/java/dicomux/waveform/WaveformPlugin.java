@@ -514,7 +514,7 @@ public class WaveformPlugin extends APlugin implements Printable {
         //margins
         g2d.translate(50, 110);
         
-        channelpane.paintComponents(g2d);
+        channelpane.printComponents(g2d);
  
         return PAGE_EXISTS;		
 	}
