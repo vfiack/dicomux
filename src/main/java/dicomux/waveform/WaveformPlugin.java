@@ -33,6 +33,7 @@ import org.dcm4che2.data.Tag;
 import dicomux.APlugin;
 import dicomux.DicomException;
 import dicomux.waveform.WaveformLayout.Format;
+import dicomux.waveform.WaveformPlugin.Orientation;
 import static dicomux.Translation.tr;
 
 /**
@@ -40,6 +41,8 @@ import static dicomux.Translation.tr;
  * @author norbert
  */
 public class WaveformPlugin extends APlugin implements Printable {	
+	public static enum Orientation {HORIZONTAL, VERTICAL};
+	
 	private DicomObject dicomObject;
 	private double mvCells;
 	private double seconds;
@@ -56,6 +59,7 @@ public class WaveformPlugin extends APlugin implements Printable {
 	private Annotations annotations;
 	
 	private WaveformLayout waveformLayout;
+	private Orientation measureBarsOrientation;
 
 	public WaveformPlugin() throws Exception {
 		super();
@@ -64,6 +68,7 @@ public class WaveformPlugin extends APlugin implements Printable {
 		m_keyTag.addKey(Tag.WaveformData, null);
 		
 		this.displayFormat = Format.DEFAULT;
+		this.measureBarsOrientation = Orientation.VERTICAL;
 	}
 	
 	public String getName() {
@@ -547,5 +552,14 @@ public class WaveformPlugin extends APlugin implements Printable {
 	
 	public Annotations getAnnotations() {
 		return annotations;
+	}
+
+	public Orientation getMeasureBarsOrientation() {
+		return measureBarsOrientation;
+	}
+
+	public void setMeasureBarsOrientation(Orientation o) {
+		measureBarsOrientation = o;
+		channelpane.repaint();
 	}
 }

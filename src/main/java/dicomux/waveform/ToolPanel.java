@@ -27,6 +27,7 @@ import javax.swing.plaf.basic.BasicComboBoxRenderer;
 
 import dicomux.Translation;
 import dicomux.waveform.WaveformLayout.Format;
+import dicomux.waveform.WaveformPlugin.Orientation;
 
 class ToolPanel extends JPanel {
 	private static final long serialVersionUID = 2827148456926205919L;
@@ -38,6 +39,8 @@ class ToolPanel extends JPanel {
 		this.plugin = plugin;
 
 		addPrintButton();
+		addMeasureOrientationButton();
+		add(new JLabel("            ")); //spacer
 		addZoomComponents();
 		if(plugin.getNumberOfChannels() == 12)
 		{
@@ -49,7 +52,6 @@ class ToolPanel extends JPanel {
 		JButton printButton = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/printer.png")));
 		printButton.setToolTipText(tr("wfPrint"));
 		this.add(printButton);
-		this.add(new JLabel("            ")); //spacer
 
 		printButton.addActionListener(new ActionListener() {			
 			public void actionPerformed(ActionEvent e) {
@@ -92,6 +94,25 @@ class ToolPanel extends JPanel {
 		});		
 	}
 
+	private void addMeasureOrientationButton() {
+		//new ImageIcon(this.getClass().getClassLoader().getResource("images/printer.png")
+		String s = plugin.getMeasureBarsOrientation().toString().substring(0, 1);
+		final JButton orientationButton = new JButton(s);
+		orientationButton.setToolTipText(tr("wfMeasureOrientation"));
+		this.add(orientationButton);
+		this.add(new JLabel("            ")); //spacer
+
+		orientationButton.addActionListener(new ActionListener() {			
+			public void actionPerformed(ActionEvent e) {
+				Orientation o = plugin.getMeasureBarsOrientation();
+				o = (o == Orientation.VERTICAL) ? Orientation.HORIZONTAL : Orientation.VERTICAL;
+				plugin.setMeasureBarsOrientation(o);
+				orientationButton.setText(o.toString().substring(0, 1));
+			}
+		});		
+	}
+
+	
 	private void addZoomComponents() {	
 		JLabel zoomLabel = new JLabel(tr("wfZoom"));
 		this.add(zoomLabel);

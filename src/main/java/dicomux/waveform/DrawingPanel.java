@@ -20,7 +20,10 @@ import java.text.DecimalFormat;
 import java.util.List;
 
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
+
+import dicomux.waveform.WaveformPlugin.Orientation;
 
 
 /**
@@ -228,12 +231,6 @@ class DrawingPanel extends JPanel {
 			}
 			
 			public void mouseEntered(MouseEvent e) {
-				Toolkit toolkit = Toolkit.getDefaultToolkit();  
-				Image image = new ImageIcon(this.getClass().getClassLoader().getResource("images/cursorHand.png")).getImage();					
-				Point hotspot = new Point(7,0);
-				Cursor cursor = toolkit.createCustomCursor(image, hotspot, "dicomux"); 
-				setCursor(cursor);
-				
 				setBackground(new Color(255, 255, 215));
 				
 				DecimalFormat format = new DecimalFormat("##.####;-##.####");
@@ -245,9 +242,6 @@ class DrawingPanel extends JPanel {
 			}
 			
 			public void mouseExited(MouseEvent e) {
-				Cursor normal = new Cursor(Cursor.DEFAULT_CURSOR);
-				setCursor(normal);
-
 				plugin.getAnnotations().removeMeasure("minimum", definition.getName());
 				plugin.getAnnotations().removeMeasure("maximum", definition.getName());
 				
@@ -260,7 +254,6 @@ class DrawingPanel extends JPanel {
 	
 	public void paintComponent(Graphics g) {		
 		super.paintComponent(g);
-		final Graphics2D g2 = (Graphics2D) g;
 		paintComponent(g, true);
 	}
 	
@@ -342,25 +335,40 @@ class DrawingPanel extends JPanel {
 	}
 	
 	private void drawMeasureBackground(Graphics2D g2) {
-		if(startSample < 0 || stopSample < 0 || stopSample <= startSample)
+		if(startSample < 0 || stopSample < 0 || plugin.getMeasureBarsOrientation() == Orientation.HORIZONTAL)
 			return;
 
-		Color background = new Color(230, 230, 230, 200);
-		
+		Color background = new Color(230, 230, 230, 200);		
 		g2.setColor(background);
+		
 		double startX = this.scalingWidth * (startSample - this.start);
 		double stopX = this.scalingWidth * (stopSample - this.start);
+		if(startX > stopX) {
+			double tmp = stopX;
+			stopX = startX;
+			startX = tmp;
+		}
+		
 		Rectangle2D rect = new Rectangle2D.Double(startX, 0, stopX-startX, this.dim.height);
+	
+		
 		g2.fill(rect);
 	}
 	
 	private void drawMeasureBars(Graphics2D g2) {
-		drawBar(g2, Color.CYAN, highlightedSample);
-		drawBar(g2, Color.GREEN, startSample);
-		drawBar(g2, Color.BLUE, stopSample);
+		drawVerticalBar(g2, Color.CYAN, highlightedSample);
+		
+		if(plugin.getMeasureBarsOrientation() == WaveformPlugin.Orientation.HORIZONTAL) {
+			drawHorizontalBar(g2, Color.CYAN, highlightedSample);
+			drawHorizontalBar(g2, Color.GREEN, startSample);
+			drawHorizontalBar(g2, Color.BLUE, stopSample);
+		} else {
+			drawVerticalBar(g2, Color.GREEN, startSample);
+			drawVerticalBar(g2, Color.BLUE, stopSample);
+		}
 	}
 	
-	private void drawBar(Graphics2D g2, Color color, int sample) {
+	private void drawVerticalBar(Graphics2D g2, Color color, int sample) {
 		if(sample < 0)
 			return;
 		
@@ -371,6 +379,19 @@ class DrawingPanel extends JPanel {
 		g2.setStroke(new BasicStroke(1.2f));
 		g2.draw(line);
 	}
+	
+	private void drawHorizontalBar(Graphics2D g2, Color color, int sample) {
+		if(sample < 0)
+			return;
+		
+		double y = (this.dim.height /2 - this.valueScaling * ( (float)(this.data[sample] / (float) 1000) * this.cellHeight)); 
+		Line2D line = new Line2D.Double(0, y, this.dim.width, y);
+		
+		g2.setColor(color);
+		g2.setStroke(new BasicStroke(1.2f));
+		g2.draw(line);
+	}
+	
 	
 	private void drawHalfBar(Graphics2D g2, Color color, int sample) {
 		if(sample < 0)
