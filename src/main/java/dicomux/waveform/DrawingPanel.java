@@ -142,7 +142,7 @@ class DrawingPanel extends JPanel {
 			plugin.getAnnotations().setMeasure("start time", definition.getName(), format.format(sec*1000), "ms");
 			plugin.getAnnotations().setMeasure("start value", definition.getName(), format.format(uV/1000), "mV");
 			
-			if(stopSample > startSample)
+			if(stopSample >= 0)
 				setSelection();
 		}			
 	}
@@ -167,7 +167,7 @@ class DrawingPanel extends JPanel {
 			plugin.getAnnotations().setMeasure("stop time", definition.getName(), format.format(sec*1000), "ms");
 			plugin.getAnnotations().setMeasure("stop value", definition.getName(), format.format(uV/1000), "mV");
 			
-			if(stopSample > startSample && startSample >= 0)
+			if(startSample >= 0)
 				setSelection();
 		}			
 	}
