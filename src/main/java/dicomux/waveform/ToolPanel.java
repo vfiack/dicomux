@@ -11,6 +11,8 @@ import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
@@ -95,9 +97,11 @@ class ToolPanel extends JPanel {
 	}
 
 	private void addMeasureOrientationButton() {
-		//new ImageIcon(this.getClass().getClassLoader().getResource("images/printer.png")
-		String s = plugin.getMeasureBarsOrientation().toString().substring(0, 1);
-		final JButton orientationButton = new JButton(s);
+		final Map<Orientation, ImageIcon> icons = new HashMap<WaveformPlugin.Orientation, ImageIcon>(2);
+		icons.put(Orientation.VERTICAL, new ImageIcon(this.getClass().getClassLoader().getResource("images/orientation/vertical.png")));
+		icons.put(Orientation.HORIZONTAL, new ImageIcon(this.getClass().getClassLoader().getResource("images/orientation/horizontal.png")));
+
+		final JButton orientationButton = new JButton(icons.get(plugin.getMeasureBarsOrientation()));
 		orientationButton.setToolTipText(tr("wfMeasureOrientation"));
 		this.add(orientationButton);
 		this.add(new JLabel("            ")); //spacer
@@ -107,7 +111,7 @@ class ToolPanel extends JPanel {
 				Orientation o = plugin.getMeasureBarsOrientation();
 				o = (o == Orientation.VERTICAL) ? Orientation.HORIZONTAL : Orientation.VERTICAL;
 				plugin.setMeasureBarsOrientation(o);
-				orientationButton.setText(o.toString().substring(0, 1));
+				orientationButton.setIcon(icons.get(o));
 			}
 		});		
 	}

@@ -1,5 +1,7 @@
 package dicomux.waveform;
 
+import static dicomux.Translation.tr;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -33,8 +35,6 @@ import org.dcm4che2.data.Tag;
 import dicomux.APlugin;
 import dicomux.DicomException;
 import dicomux.waveform.WaveformLayout.Format;
-import dicomux.waveform.WaveformPlugin.Orientation;
-import static dicomux.Translation.tr;
 
 /**
  * This plug-in is for displaying waveform ecg data in a graphical way.

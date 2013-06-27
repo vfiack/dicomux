@@ -2,15 +2,11 @@ package dicomux.waveform;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Point;
 import java.awt.RenderingHints;
-import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
@@ -19,8 +15,6 @@ import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
 import java.util.List;
 
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
 import javax.swing.JPanel;
 
 import dicomux.waveform.WaveformPlugin.Orientation;
