@@ -439,7 +439,7 @@ public class DrawingPanel extends JPanel {
 		Line2D line = new Line2D.Double(x, 0, x, this.dim.height);
 		
 		g2.setColor(color);
-		g2.setStroke(new BasicStroke(1.2f));
+		g2.setStroke(new BasicStroke(0.9f));
 		g2.draw(line);
 	}
 	
@@ -451,7 +451,7 @@ public class DrawingPanel extends JPanel {
 		Line2D line = new Line2D.Double(0, y, this.dim.width, y);
 		
 		g2.setColor(color);
-		g2.setStroke(new BasicStroke(1.2f));
+		g2.setStroke(new BasicStroke(0.9f));
 		g2.draw(line);
 	}
 	
@@ -465,7 +465,7 @@ public class DrawingPanel extends JPanel {
 		Line2D line = new Line2D.Double(x, h, x, this.dim.height-h);
 		
 		g2.setColor(color);
-		g2.setStroke(new BasicStroke(1.2f));
+		g2.setStroke(new BasicStroke(0.9f));
 		g2.draw(line);
 	}
 	
