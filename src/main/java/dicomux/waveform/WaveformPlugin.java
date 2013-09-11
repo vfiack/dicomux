@@ -475,7 +475,7 @@ public class WaveformPlugin extends APlugin implements Printable {
 	
 		//patient info
 		g2d.drawString(tr("print.patientName") 
-				+ annotations.getAnnotation("patient name").value
+				+ annotations.getAnnotation("patient name").value.replace("^", " ")
 				+ "        " + tr("print.patientSex")
 				+ annotations.getAnnotation("patient sex").value
 				+ "        " + tr("print.birthDate")
@@ -500,16 +500,7 @@ public class WaveformPlugin extends APlugin implements Printable {
 				+ dicomObject.getString(Tag.StudyID)
 				+ "        " + tr("print.description")
 				+ studyDescription
-				, 40, 35);
-		
-		String comment = annotations.getText();
-		String[] commentLines = comment.split("\r\n", 4);
-		for(int i=0;i<commentLines.length;i++) {
-			String line = commentLines[i];
-			if(line.length() > 150)
-				line = line.substring(0, 150) + "[...]";
-			g2d.drawString(line , 40, 50 + i*10);
-		}
+				, 40, 35);		
 		
 		//so that the paper measurement are corrects
 		int pixelPerInch = Toolkit.getDefaultToolkit().getScreenResolution();
@@ -517,7 +508,7 @@ public class WaveformPlugin extends APlugin implements Printable {
         g2d.scale(dotsPerPixel, dotsPerPixel); 
         
         //margins
-        g2d.translate(50, 110);
+        g2d.translate(50, 60);
         
         channelpane.printComponents(g2d);
  
