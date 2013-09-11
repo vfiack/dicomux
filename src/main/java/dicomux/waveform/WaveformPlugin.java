@@ -547,11 +547,11 @@ public class WaveformPlugin extends APlugin implements Printable {
 		return selectedTool;
 	}
 
-	public void setSelectedTool(Tool t) {
-		selectedTool = t;
+	public void setSelectedTool(Tool tool) {
+		selectedTool = tool;
 
 		for(Component c: channelpane.getComponents())
-			((DrawingPanel)c).removeMarkers();
+			((DrawingPanel)c).selectedToolChanged(tool);
 
 		channelpane.repaint();
 	}

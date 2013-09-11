@@ -21,6 +21,9 @@ import java.util.List;
 
 import javax.swing.JPanel;
 
+import dicomux.waveform.tools.MarkersToolListener;
+import dicomux.waveform.tools.MeasureToolListener;
+
 
 
 
@@ -30,7 +33,7 @@ import javax.swing.JPanel;
  * @author norbert
  *
  */
-class DrawingPanel extends JPanel {	
+public class DrawingPanel extends JPanel {	
 	private static final long serialVersionUID = 856943381513072262L;
 	
 	private WaveformPlugin plugin;
@@ -52,6 +55,8 @@ class DrawingPanel extends JPanel {
 	//selected positions for measures
 	private int highlightedSample;
 	private List<SampleMarker> markers;
+	private MeasureToolListener measureToolListener;
+	private MarkersToolListener markersToolListener;
 	
 	public DrawingPanel(WaveformPlugin plugin, int[] values, double start, ChannelDefinition definition) {
 		this.plugin = plugin;
@@ -75,9 +80,14 @@ class DrawingPanel extends JPanel {
 		
 		setBackground(Color.WHITE);
 		
+		this.measureToolListener = new MeasureToolListener(plugin, this, definition.getName());
+		this.markersToolListener = new MarkersToolListener(plugin, this, definition.getName());
+		
 		this.addMouseListener(basicMouseListener);
-		this.addMouseListener(measureMouseListener);
-		this.addMouseMotionListener(measureMouseMotionListener);		
+		this.addMouseMotionListener(basicMouseMotionListener);		
+
+		this.addMouseListener(measureToolListener);
+		this.addMouseMotionListener(measureToolListener);		
 	}
 	
 	public void setTime(double start, double length) {
@@ -120,7 +130,15 @@ class DrawingPanel extends JPanel {
 		}			
 	}
 	
-	//-- actions & tools
+	public int getHightlightedSample() {
+		return highlightedSample;
+	}
+	
+	public double getCellWidth() {
+		return cellWidth;
+	}
+	
+	//-- actions
 	
 	//puts min & max values when entering a panel
 	private MouseListener basicMouseListener = new MouseAdapter() {
@@ -142,8 +160,7 @@ class DrawingPanel extends JPanel {
 		}
 	};
 	
-	//mouse moves when using a measuring tool
-	private MouseMotionListener measureMouseMotionListener = new MouseMotionAdapter() {	
+	private MouseMotionListener basicMouseMotionListener = new MouseMotionAdapter() {	
 		public void mouseDragged(MouseEvent e) {
 			mouseMoved(e);
 		}
@@ -152,40 +169,32 @@ class DrawingPanel extends JPanel {
 			double sec = offset + (e.getPoint().getX() / cellWidth * 0.1);
 			setHighlightedSample((int)Math.round(plugin.getSamplesPerSecond() * sec));
 
-			if(highlightedSample >= 0) {
-				if((e.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) == MouseEvent.BUTTON1_DOWN_MASK)
-					setMeasureMarker(highlightedSample, SampleMarker.Type.START);
-				if((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) == MouseEvent.BUTTON3_DOWN_MASK)
-					setMeasureMarker(highlightedSample, SampleMarker.Type.STOP);
-			}
-			
 			repaint();						
 		}
 	};
-	
-	//mouse click when using a measuring tool
-	private MouseListener measureMouseListener = new MouseAdapter() {
-		public void mouseClicked(MouseEvent e) {
-			if(e.getButton() == MouseEvent.BUTTON1)
-				setMeasureMarker(highlightedSample, SampleMarker.Type.START);
-			else if(e.getButton() == MouseEvent.BUTTON3)
-				setMeasureMarker(highlightedSample, SampleMarker.Type.STOP);
-			else if(e.getButton() == MouseEvent.BUTTON2) {
-				markers.clear();
-				plugin.getAnnotations().removeMeasures(null, definition.getName());
-			}
 			
-			repaint();
-		}
-	};
-			
-	//-- markers
+	//-- markers  & tools
 
+	public void selectedToolChanged(Tool tool) {
+		removeMarkers();
+		
+		if(tool == Tool.MULTIPLE_MARKERS) {
+			removeMouseListener(measureToolListener);
+			removeMouseMotionListener(measureToolListener);
+			addMouseListener(markersToolListener);
+			addMouseMotionListener(markersToolListener);
+		} else {		
+			removeMouseListener(markersToolListener);
+			removeMouseMotionListener(markersToolListener);
+			addMouseListener(measureToolListener);
+			addMouseMotionListener(measureToolListener);
+		}
+	}
+	
 	public void removeMarkers() {
 		markers.clear();
 		plugin.getAnnotations().removeMeasures(null, definition.getName());
-	}
-
+	}	
 	
 	private void removeMarkers(Tool tool, SampleMarker.Type type) {
 		for(int i=0;i<markers.size();i++) {
@@ -207,8 +216,19 @@ class DrawingPanel extends JPanel {
 		return null;
 	}
 	
+	public void shiftMarkers(Tool tool, SampleMarker.Type type, int howMuch) {
+		for(SampleMarker marker: markers) {
+			if(tool == marker.getTool() && (type == null || type == marker.getType())) {
+				marker.setSample(marker.getSample() + howMuch);
+			}
+		}
+	}
 	
-	private void setMeasureMarker(int sample, SampleMarker.Type type) {
+	public void addBasicMarker(int sample) {
+		markers.add(new SampleMarker(plugin.getSelectedTool(), SampleMarker.Type.ANY, sample));
+	}
+	
+	public void setMeasureMarker(int sample, SampleMarker.Type type) {
 		removeMarkers(plugin.getSelectedTool(), type);
 
 		plugin.getAnnotations().removeMeasures("duration", definition.getName());
