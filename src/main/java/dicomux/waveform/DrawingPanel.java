@@ -337,7 +337,7 @@ class DrawingPanel extends JPanel {
 	private void drawGraph(Graphics2D g2) {
 		// draw waveform as line using the given values
 		g2.setColor(Color.BLACK);
-		g2.setStroke(new BasicStroke(1f));
+		g2.setStroke(new BasicStroke(0.5f));
 		for(int i  = this.start; i < (this.end - 1); i++) {
 			int a = i;
 			int b = i + 1;
