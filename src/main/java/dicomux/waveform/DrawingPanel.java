@@ -17,8 +17,6 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 
 import javax.swing.JPanel;

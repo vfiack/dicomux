@@ -50,7 +50,9 @@ public class QueryPanel extends JPanel {
 	private JTextField patientFirstName;
 	private DatePicker fromDate;
 	private DatePicker toDate;
-	private JButton search;
+	private JButton search;	
+	private JSplitPane split;
+	private JLabel noResult;
 	private JTable result;
 	
 	
@@ -65,7 +67,9 @@ public class QueryPanel extends JPanel {
 		this.fromDate = new DatePicker(null); 
 		this.toDate = new DatePicker(null);
 		this.search = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/system-search.png")));
-		this.result = new JTable();
+		this.noResult = new JLabel();
+		noResult.setVerticalAlignment(JLabel.TOP);
+		this.result = new JTable();	
 		result.setModel(new DicomTableModel());
 		result.getColumnModel().getColumn(0).setMaxWidth(20);
 		
@@ -121,7 +125,7 @@ public class QueryPanel extends JPanel {
 		});
 		
 		JPanel form = buildForm();
-		JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, form, new JScrollPane(result));
+		split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, form, new JLabel());
 		split.setBorder(BorderFactory.createEmptyBorder());
 		split.setOneTouchExpandable(true);
 		add(split, BorderLayout.CENTER);	
@@ -166,7 +170,8 @@ public class QueryPanel extends JPanel {
 				URL url = new URL(qbroker);
 				query = new DicomWebQuery(appKey, pacsId, url);
 			} catch(MalformedURLException e) {
-				//XXX gui error
+				noResult.setText("Error: " + e);
+				split.setBottomComponent(noResult);
 				e.printStackTrace();
 				return;
 			}
@@ -225,8 +230,15 @@ public class QueryPanel extends JPanel {
 		try {
 			query.connect();
 			List<DicomObject> objects = query.query(pid, pname, dateRange);
-			result.setModel(new DicomTableModel(objects));
-			result.getColumnModel().getColumn(0).setMaxWidth(20);
+			
+			if(objects.isEmpty()) {
+				noResult.setText(Translation.tr("query.noResult"));
+				split.setBottomComponent(noResult);
+			} else {
+				split.setBottomComponent(new JScrollPane(result));
+				result.setModel(new DicomTableModel(objects));
+				result.getColumnModel().getColumn(0).setMaxWidth(20);
+			}
 			query.close();
 		} catch(Exception e) {
 			controller.showErrorMessage(e.getMessage());
