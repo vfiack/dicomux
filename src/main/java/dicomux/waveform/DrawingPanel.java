@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
@@ -282,8 +283,9 @@ class DrawingPanel extends JPanel {
 		drawBorder(g2);
 		drawAnnotations(g2);
 	}
-	
-	private void drawGrid(Graphics2D g2) {
+
+	/*
+	private void drawTimeBasedGrid(Graphics2D g2) {
 		// draw horizontal lines
 		g2.setColor(new Color(231, 84, 72, 200));
 		g2.setStroke(new BasicStroke(0.5f));
@@ -307,6 +309,28 @@ class DrawingPanel extends JPanel {
 			}
 			g2.draw(new Line2D.Double(i * cellWidth , 0, 
 					i * cellWidth, dim.getHeight()));
+		}
+	}
+	*/
+	
+	private void drawGrid(Graphics2D g2) {
+		int pixelPerInch = Toolkit.getDefaultToolkit().getScreenResolution();
+		double pixelPerMm = pixelPerInch/25.4;
+		
+		BasicStroke thin = new BasicStroke(0.25f);
+		BasicStroke thick = new BasicStroke(0.5f);
+		g2.setColor(new Color(231, 84, 72, 200));		
+		
+		// draw horizontal lines
+		for(int i=0; i < dim.height/pixelPerMm; i++) {
+			g2.setStroke(i % 5 == 0 ? thick : thin);
+			g2.draw(new Line2D.Double(0, i*pixelPerMm, dim.getWidth(), i*pixelPerMm));
+		}
+		
+		// draw vertical lines
+		for(int i=0; i < dim.width/pixelPerMm; i++) {
+			g2.setStroke(i % 5 == 0 ? thick : thin);
+			g2.draw(new Line2D.Double(i*pixelPerMm, 0, i*pixelPerMm, dim.getHeight()));
 		}
 	}
 	
