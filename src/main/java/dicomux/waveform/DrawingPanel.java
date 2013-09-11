@@ -14,11 +14,12 @@ import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JPanel;
 
-import dicomux.waveform.WaveformPlugin.Orientation;
+
 
 
 /**
@@ -48,8 +49,7 @@ class DrawingPanel extends JPanel {
 	
 	//selected positions for measures
 	private int highlightedSample;
-	private int startSample;
-	private int stopSample;
+	private List<SampleMarker> markers;
 	
 	public DrawingPanel(WaveformPlugin plugin, int[] values, double start, ChannelDefinition definition) {
 		this.plugin = plugin;
@@ -68,8 +68,7 @@ class DrawingPanel extends JPanel {
 		this.valueScaling = this.definition.getScaling();
 		
 		this.highlightedSample = -1;
-		this.startSample = -1;
-		this.stopSample = -1;
+		this.markers = new ArrayList<SampleMarker>();
 		
 		addListeners();
 		this.isRhythm = false;
@@ -116,58 +115,99 @@ class DrawingPanel extends JPanel {
 			plugin.getAnnotations().setMeasure("cursor value", "-", format.format(uV/1000), "mV");
 		}			
 	}
+		
+	private void removeMarkers(Tool tool, SampleMarker.Type type) {
+		for(int i=0;i<markers.size();i++) {
+			SampleMarker marker = markers.get(i);
+			if(tool == marker.getTool() && (type == null || type == marker.getType())) {
+				markers.remove(i);
+				i--;
+			}
+		}
+	}
+	
+	private boolean hasMarker(Tool tool, SampleMarker.Type type) {
+		for(SampleMarker marker: markers) {
+			if(tool == marker.getTool() && (type == null || type == marker.getType())) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	private SampleMarker getMarker(Tool tool, SampleMarker.Type type) {
+		for(SampleMarker marker: markers) {
+			if(tool == marker.getTool() && (type == null || type == marker.getType())) {
+				return marker;
+			}
+		}
+		
+		return null;
+	}
+	
 	
 	private void setStartSample(int sample) {
+		removeMarkers(plugin.getSelectedTool(), SampleMarker.Type.START);
+
 		plugin.getAnnotations().removeMeasure("duration", definition.getName());
 		plugin.getAnnotations().removeMeasure("difference", definition.getName());
 		plugin.getAnnotations().removeMeasure("amplitude", definition.getName());
 		
 		if(sample < 0 || sample >= data.length) {
-			startSample = -1;
-			
 			plugin.getAnnotations().removeMeasure("start time", definition.getName());
 			plugin.getAnnotations().removeMeasure("start value", definition.getName());
 		}
 		else { 
-			startSample = sample;
+			int startSample = sample;
 			double sec = startSample / (double)plugin.getSamplesPerSecond();
-			double uV = data[startSample] * valueScaling;	
+			double uV = data[startSample] * valueScaling;
+			markers.add(new SampleMarker(plugin.getSelectedTool(), SampleMarker.Type.START, startSample));
 			
 			DecimalFormat format = new DecimalFormat("##.####;-##.####");			
 			plugin.getAnnotations().setMeasure("start time", definition.getName(), format.format(sec*1000), "ms");
 			plugin.getAnnotations().setMeasure("start value", definition.getName(), format.format(uV/1000), "mV");
 			
-			if(stopSample >= 0)
+			if(hasMarker(plugin.getSelectedTool(), SampleMarker.Type.STOP));
 				setSelection();
 		}			
 	}
 	
 	private void setStopSample(int sample) {
+		removeMarkers(plugin.getSelectedTool(), SampleMarker.Type.STOP);
+
 		plugin.getAnnotations().removeMeasure("duration", definition.getName());
 		plugin.getAnnotations().removeMeasure("difference", definition.getName());
 		plugin.getAnnotations().removeMeasure("amplitude", definition.getName());
 		
 		if(sample < 0 || sample >= data.length) {
-			stopSample = -1;
-
 			plugin.getAnnotations().removeMeasure("stop time", definition.getName());
 			plugin.getAnnotations().removeMeasure("stop value", definition.getName());
 		}
 		else { 
-			stopSample = sample;
+			int stopSample = sample;
 			double sec = stopSample / (double)plugin.getSamplesPerSecond();
 			double uV = data[stopSample] * valueScaling;		
+			markers.add(new SampleMarker(plugin.getSelectedTool(), SampleMarker.Type.STOP, stopSample));
 
 			DecimalFormat format = new DecimalFormat("##.####;-##.####");
 			plugin.getAnnotations().setMeasure("stop time", definition.getName(), format.format(sec*1000), "ms");
 			plugin.getAnnotations().setMeasure("stop value", definition.getName(), format.format(uV/1000), "mV");
 			
-			if(startSample >= 0)
+			if(hasMarker(plugin.getSelectedTool(), SampleMarker.Type.START));
 				setSelection();
 		}			
 	}
 	
 	private void setSelection() {
+		SampleMarker start = getMarker(plugin.getSelectedTool(), SampleMarker.Type.START);
+		SampleMarker stop = getMarker(plugin.getSelectedTool(), SampleMarker.Type.STOP);
+		if(start == null || stop == null)
+			return;
+		
+		int startSample = start.getSample();
+		int stopSample = stop.getSample();
+		
 		double time = (stopSample-startSample) / (double)plugin.getSamplesPerSecond();
 		double diff_uV = (data[stopSample] - data[startSample]) * valueScaling;
 						
@@ -218,6 +258,7 @@ class DrawingPanel extends JPanel {
 				else if(e.getButton() == MouseEvent.BUTTON3)
 					setStopSample(highlightedSample);
 				else if(e.getButton() == MouseEvent.BUTTON2) {
+					//XXX cleanup here
 					setStartSample(-1);
 					setStopSample(-1);
 				}
@@ -230,10 +271,7 @@ class DrawingPanel extends JPanel {
 				
 				DecimalFormat format = new DecimalFormat("##.####;-##.####");
 				plugin.getAnnotations().setMeasure("minimum", definition.getName(), format.format(definition.getMinimum_uV()/1000), "mV");
-				plugin.getAnnotations().setMeasure("maximum", definition.getName(), format.format(definition.getMaximum_uV()/1000), "mV");
-				
-				setStartSample(startSample);
-				setStopSample(stopSample);
+				plugin.getAnnotations().setMeasure("maximum", definition.getName(), format.format(definition.getMaximum_uV()/1000), "mV");				
 			}
 			
 			public void mouseExited(MouseEvent e) {
@@ -353,14 +391,16 @@ class DrawingPanel extends JPanel {
 	}
 	
 	private void drawMeasureBackground(Graphics2D g2) {
-		if(startSample < 0 || stopSample < 0 || plugin.getMeasureBarsOrientation() == Orientation.HORIZONTAL)
+		SampleMarker start = getMarker(Tool.VERTICAL_MEASURE, SampleMarker.Type.START);
+		SampleMarker stop = getMarker(Tool.VERTICAL_MEASURE, SampleMarker.Type.STOP);
+		if(start == null || stop == null)
 			return;
-
+		
 		Color background = new Color(230, 230, 230, 200);		
 		g2.setColor(background);
 		
-		double startX = this.scalingWidth * (startSample - this.start);
-		double stopX = this.scalingWidth * (stopSample - this.start);
+		double startX = this.scalingWidth * (start.getSample() - this.start);
+		double stopX = this.scalingWidth * (stop.getSample() - this.start);
 		if(startX > stopX) {
 			double tmp = stopX;
 			stopX = startX;
@@ -376,14 +416,20 @@ class DrawingPanel extends JPanel {
 	private void drawMeasureBars(Graphics2D g2) {
 		drawVerticalBar(g2, Color.CYAN, highlightedSample);
 		
-		if(plugin.getMeasureBarsOrientation() == WaveformPlugin.Orientation.HORIZONTAL) {
+		if(plugin.getSelectedTool() == Tool.HORIZONTAL_MEASURE)
 			drawHorizontalBar(g2, Color.CYAN, highlightedSample);
-			drawHorizontalBar(g2, Color.GREEN, startSample);
-			drawHorizontalBar(g2, Color.BLUE, stopSample);
-		} else {
-			drawVerticalBar(g2, Color.GREEN, startSample);
-			drawVerticalBar(g2, Color.BLUE, stopSample);
-		}
+		
+		
+		for(SampleMarker marker: markers) {
+			Color color = Color.BLUE;
+			if(marker.getType() == SampleMarker.Type.START)
+				color = Color.GREEN;
+			
+			if(marker.getTool() == Tool.HORIZONTAL_MEASURE)
+				drawHorizontalBar(g2, color, marker.getSample());
+			else
+				drawVerticalBar(g2, color, marker.getSample());
+		}		
 	}
 	
 	private void drawVerticalBar(Graphics2D g2, Color color, int sample) {

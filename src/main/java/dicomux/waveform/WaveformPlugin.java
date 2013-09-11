@@ -41,8 +41,6 @@ import dicomux.waveform.WaveformLayout.Format;
  * @author norbert
  */
 public class WaveformPlugin extends APlugin implements Printable {	
-	public static enum Orientation {HORIZONTAL, VERTICAL};
-	
 	private DicomObject dicomObject;
 	private double mvCells;
 	private double seconds;
@@ -59,7 +57,7 @@ public class WaveformPlugin extends APlugin implements Printable {
 	private Annotations annotations;
 	
 	private WaveformLayout waveformLayout;
-	private Orientation measureBarsOrientation;
+	private Tool selectedTool;
 
 	public WaveformPlugin() throws Exception {
 		super();
@@ -68,7 +66,7 @@ public class WaveformPlugin extends APlugin implements Printable {
 		m_keyTag.addKey(Tag.WaveformData, null);
 		
 		this.displayFormat = Format.DEFAULT;
-		this.measureBarsOrientation = Orientation.VERTICAL;
+		this.selectedTool = Tool.VERTICAL_MEASURE;
 	}
 	
 	public String getName() {
@@ -545,12 +543,12 @@ public class WaveformPlugin extends APlugin implements Printable {
 		return annotations;
 	}
 
-	public Orientation getMeasureBarsOrientation() {
-		return measureBarsOrientation;
+	public Tool getSelectedTool() {
+		return selectedTool;
 	}
 
-	public void setMeasureBarsOrientation(Orientation o) {
-		measureBarsOrientation = o;
+	public void setSelectedTool(Tool t) {
+		selectedTool = t;
 		channelpane.repaint();
 	}
 }

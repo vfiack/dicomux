@@ -29,7 +29,6 @@ import javax.swing.plaf.basic.BasicComboBoxRenderer;
 
 import dicomux.Translation;
 import dicomux.waveform.WaveformLayout.Format;
-import dicomux.waveform.WaveformPlugin.Orientation;
 
 class ToolPanel extends JPanel {
 	private static final long serialVersionUID = 2827148456926205919L;
@@ -97,21 +96,21 @@ class ToolPanel extends JPanel {
 	}
 
 	private void addMeasureOrientationButton() {
-		final Map<Orientation, ImageIcon> icons = new HashMap<WaveformPlugin.Orientation, ImageIcon>(2);
-		icons.put(Orientation.VERTICAL, new ImageIcon(this.getClass().getClassLoader().getResource("images/orientation/vertical.png")));
-		icons.put(Orientation.HORIZONTAL, new ImageIcon(this.getClass().getClassLoader().getResource("images/orientation/horizontal.png")));
+		final Map<Tool, ImageIcon> icons = new HashMap<Tool, ImageIcon>(2);
+		icons.put(Tool.VERTICAL_MEASURE, new ImageIcon(this.getClass().getClassLoader().getResource("images/orientation/vertical.png")));
+		icons.put(Tool.HORIZONTAL_MEASURE, new ImageIcon(this.getClass().getClassLoader().getResource("images/orientation/horizontal.png")));
 
-		final JButton orientationButton = new JButton(icons.get(plugin.getMeasureBarsOrientation()));
+		final JButton orientationButton = new JButton(icons.get(plugin.getSelectedTool()));
 		orientationButton.setToolTipText(tr("wfMeasureOrientation"));
 		this.add(orientationButton);
 		this.add(new JLabel("            ")); //spacer
 
 		orientationButton.addActionListener(new ActionListener() {			
 			public void actionPerformed(ActionEvent e) {
-				Orientation o = plugin.getMeasureBarsOrientation();
-				o = (o == Orientation.VERTICAL) ? Orientation.HORIZONTAL : Orientation.VERTICAL;
-				plugin.setMeasureBarsOrientation(o);
-				orientationButton.setIcon(icons.get(o));
+				Tool t = plugin.getSelectedTool();
+				t = (t == Tool.VERTICAL_MEASURE) ? Tool.HORIZONTAL_MEASURE : Tool.VERTICAL_MEASURE;
+				plugin.setSelectedTool(t);
+				orientationButton.setIcon(icons.get(t));
 			}
 		});		
 	}
