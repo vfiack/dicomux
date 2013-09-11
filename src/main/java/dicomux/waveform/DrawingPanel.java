@@ -116,6 +116,14 @@ class DrawingPanel extends JPanel {
 		}			
 	}
 		
+	//-- markers
+
+	public void removeMarkers() {
+		markers.clear();
+		plugin.getAnnotations().removeMeasures(null, definition.getName());
+	}
+
+	
 	private void removeMarkers(Tool tool, SampleMarker.Type type) {
 		for(int i=0;i<markers.size();i++) {
 			SampleMarker marker = markers.get(i);
@@ -124,16 +132,6 @@ class DrawingPanel extends JPanel {
 				i--;
 			}
 		}
-	}
-	
-	private boolean hasMarker(Tool tool, SampleMarker.Type type) {
-		for(SampleMarker marker: markers) {
-			if(tool == marker.getTool() && (type == null || type == marker.getType())) {
-				return true;
-			}
-		}
-		
-		return false;
 	}
 	
 	private SampleMarker getMarker(Tool tool, SampleMarker.Type type) {
@@ -147,58 +145,30 @@ class DrawingPanel extends JPanel {
 	}
 	
 	
-	private void setStartSample(int sample) {
-		removeMarkers(plugin.getSelectedTool(), SampleMarker.Type.START);
+	private void setMeasureMarker(int sample, SampleMarker.Type type) {
+		removeMarkers(plugin.getSelectedTool(), type);
 
-		plugin.getAnnotations().removeMeasure("duration", definition.getName());
-		plugin.getAnnotations().removeMeasure("difference", definition.getName());
-		plugin.getAnnotations().removeMeasure("amplitude", definition.getName());
-		
+		plugin.getAnnotations().removeMeasures("duration", definition.getName());
+		plugin.getAnnotations().removeMeasures("difference", definition.getName());
+		plugin.getAnnotations().removeMeasures("amplitude", definition.getName());
+
+		String prefix = (type == SampleMarker.Type.START ? "start" : "stop");
 		if(sample < 0 || sample >= data.length) {
-			plugin.getAnnotations().removeMeasure("start time", definition.getName());
-			plugin.getAnnotations().removeMeasure("start value", definition.getName());
+			plugin.getAnnotations().removeMeasures(prefix + " time", definition.getName());
+			plugin.getAnnotations().removeMeasures(prefix + " value", definition.getName());
 		}
 		else { 
-			int startSample = sample;
-			double sec = startSample / (double)plugin.getSamplesPerSecond();
-			double uV = data[startSample] * valueScaling;
-			markers.add(new SampleMarker(plugin.getSelectedTool(), SampleMarker.Type.START, startSample));
+			double sec = sample / (double)plugin.getSamplesPerSecond();
+			double uV = data[sample] * valueScaling;
+			markers.add(new SampleMarker(plugin.getSelectedTool(), type, sample));
 			
 			DecimalFormat format = new DecimalFormat("##.####;-##.####");			
-			plugin.getAnnotations().setMeasure("start time", definition.getName(), format.format(sec*1000), "ms");
-			plugin.getAnnotations().setMeasure("start value", definition.getName(), format.format(uV/1000), "mV");
-			
-			if(hasMarker(plugin.getSelectedTool(), SampleMarker.Type.STOP));
-				setSelection();
+			plugin.getAnnotations().setMeasure(prefix + " time", definition.getName(), format.format(sec*1000), "ms");
+			plugin.getAnnotations().setMeasure(prefix + " value", definition.getName(), format.format(uV/1000), "mV");
+			setSelection();
 		}			
 	}
-	
-	private void setStopSample(int sample) {
-		removeMarkers(plugin.getSelectedTool(), SampleMarker.Type.STOP);
 
-		plugin.getAnnotations().removeMeasure("duration", definition.getName());
-		plugin.getAnnotations().removeMeasure("difference", definition.getName());
-		plugin.getAnnotations().removeMeasure("amplitude", definition.getName());
-		
-		if(sample < 0 || sample >= data.length) {
-			plugin.getAnnotations().removeMeasure("stop time", definition.getName());
-			plugin.getAnnotations().removeMeasure("stop value", definition.getName());
-		}
-		else { 
-			int stopSample = sample;
-			double sec = stopSample / (double)plugin.getSamplesPerSecond();
-			double uV = data[stopSample] * valueScaling;		
-			markers.add(new SampleMarker(plugin.getSelectedTool(), SampleMarker.Type.STOP, stopSample));
-
-			DecimalFormat format = new DecimalFormat("##.####;-##.####");
-			plugin.getAnnotations().setMeasure("stop time", definition.getName(), format.format(sec*1000), "ms");
-			plugin.getAnnotations().setMeasure("stop value", definition.getName(), format.format(uV/1000), "mV");
-			
-			if(hasMarker(plugin.getSelectedTool(), SampleMarker.Type.START));
-				setSelection();
-		}			
-	}
-	
 	private void setSelection() {
 		SampleMarker start = getMarker(plugin.getSelectedTool(), SampleMarker.Type.START);
 		SampleMarker stop = getMarker(plugin.getSelectedTool(), SampleMarker.Type.STOP);
@@ -242,9 +212,9 @@ class DrawingPanel extends JPanel {
 
 				if(highlightedSample >= 0) {
 					if((e.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) == MouseEvent.BUTTON1_DOWN_MASK)
-						setStartSample(highlightedSample);
+						setMeasureMarker(highlightedSample, SampleMarker.Type.START);
 					if((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) == MouseEvent.BUTTON3_DOWN_MASK)
-						setStopSample(highlightedSample);
+						setMeasureMarker(highlightedSample, SampleMarker.Type.STOP);
 				}
 				
 				repaint();						
@@ -254,13 +224,12 @@ class DrawingPanel extends JPanel {
 		this.addMouseListener( new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				if(e.getButton() == MouseEvent.BUTTON1)
-					setStartSample(highlightedSample);
+					setMeasureMarker(highlightedSample, SampleMarker.Type.START);
 				else if(e.getButton() == MouseEvent.BUTTON3)
-					setStopSample(highlightedSample);
+					setMeasureMarker(highlightedSample, SampleMarker.Type.STOP);
 				else if(e.getButton() == MouseEvent.BUTTON2) {
-					//XXX cleanup here
-					setStartSample(-1);
-					setStopSample(-1);
+					markers.clear();
+					plugin.getAnnotations().removeMeasures(null, definition.getName());
 				}
 				
 				repaint();
@@ -275,8 +244,8 @@ class DrawingPanel extends JPanel {
 			}
 			
 			public void mouseExited(MouseEvent e) {
-				plugin.getAnnotations().removeMeasure("minimum", definition.getName());
-				plugin.getAnnotations().removeMeasure("maximum", definition.getName());
+				plugin.getAnnotations().removeMeasures("minimum", definition.getName());
+				plugin.getAnnotations().removeMeasures("maximum", definition.getName());
 				
 				setBackground(Color.WHITE);
 				setHighlightedSample(-1);

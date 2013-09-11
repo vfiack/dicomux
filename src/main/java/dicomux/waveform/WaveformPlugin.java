@@ -549,6 +549,10 @@ public class WaveformPlugin extends APlugin implements Printable {
 
 	public void setSelectedTool(Tool t) {
 		selectedTool = t;
+
+		for(Component c: channelpane.getComponents())
+			((DrawingPanel)c).removeMarkers();
+
 		channelpane.repaint();
 	}
 }

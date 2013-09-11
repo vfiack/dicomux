@@ -229,17 +229,19 @@ public class Annotations extends JPanel {
 		((MeasureTableModel)measureTable.getModel()).fireTableDataChanged();
 	}
 	
-	public boolean removeMeasure(String name, String channel) {
-		for(int i=0; i<measures.size();i ++) {
+	public boolean removeMeasures(String name, String channel) {
+		boolean removed = false;
+		for(int i=0; i<measures.size();i++) {
 			Annotation a = measures.get(i);
-			if(a.channel.equals(channel) && a.name.equals(name)) {
+			if(a.channel.equals(channel) && (name == null || a.name.equals(name))) {
 				measures.remove(i);
 				((MeasureTableModel)measureTable.getModel()).fireTableDataChanged();
-				return true;
+				i--;
+				removed = true;
 			}
 		}
 		
-		return false;
+		return removed;
 	}
 	
 	
