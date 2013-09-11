@@ -17,6 +17,8 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -177,15 +179,16 @@ public class DrawingPanel extends JPanel {
 
 	public void selectedToolChanged(Tool tool) {
 		removeMarkers();
+
+		removeMouseListener(measureToolListener);
+		removeMouseMotionListener(measureToolListener);
+		removeMouseListener(markersToolListener);
+		removeMouseMotionListener(markersToolListener);
 		
 		if(tool == Tool.MULTIPLE_MARKERS) {
-			removeMouseListener(measureToolListener);
-			removeMouseMotionListener(measureToolListener);
 			addMouseListener(markersToolListener);
 			addMouseMotionListener(markersToolListener);
 		} else {		
-			removeMouseListener(markersToolListener);
-			removeMouseMotionListener(markersToolListener);
 			addMouseListener(measureToolListener);
 			addMouseMotionListener(measureToolListener);
 		}
