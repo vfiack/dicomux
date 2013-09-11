@@ -7,12 +7,12 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
@@ -39,8 +39,8 @@ class ToolPanel extends JPanel {
 	public ToolPanel(WaveformPlugin plugin) {
 		this.plugin = plugin;
 
+		addToolSelection();
 		addPrintButton();
-		addMeasureOrientationButton();
 		add(new JLabel("            ")); //spacer
 		addZoomComponents();
 		if(plugin.getNumberOfChannels() == 12)
@@ -95,24 +95,25 @@ class ToolPanel extends JPanel {
 		});		
 	}
 
-	private void addMeasureOrientationButton() {
-		final Map<Tool, ImageIcon> icons = new HashMap<Tool, ImageIcon>(2);
-		icons.put(Tool.VERTICAL_MEASURE, new ImageIcon(this.getClass().getClassLoader().getResource("images/orientation/vertical.png")));
-		icons.put(Tool.HORIZONTAL_MEASURE, new ImageIcon(this.getClass().getClassLoader().getResource("images/orientation/horizontal.png")));
-
-		final JButton orientationButton = new JButton(icons.get(plugin.getSelectedTool()));
-		orientationButton.setToolTipText(tr("wfMeasureOrientation"));
-		this.add(orientationButton);
-		this.add(new JLabel("            ")); //spacer
-
-		orientationButton.addActionListener(new ActionListener() {			
-			public void actionPerformed(ActionEvent e) {
-				Tool t = plugin.getSelectedTool();
-				t = (t == Tool.VERTICAL_MEASURE) ? Tool.HORIZONTAL_MEASURE : Tool.VERTICAL_MEASURE;
-				plugin.setSelectedTool(t);
-				orientationButton.setIcon(icons.get(t));
+	private void addToolSelection() {
+		this.add(new JLabel(tr("wfToolSelection")));
+		
+		final JComboBox combo = new JComboBox(Tool.values());
+		combo.setRenderer(new BasicComboBoxRenderer() {
+			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {				
+				value = tr("wfTool" + value);
+				return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 			}
-		});		
+		});
+
+		combo.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				Tool t = (Tool)combo.getSelectedItem();
+				plugin.setSelectedTool(t);
+			}
+		});			
+		
+		this.add(combo);
 	}
 
 	
