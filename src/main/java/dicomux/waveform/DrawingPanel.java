@@ -10,7 +10,9 @@ import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionAdapter;
+import java.awt.event.MouseMotionListener;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.text.DecimalFormat;
@@ -68,12 +70,14 @@ class DrawingPanel extends JPanel {
 		this.valueScaling = this.definition.getScaling();
 		
 		this.highlightedSample = -1;
-		this.markers = new ArrayList<SampleMarker>();
-		
-		addListeners();
+		this.markers = new ArrayList<SampleMarker>();		
 		this.isRhythm = false;
 		
 		setBackground(Color.WHITE);
+		
+		this.addMouseListener(basicMouseListener);
+		this.addMouseListener(measureMouseListener);
+		this.addMouseMotionListener(measureMouseMotionListener);		
 	}
 	
 	public void setTime(double start, double length) {
@@ -115,7 +119,66 @@ class DrawingPanel extends JPanel {
 			plugin.getAnnotations().setMeasure("cursor value", "-", format.format(uV/1000), "mV");
 		}			
 	}
+	
+	//-- actions & tools
+	
+	//puts min & max values when entering a panel
+	private MouseListener basicMouseListener = new MouseAdapter() {
+		public void mouseEntered(MouseEvent e) {
+			setBackground(new Color(255, 255, 215));
+			
+			DecimalFormat format = new DecimalFormat("##.####;-##.####");
+			plugin.getAnnotations().setMeasure("minimum", definition.getName(), format.format(definition.getMinimum_uV()/1000), "mV");
+			plugin.getAnnotations().setMeasure("maximum", definition.getName(), format.format(definition.getMaximum_uV()/1000), "mV");				
+		}
 		
+		public void mouseExited(MouseEvent e) {
+			plugin.getAnnotations().removeMeasures("minimum", definition.getName());
+			plugin.getAnnotations().removeMeasures("maximum", definition.getName());
+			
+			setBackground(Color.WHITE);
+			setHighlightedSample(-1);
+			repaint();
+		}
+	};
+	
+	//mouse moves when using a measuring tool
+	private MouseMotionListener measureMouseMotionListener = new MouseMotionAdapter() {	
+		public void mouseDragged(MouseEvent e) {
+			mouseMoved(e);
+		}
+		
+		public void mouseMoved(MouseEvent e) {			
+			double sec = offset + (e.getPoint().getX() / cellWidth * 0.1);
+			setHighlightedSample((int)Math.round(plugin.getSamplesPerSecond() * sec));
+
+			if(highlightedSample >= 0) {
+				if((e.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) == MouseEvent.BUTTON1_DOWN_MASK)
+					setMeasureMarker(highlightedSample, SampleMarker.Type.START);
+				if((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) == MouseEvent.BUTTON3_DOWN_MASK)
+					setMeasureMarker(highlightedSample, SampleMarker.Type.STOP);
+			}
+			
+			repaint();						
+		}
+	};
+	
+	//mouse click when using a measuring tool
+	private MouseListener measureMouseListener = new MouseAdapter() {
+		public void mouseClicked(MouseEvent e) {
+			if(e.getButton() == MouseEvent.BUTTON1)
+				setMeasureMarker(highlightedSample, SampleMarker.Type.START);
+			else if(e.getButton() == MouseEvent.BUTTON3)
+				setMeasureMarker(highlightedSample, SampleMarker.Type.STOP);
+			else if(e.getButton() == MouseEvent.BUTTON2) {
+				markers.clear();
+				plugin.getAnnotations().removeMeasures(null, definition.getName());
+			}
+			
+			repaint();
+		}
+	};
+			
 	//-- markers
 
 	public void removeMarkers() {
@@ -197,62 +260,9 @@ class DrawingPanel extends JPanel {
 		plugin.getAnnotations().setMeasure("difference", definition.getName(), format.format(diff_uV/1000), "mV");
 		plugin.getAnnotations().setMeasure("amplitude", definition.getName(), format.format(amplitude_uV/1000), "mV");
 	}
-	
-	
-	private void addListeners() {
-		// used to get the current position of the mouse pointer into the information panel
-		this.addMouseMotionListener( new MouseMotionAdapter() {	
-			public void mouseDragged(MouseEvent e) {
-				mouseMoved(e);
-			}
-			
-			public void mouseMoved(MouseEvent e) {			
-				double sec = offset + (e.getPoint().getX() / cellWidth * 0.1);
-				setHighlightedSample((int)Math.round(plugin.getSamplesPerSecond() * sec));
-
-				if(highlightedSample >= 0) {
-					if((e.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) == MouseEvent.BUTTON1_DOWN_MASK)
-						setMeasureMarker(highlightedSample, SampleMarker.Type.START);
-					if((e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK) == MouseEvent.BUTTON3_DOWN_MASK)
-						setMeasureMarker(highlightedSample, SampleMarker.Type.STOP);
-				}
-				
-				repaint();						
-			}
-		});
 		
-		this.addMouseListener( new MouseAdapter() {
-			public void mouseClicked(MouseEvent e) {
-				if(e.getButton() == MouseEvent.BUTTON1)
-					setMeasureMarker(highlightedSample, SampleMarker.Type.START);
-				else if(e.getButton() == MouseEvent.BUTTON3)
-					setMeasureMarker(highlightedSample, SampleMarker.Type.STOP);
-				else if(e.getButton() == MouseEvent.BUTTON2) {
-					markers.clear();
-					plugin.getAnnotations().removeMeasures(null, definition.getName());
-				}
-				
-				repaint();
-			}
-			
-			public void mouseEntered(MouseEvent e) {
-				setBackground(new Color(255, 255, 215));
-				
-				DecimalFormat format = new DecimalFormat("##.####;-##.####");
-				plugin.getAnnotations().setMeasure("minimum", definition.getName(), format.format(definition.getMinimum_uV()/1000), "mV");
-				plugin.getAnnotations().setMeasure("maximum", definition.getName(), format.format(definition.getMaximum_uV()/1000), "mV");				
-			}
-			
-			public void mouseExited(MouseEvent e) {
-				plugin.getAnnotations().removeMeasures("minimum", definition.getName());
-				plugin.getAnnotations().removeMeasures("maximum", definition.getName());
-				
-				setBackground(Color.WHITE);
-				setHighlightedSample(-1);
-				repaint();
-			}
-		});
-	}		
+	
+	//-- drawing methods
 	
 	public void paintComponent(Graphics g) {		
 		super.paintComponent(g);
