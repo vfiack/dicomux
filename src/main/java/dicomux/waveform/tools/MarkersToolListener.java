@@ -44,8 +44,8 @@ public class MarkersToolListener extends ToolMouseAdapter {
 	public void mouseDragged(MouseEvent e) {
 		if(e.getX() != prevX && prevX >= 0) {
 			int coords = e.getX() - prevX;
-			double seconds = coords / parent.getCellWidth() * 0.1;
-			int samples = (int)Math.round(plugin.getSamplesPerSecond() * seconds);
+			double sampleWidth = parent.getPreferredSize().getWidth() / parent.getSampleCount();
+			int samples = (int)Math.round(coords / sampleWidth);
 			
 			parent.shiftMarkers(plugin.getSelectedTool(), SampleMarker.Type.ANY, samples);
 			prevX = e.getX();

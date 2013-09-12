@@ -25,8 +25,6 @@ import dicomux.waveform.tools.MarkersToolListener;
 import dicomux.waveform.tools.MeasureToolListener;
 
 
-
-
 /**
  * This class handles the drawing of the waveform
  * 
@@ -40,10 +38,7 @@ public class DrawingPanel extends JPanel {
 	private int[] data;
 	private List<Annotation> annotations;
 	private float scalingWidth;
-	private ChannelDefinition definition;
-	private double secsCellCount;
-	private double cellHeight;
-	private double cellWidth;
+	private ChannelDefinition definition;		
 	private int sampleCount;
 	private double valueScaling;
 	private boolean isRhythm;
@@ -57,13 +52,8 @@ public class DrawingPanel extends JPanel {
 	public DrawingPanel(WaveformPlugin plugin, int[] values, ChannelDefinition definition) {
 		this.plugin = plugin;
 		this.data = values;
-		this.definition = definition;			
-		this.secsCellCount = plugin.getSeconds() * 10;
-		// calculate height and width of the cells
-		this.cellHeight = getPreferredSize().getHeight() / plugin.getChannelHeightInMillivolt();
-		this.cellWidth = getPreferredSize().getWidth() / secsCellCount;
+		this.definition = definition;					
 		this.sampleCount = data.length;
-		// calculate scaling of the sample values
 		this.valueScaling = this.definition.getScaling();
 		
 		this.highlightedSample = -1;
@@ -86,7 +76,6 @@ public class DrawingPanel extends JPanel {
 		if(length > plugin.getSeconds())
 			length = plugin.getSeconds();
 				
-		this.secsCellCount = (int)(length*10);
 		this.sampleCount = (int)(length*plugin.getSamplesPerSecond());
 	}
 	
@@ -123,8 +112,8 @@ public class DrawingPanel extends JPanel {
 		return highlightedSample;
 	}
 	
-	public double getCellWidth() {
-		return cellWidth;
+	public int getSampleCount() {
+		return sampleCount;
 	}
 	
 	//-- actions
@@ -155,9 +144,9 @@ public class DrawingPanel extends JPanel {
 		}
 		
 		public void mouseMoved(MouseEvent e) {			
-			double sec = e.getPoint().getX() / cellWidth * 0.1;
-			setHighlightedSample((int)Math.round(plugin.getSamplesPerSecond() * sec));
-
+			double sampleWidth = getPreferredSize().getWidth() / sampleCount;
+			double sample = e.getPoint().getX() / sampleWidth;
+			setHighlightedSample((int)Math.round(sample));
 			repaint();						
 		}
 	};
@@ -293,12 +282,9 @@ public class DrawingPanel extends JPanel {
 		g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 							
-		// calculate height and width of the cells
-		this.cellHeight = getPreferredSize().getHeight() / plugin.getChannelHeightInMillivolt();
-		this.cellWidth = getPreferredSize().getWidth() / this.secsCellCount;
 		
-		// calculate the scaling which is dependent to the width	
-		this.scalingWidth =  (float) (cellWidth / (this.sampleCount / secsCellCount ));			
+		// calculate the scaling which is dependent to the width		
+		this.scalingWidth =  (float) (getPreferredSize().getWidth() / this.sampleCount);			
 		
 		drawMeasureBackground(g2);
 		drawGrid(g2);
@@ -336,6 +322,8 @@ public class DrawingPanel extends JPanel {
 		g2.setColor(Color.BLACK);
 		g2.setStroke(new BasicStroke(0.5f));
 		int height = getPreferredSize().height;
+		double mvHeight = height / plugin.getChannelHeightInMillivolt();
+
 		for(int i = 0; i < (this.sampleCount - 1); i++) {
 			int a = i;
 			int b = i + 1;
@@ -343,9 +331,9 @@ public class DrawingPanel extends JPanel {
 			// dim.height / 2 is our base line
 			Line2D line = new Line2D.Double(
 					this.scalingWidth * a, 
-					(height /2 - this.valueScaling * ( (float)(this.data[a] / (float) 1000) * this.cellHeight) ), 
+					(height /2 - this.valueScaling * ( (float)(this.data[a] / (float) 1000) * mvHeight) ), 
 					this.scalingWidth * b, 
-					(height /2 - this.valueScaling * ( (float)(this.data[b] / (float) 1000) * this.cellHeight ) ));
+					(height /2 - this.valueScaling * ( (float)(this.data[b] / (float) 1000) * mvHeight ) ));
 			g2.draw(line);
 		 }	
 	}
@@ -407,7 +395,8 @@ public class DrawingPanel extends JPanel {
 			return;
 		
 		Dimension dim = getPreferredSize();
-		double y = (dim.height /2 - this.valueScaling * ( (float)(this.data[sample] / (float) 1000) * this.cellHeight)); 
+		double mvHeight = dim.height / plugin.getChannelHeightInMillivolt();
+		double y = (dim.height /2 - this.valueScaling * ( (float)(this.data[sample] / (float) 1000) * mvHeight)); 
 		Line2D line = new Line2D.Double(0, y, dim.width, y);
 		
 		g2.setColor(color);
