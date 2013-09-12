@@ -146,8 +146,10 @@ class ToolBar extends JToolBar {
 
 				final int amplitude = plugin.getAmplitude();
 				final float speed = plugin.getSpeed();
+				final double zoom = plugin.getZoom();
 				plugin.setAmplitude(WaveformLayout.DEFAULT_AMPLITUDE);
 				plugin.setSpeed(WaveformLayout.DEFAULT_SPEED);
+				plugin.setZoom(1);
 
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
@@ -159,6 +161,7 @@ class ToolBar extends JToolBar {
 						
 						plugin.setAmplitude(amplitude);
 						plugin.setSpeed(speed);
+						plugin.setZoom(zoom);
 					}
 				});
 			}
