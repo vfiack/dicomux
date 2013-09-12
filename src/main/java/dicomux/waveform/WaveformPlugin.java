@@ -304,7 +304,7 @@ public class WaveformPlugin extends APlugin implements Printable {
 	
 	private void addDrawingPanels() {
 		for (int i = 0; i < this.channelDefinitions.length; i++) {
-			DrawingPanel panel = new DrawingPanel(this, data[i], 0, channelDefinitions[i]);
+			DrawingPanel panel = new DrawingPanel(this, data[i], channelDefinitions[i]);
 			channelpane.add(channelDefinitions[i].getName(), panel);		
 			
 			/*
@@ -320,7 +320,7 @@ public class WaveformPlugin extends APlugin implements Printable {
 			*/
 			
 			if(channelDefinitions[i].getName().equalsIgnoreCase("Lead II")) {
-				DrawingPanel rhythm = new DrawingPanel(this, data[i], 0, channelDefinitions[i]);
+				DrawingPanel rhythm = new DrawingPanel(this, data[i], channelDefinitions[i]);
 				rhythm.setRhythm(true);
 				channelpane.add("rythm", rhythm);
 			}
@@ -330,64 +330,32 @@ public class WaveformPlugin extends APlugin implements Printable {
 	private void displayDefault() {		 
 		this.waveformLayout.setFormat(Format.DEFAULT);
 		for(Component c: channelpane.getComponents())
-			((DrawingPanel)c).setTime(0, Integer.MAX_VALUE);
+			((DrawingPanel)c).setTimeLength(Integer.MAX_VALUE);
 		
 		this.channelpane.revalidate();
 	}
 	
 	private void displayTwoParts() {
 		this.waveformLayout.setFormat(Format.TWOPARTS);
+		
 		List<Component> ordered = waveformLayout.getOrderedComponents(channelpane);
-
-		double start = 0;
 		for(int i = 0; i < numberOfChannels; i++) {
-			if(i != 0 && (i % 2) != 0)
-			{
-				start = 5.0;
-			}
-			else
-			{
-				start = 0;
-			}
 			DrawingPanel drawPannel = (DrawingPanel)ordered.get(i);
-			drawPannel.setTime(start, 5);
+			drawPannel.setTimeLength(5);
 		}
+		
 		this.channelpane.revalidate();
 	}
 	
 	private void displayFourParts() {
 		this.waveformLayout.setFormat(Format.FOURPARTS);
 		
-		double start = 0;
-		
+		List<Component> ordered = waveformLayout.getOrderedComponents(channelpane);
 		for(int i = 0; i < numberOfChannels; i++) {
-			
-			switch(i) {
-				case 0:
-				case 4:
-				case 8:
-					start = 0;
-					break;
-				case 1:
-				case 5:
-				case 9:
-					start = 2.5;
-					break;
-				case 2:
-				case 6:
-				case 10:
-					start = 5.0;
-					break;
-				case 3:
-				case 7:
-				case 11:
-					start = 7.5;
-					break;
-			}
-			
-			DrawingPanel drawPannel = (DrawingPanel)waveformLayout.getOrderedComponents(channelpane).get(i);
-			drawPannel.setTime(start, 2.5);
+			DrawingPanel drawPannel = (DrawingPanel)ordered.get(i);
+			drawPannel.setTimeLength(2.5);
 		}
+		
 		this.channelpane.revalidate();
 	}
 	

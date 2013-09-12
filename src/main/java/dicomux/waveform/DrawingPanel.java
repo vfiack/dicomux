@@ -46,10 +46,8 @@ public class DrawingPanel extends JPanel {
 	private double cellHeight;
 	private double cellWidth;
 	private Dimension dim;
-	private int start;
-	private int end;
+	private int sampleCount;
 	private double valueScaling;
-	private double offset; 
 	private boolean isRhythm;
 	
 	//selected positions for measures
@@ -58,7 +56,7 @@ public class DrawingPanel extends JPanel {
 	private MeasureToolListener measureToolListener;
 	private MarkersToolListener markersToolListener;
 	
-	public DrawingPanel(WaveformPlugin plugin, int[] values, double start, ChannelDefinition definition) {
+	public DrawingPanel(WaveformPlugin plugin, int[] values, ChannelDefinition definition) {
 		this.plugin = plugin;
 		this.data = values;
 		this.definition = definition;			
@@ -68,9 +66,7 @@ public class DrawingPanel extends JPanel {
 		// calculate height and width of the cells
 		this.cellHeight = dim.getHeight() / mvCellCount;
 		this.cellWidth = dim.getWidth() / secsCellCount;
-		this.start = (int) (start * plugin.getSamplesPerSecond());
-		this.end = data.length;
-		this.offset = start;
+		this.sampleCount = data.length;
 		// calculate scaling of the sample values
 		this.valueScaling = this.definition.getScaling();
 		
@@ -90,15 +86,12 @@ public class DrawingPanel extends JPanel {
 		this.addMouseMotionListener(measureToolListener);		
 	}
 	
-	public void setTime(double start, double length) {
-		this.start = (int) (start * plugin.getSamplesPerSecond());
-		this.offset = start;
-				
-		if(start+length > plugin.getSeconds())
-			length = plugin.getSeconds()-start;
+	public void setTimeLength(double length) {
+		if(length > plugin.getSeconds())
+			length = plugin.getSeconds();
 				
 		this.secsCellCount = (int)(length*10);
-		this.end = this.start + (int)(length*plugin.getSamplesPerSecond());
+		this.sampleCount = (int)(length*plugin.getSamplesPerSecond());
 	}
 	
 	public boolean isRythm() {
@@ -166,7 +159,7 @@ public class DrawingPanel extends JPanel {
 		}
 		
 		public void mouseMoved(MouseEvent e) {			
-			double sec = offset + (e.getPoint().getX() / cellWidth * 0.1);
+			double sec = e.getPoint().getX() / cellWidth * 0.1;
 			setHighlightedSample((int)Math.round(plugin.getSamplesPerSecond() * sec));
 
 			repaint();						
@@ -310,7 +303,7 @@ public class DrawingPanel extends JPanel {
 		this.cellWidth = dim.getWidth() / this.secsCellCount;
 		
 		// calculate the scaling which is dependent to the width	
-		this.scalingWidth =  (float) (cellWidth / ((this.end - this.start) / secsCellCount ));			
+		this.scalingWidth =  (float) (cellWidth / (this.sampleCount / secsCellCount ));			
 		
 		drawMeasureBackground(g2);
 		drawGrid(g2);
@@ -346,15 +339,15 @@ public class DrawingPanel extends JPanel {
 		// draw waveform as line using the given values
 		g2.setColor(Color.BLACK);
 		g2.setStroke(new BasicStroke(0.5f));
-		for(int i  = this.start; i < (this.end - 1); i++) {
+		for(int i = 0; i < (this.sampleCount - 1); i++) {
 			int a = i;
 			int b = i + 1;
 			// draw a line between two points
 			// dim.height / 2 is our base line
 			Line2D line = new Line2D.Double(
-					this.scalingWidth * (a - this.start), 
+					this.scalingWidth * a, 
 					(this.dim.height /2 - this.valueScaling * ( (float)(this.data[a] / (float) 1000) * this.cellHeight) ), 
-					this.scalingWidth * (b - this.start), 
+					this.scalingWidth * b, 
 					( this.dim.height /2 - this.valueScaling * ( (float)(this.data[b] / (float) 1000) * this.cellHeight ) ));
 			g2.draw(line);
 		 }	
@@ -369,8 +362,8 @@ public class DrawingPanel extends JPanel {
 		Color background = new Color(230, 230, 230, 200);		
 		g2.setColor(background);
 		
-		double startX = this.scalingWidth * (start.getSample() - this.start);
-		double stopX = this.scalingWidth * (stop.getSample() - this.start);
+		double startX = this.scalingWidth * start.getSample();
+		double stopX = this.scalingWidth * stop.getSample();
 		if(startX > stopX) {
 			double tmp = stopX;
 			stopX = startX;
@@ -406,7 +399,7 @@ public class DrawingPanel extends JPanel {
 		if(sample < 0)
 			return;
 		
-		double x = this.scalingWidth * (sample - this.start); 
+		double x = this.scalingWidth * sample; 
 		Line2D line = new Line2D.Double(x, 0, x, this.dim.height);
 		
 		g2.setColor(color);
@@ -431,7 +424,7 @@ public class DrawingPanel extends JPanel {
 		if(sample < 0)
 			return;
 		
-		double x = this.scalingWidth * (sample - this.start); 
+		double x = this.scalingWidth * sample; 
 		int h = this.dim.height/5;
 		Line2D line = new Line2D.Double(x, h, x, this.dim.height-h);
 		
