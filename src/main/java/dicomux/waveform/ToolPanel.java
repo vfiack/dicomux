@@ -30,6 +30,7 @@ import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import dicomux.Translation;
 import dicomux.waveform.WaveformLayout.Format;
 
+//TODO: redo this with an action toolbar & actions
 class ToolPanel extends JPanel {
 	private static final long serialVersionUID = 2827148456926205919L;
 	private WaveformPlugin plugin;
@@ -40,6 +41,8 @@ class ToolPanel extends JPanel {
 		this.plugin = plugin;
 
 		addToolSelection();
+		addRemoveMarkersButton();
+		add(new JLabel(" ")); //spacer
 		addZoomButtons();
 		addPrintButton();		
 		add(new JLabel("            ")); //spacer
@@ -72,6 +75,18 @@ class ToolPanel extends JPanel {
 		this.add(combo);
 	}
 
+	private void addRemoveMarkersButton() {
+		JButton cleanButton = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/draw_eraser.png")));
+		cleanButton.setToolTipText(tr("wfRemoveMarkers"));
+		this.add(cleanButton);
+		
+		cleanButton.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				plugin.removeAllMarkers();
+			}
+		});
+	}
+	
 	private void addZoomButtons() {
 		JButton zoomReset = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoom.png")));
 		zoomReset.setToolTipText(tr("wfZoomReset"));

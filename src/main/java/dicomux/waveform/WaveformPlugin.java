@@ -468,6 +468,27 @@ public class WaveformPlugin extends APlugin implements Printable {
 		this.channelpane.revalidate();
 	}
 	
+	public void setZoom(double zoom) {
+		this.zoom = Math.max(zoom, 0.5);
+		channelpane.revalidate();
+	}
+	
+	public void setSelectedTool(Tool tool) {
+		selectedTool = tool;
+
+		for(Component c: channelpane.getComponents())
+			((DrawingPanel)c).selectedToolChanged(tool);
+
+		channelpane.repaint();
+	}
+	
+	public void removeAllMarkers() {
+		for(Component c: channelpane.getComponents())
+			((DrawingPanel)c).removeMarkers();
+
+		channelpane.repaint();
+	}
+	
 	//--
 	
 	public int print(Graphics g, PageFormat pf, int page) throws PrinterException {
@@ -550,11 +571,6 @@ public class WaveformPlugin extends APlugin implements Printable {
 	public double getZoom() {
 		return zoom;
 	}
-	
-	public void setZoom(double zoom) {
-		this.zoom = Math.max(zoom, 0.5);
-		channelpane.revalidate();
-	}
 
 	public Format getDisplayFormat() {
 		return displayFormat;
@@ -566,14 +582,5 @@ public class WaveformPlugin extends APlugin implements Printable {
 
 	public Tool getSelectedTool() {
 		return selectedTool;
-	}
-
-	public void setSelectedTool(Tool tool) {
-		selectedTool = tool;
-
-		for(Component c: channelpane.getComponents())
-			((DrawingPanel)c).selectedToolChanged(tool);
-
-		channelpane.repaint();
 	}
 }
