@@ -124,7 +124,7 @@ public class WaveformLayout implements LayoutManager {
 		if(mmPerMillivolt == AUTO_AMPLITUDE) {
 			//auto height, based on the scrollpane size
 			double h = parent.getParent().getParent().getSize().height * plugin.getZoom();
-			int auto = (int)(h / plugin.getMvCells() / displayFactorHeight);
+			int auto = (int)(h / plugin.getChannelHeightInMillivolt() / displayFactorHeight);
 			mvHeight = max((int)pixelPerMm, min(auto, (int)(DEFAULT_AMPLITUDE*pixelPerMm)));					
 		}
 		
@@ -136,7 +136,7 @@ public class WaveformLayout implements LayoutManager {
 		}
 		
 		dim.width += (int)(seconds*secWidth);			
-		dim.height += displayFactorHeight * plugin.getMvCells()*mvHeight;
+		dim.height += displayFactorHeight * plugin.getChannelHeightInMillivolt()*mvHeight;
 		return dim;		
 	}
 	

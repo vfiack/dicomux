@@ -41,7 +41,6 @@ public class DrawingPanel extends JPanel {
 	private List<Annotation> annotations;
 	private float scalingWidth;
 	private ChannelDefinition definition;
-	private double mvCellCount;
 	private double secsCellCount;
 	private double cellHeight;
 	private double cellWidth;
@@ -60,11 +59,10 @@ public class DrawingPanel extends JPanel {
 		this.plugin = plugin;
 		this.data = values;
 		this.definition = definition;			
-		this.mvCellCount = plugin.getMvCells();
 		this.secsCellCount = plugin.getSeconds() * 10;
 		this.dim = getPreferredSize();
 		// calculate height and width of the cells
-		this.cellHeight = dim.getHeight() / mvCellCount;
+		this.cellHeight = dim.getHeight() / plugin.getChannelHeightInMillivolt();
 		this.cellWidth = dim.getWidth() / secsCellCount;
 		this.sampleCount = data.length;
 		// calculate scaling of the sample values
@@ -299,7 +297,7 @@ public class DrawingPanel extends JPanel {
 							
 		this.dim = getPreferredSize();
 		// calculate height and width of the cells
-		this.cellHeight = dim.getHeight() / this.mvCellCount;
+		this.cellHeight = dim.getHeight() / plugin.getChannelHeightInMillivolt();
 		this.cellWidth = dim.getWidth() / this.secsCellCount;
 		
 		// calculate the scaling which is dependent to the width	
