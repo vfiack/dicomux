@@ -40,15 +40,50 @@ class ToolPanel extends JPanel {
 		this.plugin = plugin;
 
 		addToolSelection();
-		addPrintButton();
+		addZoomButtons();
+		addPrintButton();		
 		add(new JLabel("            ")); //spacer
-		addZoomComponents();
+		addPrecisionComponents();
 		if(plugin.getNumberOfChannels() == 12)
 		{
 			addDisplayFormatComponent();
 		}
 	}
+	
+	private void addToolSelection() {
+		this.add(new JLabel(tr("wfToolSelection")));
+		
+		final JComboBox combo = new JComboBox(Tool.values());
+		combo.setRenderer(new BasicComboBoxRenderer() {
+			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {				
+				value = tr("wfTool" + value);
+				return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+			}
+		});
+		combo.setFocusable(false);
 
+		combo.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				Tool t = (Tool)combo.getSelectedItem();
+				plugin.setSelectedTool(t);
+			}
+		});			
+		
+		this.add(combo);
+	}
+
+	private void addZoomButtons() {
+		JButton zoomReset = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoom.png")));
+		zoomReset.setToolTipText(tr("wfZoomReset"));
+		this.add(zoomReset);
+		
+		zoomReset.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				plugin.setZoom(1);
+			}
+		});
+	}
+	
 	private void addPrintButton() {
 		JButton printButton = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/printer.png")));
 		printButton.setToolTipText(tr("wfPrint"));
@@ -95,31 +130,9 @@ class ToolPanel extends JPanel {
 		});		
 	}
 
-	private void addToolSelection() {
-		this.add(new JLabel(tr("wfToolSelection")));
-		
-		final JComboBox combo = new JComboBox(Tool.values());
-		combo.setRenderer(new BasicComboBoxRenderer() {
-			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {				
-				value = tr("wfTool" + value);
-				return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-			}
-		});
-
-		combo.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				Tool t = (Tool)combo.getSelectedItem();
-				plugin.setSelectedTool(t);
-			}
-		});			
-		
-		this.add(combo);
-	}
-
-	
-	private void addZoomComponents() {	
-		JLabel zoomLabel = new JLabel(tr("wfZoom"));
-		this.add(zoomLabel);
+	private void addPrecisionComponents() {	
+		JLabel precisionLabel = new JLabel(tr("wfPrecision"));
+		this.add(precisionLabel);
 
 		JComboBox speed = new JComboBox(new Float[] {WaveformLayout.AUTO_SPEED, 12.5f, 25f, 50f, 100f});
 		speed.setRenderer(new BasicComboBoxRenderer() {			
