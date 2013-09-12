@@ -22,9 +22,9 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
-import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 
 import dicomux.Translation;
@@ -161,26 +161,29 @@ class ToolBar extends JToolBar {
 				if(!job.printDialog(attrs))
 					return;
 
-				final int amplitude = plugin.getAmplitude();
-				final float speed = plugin.getSpeed();
-				final double zoom = plugin.getZoom();
-				plugin.setAmplitude(WaveformLayout.DEFAULT_AMPLITUDE);
-				plugin.setSpeed(WaveformLayout.DEFAULT_SPEED);
-				plugin.setZoom(1);
-
-				SwingUtilities.invokeLater(new Runnable() {
+				new Thread(new Runnable() {
 					public void run() {
-						try {
+						final int amplitude = plugin.getAmplitude();
+						final float speed = plugin.getSpeed();
+						final double zoom = plugin.getZoom();
+						plugin.setAmplitude(WaveformLayout.DEFAULT_AMPLITUDE);
+						plugin.setSpeed(WaveformLayout.DEFAULT_SPEED);
+						plugin.setZoom(1);					
+						
+						try {							
 							job.print();
 						} catch (PrinterException ex) {
-							ex.printStackTrace();
+							JOptionPane.showMessageDialog(plugin.getContent(), 
+									"Error while printing:\n" + ex.toString(), 
+									"Dicomux", JOptionPane.ERROR_MESSAGE);
+							ex.printStackTrace();							
 						}
 						
 						plugin.setAmplitude(amplitude);
 						plugin.setSpeed(speed);
 						plugin.setZoom(zoom);
 					}
-				});
+				}).start();
 			}
 		});		
 	}

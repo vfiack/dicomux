@@ -9,6 +9,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
@@ -508,13 +509,11 @@ public class WaveformPlugin extends APlugin implements Printable {
 		
 		//so that the paper measurement are corrects
 		int pixelPerInch = Toolkit.getDefaultToolkit().getScreenResolution();
-		double dotsPerPixel = 72.0 / pixelPerInch; 				
-        g2d.scale(dotsPerPixel, dotsPerPixel); 
+		final double dotsPerPixel = 72.0 / pixelPerInch; 				
+		g2d.scale(dotsPerPixel, dotsPerPixel); 
         
-        //margins
-        g2d.translate(50, 60);
-        
-        channelpane.printComponents(g2d);
+		Image img = createImage();
+		g2d.drawImage(img, 50, 55, null);
  
         return PAGE_EXISTS;		
 	}
