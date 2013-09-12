@@ -199,9 +199,18 @@ public class WaveformPlugin extends APlugin implements Printable {
 		channelwrap.addMouseWheelListener(new MouseWheelListener() {			
 			public void mouseWheelMoved(MouseWheelEvent e) {
 				int notches = e.getWheelRotation();
-				double zoom = getZoom() - (0.2)*notches;
-				setZoom(zoom);
-				//TODO: center the scrollpane where the cursor was
+				double prevZoom = getZoom();
+				double newZoom = prevZoom - (0.2)*notches;
+				setZoom(newZoom);
+
+				//center the scrollpane where the cursor was				
+				int xscroll = (int)(e.getX() * newZoom/ prevZoom)-e.getX(); 
+				int yscroll = (int)(e.getY() * newZoom/ prevZoom)-e.getY();
+				
+				int hValue = scroll.getHorizontalScrollBar().getModel().getValue();
+				scroll.getHorizontalScrollBar().getModel().setValue(hValue + xscroll);
+				int vValue = scroll.getVerticalScrollBar().getModel().getValue();
+				scroll.getVerticalScrollBar().getModel().setValue(vValue + yscroll);
 			}
 		});
 		
@@ -437,7 +446,7 @@ public class WaveformPlugin extends APlugin implements Printable {
 	}
 	
 	public void setZoom(double zoom) {
-		this.zoom = Math.max(zoom, 0.5);
+		this.zoom = Math.max(zoom, 0.3);
 		channelpane.revalidate();
 	}
 	
