@@ -320,35 +320,6 @@ public class DrawingPanel extends JPanel {
 		drawBorder(g2);
 		drawAnnotations(g2);
 	}
-
-	/*
-	private void drawTimeBasedGrid(Graphics2D g2) {
-		// draw horizontal lines
-		g2.setColor(new Color(231, 84, 72, 200));
-		g2.setStroke(new BasicStroke(0.5f));
-		double padding = (mvCellCount - Math.floor(mvCellCount))/2;
-		int shift = (int)(padding * cellHeight);
-		for(int i = 0; i < mvCellCount; i++) {
-			g2.draw(new Line2D.Double(0, i * cellHeight + shift, 
-					dim.getWidth(), i * cellHeight + shift));			
-		}
-		
-		// draw vertical lines
-		for(int i = 0; i < secsCellCount; i++ ) {
-			// draw every 10th line which represents a full second bigger 
-			if(i % 10 == 0)
-			{
-				g2.setStroke(new BasicStroke(1.0f));
-			}
-			else
-			{
-				g2.setStroke(new BasicStroke(0.5f));
-			}
-			g2.draw(new Line2D.Double(i * cellWidth , 0, 
-					i * cellWidth, dim.getHeight()));
-		}
-	}
-	*/
 	
 	private void drawGrid(Graphics2D g2) {
 		int pixelPerInch = Toolkit.getDefaultToolkit().getScreenResolution();
