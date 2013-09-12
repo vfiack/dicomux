@@ -44,7 +44,6 @@ public class DrawingPanel extends JPanel {
 	private double secsCellCount;
 	private double cellHeight;
 	private double cellWidth;
-	private Dimension dim;
 	private int sampleCount;
 	private double valueScaling;
 	private boolean isRhythm;
@@ -60,10 +59,9 @@ public class DrawingPanel extends JPanel {
 		this.data = values;
 		this.definition = definition;			
 		this.secsCellCount = plugin.getSeconds() * 10;
-		this.dim = getPreferredSize();
 		// calculate height and width of the cells
-		this.cellHeight = dim.getHeight() / plugin.getChannelHeightInMillivolt();
-		this.cellWidth = dim.getWidth() / secsCellCount;
+		this.cellHeight = getPreferredSize().getHeight() / plugin.getChannelHeightInMillivolt();
+		this.cellWidth = getPreferredSize().getWidth() / secsCellCount;
 		this.sampleCount = data.length;
 		// calculate scaling of the sample values
 		this.valueScaling = this.definition.getScaling();
@@ -295,10 +293,9 @@ public class DrawingPanel extends JPanel {
 		g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 		g2.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 							
-		this.dim = getPreferredSize();
 		// calculate height and width of the cells
-		this.cellHeight = dim.getHeight() / plugin.getChannelHeightInMillivolt();
-		this.cellWidth = dim.getWidth() / this.secsCellCount;
+		this.cellHeight = getPreferredSize().getHeight() / plugin.getChannelHeightInMillivolt();
+		this.cellWidth = getPreferredSize().getWidth() / this.secsCellCount;
 		
 		// calculate the scaling which is dependent to the width	
 		this.scalingWidth =  (float) (cellWidth / (this.sampleCount / secsCellCount ));			
@@ -321,6 +318,7 @@ public class DrawingPanel extends JPanel {
 		g2.setColor(new Color(231, 84, 72, 200));		
 		
 		// draw horizontal lines
+		Dimension dim = getPreferredSize();
 		for(int i=0; i < dim.height/pixelPerMm; i++) {
 			g2.setStroke(i % 5 == 0 ? thick : thin);
 			g2.draw(new Line2D.Double(0, i*pixelPerMm, dim.getWidth(), i*pixelPerMm));
@@ -337,6 +335,7 @@ public class DrawingPanel extends JPanel {
 		// draw waveform as line using the given values
 		g2.setColor(Color.BLACK);
 		g2.setStroke(new BasicStroke(0.5f));
+		int height = getPreferredSize().height;
 		for(int i = 0; i < (this.sampleCount - 1); i++) {
 			int a = i;
 			int b = i + 1;
@@ -344,9 +343,9 @@ public class DrawingPanel extends JPanel {
 			// dim.height / 2 is our base line
 			Line2D line = new Line2D.Double(
 					this.scalingWidth * a, 
-					(this.dim.height /2 - this.valueScaling * ( (float)(this.data[a] / (float) 1000) * this.cellHeight) ), 
+					(height /2 - this.valueScaling * ( (float)(this.data[a] / (float) 1000) * this.cellHeight) ), 
 					this.scalingWidth * b, 
-					( this.dim.height /2 - this.valueScaling * ( (float)(this.data[b] / (float) 1000) * this.cellHeight ) ));
+					(height /2 - this.valueScaling * ( (float)(this.data[b] / (float) 1000) * this.cellHeight ) ));
 			g2.draw(line);
 		 }	
 	}
@@ -368,9 +367,7 @@ public class DrawingPanel extends JPanel {
 			startX = tmp;
 		}
 		
-		Rectangle2D rect = new Rectangle2D.Double(startX, 0, stopX-startX, this.dim.height);
-	
-		
+		Rectangle2D rect = new Rectangle2D.Double(startX, 0, stopX-startX, getPreferredSize().height);
 		g2.fill(rect);
 	}
 	
@@ -398,7 +395,7 @@ public class DrawingPanel extends JPanel {
 			return;
 		
 		double x = this.scalingWidth * sample; 
-		Line2D line = new Line2D.Double(x, 0, x, this.dim.height);
+		Line2D line = new Line2D.Double(x, 0, x, getPreferredSize().height);
 		
 		g2.setColor(color);
 		g2.setStroke(new BasicStroke(0.9f));
@@ -409,8 +406,9 @@ public class DrawingPanel extends JPanel {
 		if(sample < 0)
 			return;
 		
-		double y = (this.dim.height /2 - this.valueScaling * ( (float)(this.data[sample] / (float) 1000) * this.cellHeight)); 
-		Line2D line = new Line2D.Double(0, y, this.dim.width, y);
+		Dimension dim = getPreferredSize();
+		double y = (dim.height /2 - this.valueScaling * ( (float)(this.data[sample] / (float) 1000) * this.cellHeight)); 
+		Line2D line = new Line2D.Double(0, y, dim.width, y);
 		
 		g2.setColor(color);
 		g2.setStroke(new BasicStroke(0.9f));
@@ -423,8 +421,9 @@ public class DrawingPanel extends JPanel {
 			return;
 		
 		double x = this.scalingWidth * sample; 
-		int h = this.dim.height/5;
-		Line2D line = new Line2D.Double(x, h, x, this.dim.height-h);
+		Dimension dim = getPreferredSize();
+		int h = dim.height/5;
+		Line2D line = new Line2D.Double(x, h, x, dim.height-h);
 		
 		g2.setColor(color);
 		g2.setStroke(new BasicStroke(0.9f));
@@ -451,10 +450,11 @@ public class DrawingPanel extends JPanel {
 	private void drawBorder(Graphics2D g2) {
 		g2.setColor(Color.GRAY);
 		g2.setStroke(new BasicStroke(0.5f));
-		g2.drawRect(0, 0, this.dim.width-1, this.dim.height-1);
+		
+		Dimension dim = getPreferredSize();
+		g2.drawRect(0, 0, dim.width-1, dim.height-1);
 	}
-	
-	
+		
 	private void drawName(Graphics2D g2, boolean clipLeadName) {	
 		g2.setColor(Color.black);			
 		g2.setFont(new Font("SanSerif", Font.BOLD, 11));	
