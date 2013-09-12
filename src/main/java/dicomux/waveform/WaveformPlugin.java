@@ -15,6 +15,8 @@ import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
@@ -56,6 +58,7 @@ public class WaveformPlugin extends APlugin implements Printable {
 	private ChannelDefinition[] channelDefinitions;
 	private Annotations annotations;
 	
+	private double zoom = 1;
 	private WaveformLayout waveformLayout;
 	private Tool selectedTool;
 
@@ -193,6 +196,15 @@ public class WaveformPlugin extends APlugin implements Printable {
 		this.channelpane = new JPanel(waveformLayout);
 		final JPanel channelwrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
 		channelwrap.add(channelpane);
+		channelwrap.addMouseWheelListener(new MouseWheelListener() {			
+			public void mouseWheelMoved(MouseWheelEvent e) {
+				int notches = e.getWheelRotation();
+				double zoom = getZoom() - (0.2)*notches;
+				setZoom(zoom);
+				//TODO: center the scrollpane where the cursor was
+			}
+		});
+		
 		this.scroll.setViewportView(channelwrap); 
 		
 		AdjustmentListener adjustmentListener = new AdjustmentListener() {			
@@ -533,6 +545,15 @@ public class WaveformPlugin extends APlugin implements Printable {
 
 	public int getSamplesPerSecond() {
 		return samplesPerSecond;
+	}
+	
+	public double getZoom() {
+		return zoom;
+	}
+	
+	public void setZoom(double zoom) {
+		this.zoom = Math.max(zoom, 0.5);
+		channelpane.revalidate();
 	}
 
 	public Format getDisplayFormat() {

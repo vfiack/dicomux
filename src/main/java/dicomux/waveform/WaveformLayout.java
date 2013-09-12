@@ -113,9 +113,9 @@ public class WaveformLayout implements LayoutManager {
 	public Dimension preferredLayoutSize(Container parent) {
 		Insets insets = parent.getInsets();
 		Dimension dim = new Dimension(insets.left + insets.right, insets.top + insets.bottom);
-
+		
 		int pixelPerInch = Toolkit.getDefaultToolkit().getScreenResolution();
-		double pixelPerMm = pixelPerInch/25.4;
+		double pixelPerMm = pixelPerInch/25.4 * plugin.getZoom();
 		int secWidth = (int)(mmPerSecond*pixelPerMm);
 		int mvHeight = (int)(mmPerMillivolt*pixelPerMm);
 
@@ -123,14 +123,14 @@ public class WaveformLayout implements LayoutManager {
 		
 		if(mmPerMillivolt == AUTO_AMPLITUDE) {
 			//auto height, based on the scrollpane size
-			double h = parent.getParent().getParent().getSize().height;
+			double h = parent.getParent().getParent().getSize().height * plugin.getZoom();
 			int auto = (int)(h / plugin.getMvCells() / displayFactorHeight);
 			mvHeight = max((int)pixelPerMm, min(auto, (int)(DEFAULT_AMPLITUDE*pixelPerMm)));					
 		}
 		
 		if(mmPerSecond == AUTO_SPEED) {
 			//auto width, based on the scrollpane size
-			double w = parent.getParent().getParent().getSize().width;
+			double w = parent.getParent().getParent().getSize().width * plugin.getZoom();
 			int auto = (int)(w / seconds);			
 			secWidth = max((int)pixelPerMm, min(auto, (int)(DEFAULT_SPEED*pixelPerMm)));
 		}

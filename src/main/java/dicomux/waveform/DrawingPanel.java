@@ -172,7 +172,7 @@ public class DrawingPanel extends JPanel {
 			repaint();						
 		}
 	};
-			
+	
 	//-- markers  & tools
 
 	public void selectedToolChanged(Tool tool) {
@@ -298,7 +298,7 @@ public class DrawingPanel extends JPanel {
 	private void paintComponent(Graphics g, boolean clipLeadName) {		
 		super.paintComponent(g);
 		final Graphics2D g2 = (Graphics2D) g;
-		
+				
 		// set rendering options
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);    
 		g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
@@ -352,7 +352,7 @@ public class DrawingPanel extends JPanel {
 	
 	private void drawGrid(Graphics2D g2) {
 		int pixelPerInch = Toolkit.getDefaultToolkit().getScreenResolution();
-		double pixelPerMm = pixelPerInch/25.4;
+		double pixelPerMm = pixelPerInch/25.4 * plugin.getZoom();
 		
 		BasicStroke thin = new BasicStroke(0.25f);
 		BasicStroke thick = new BasicStroke(0.5f);
