@@ -5,7 +5,6 @@ import static dicomux.Translation.tr;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -225,15 +224,8 @@ public class WaveformPlugin extends APlugin implements Printable {
 		this.scroll.getHorizontalScrollBar().addAdjustmentListener(adjustmentListener);
 		this.scroll.getVerticalScrollBar().addAdjustmentListener(adjustmentListener);
 		
-
 		this.annotations = new Annotations(dicomObject);
-
-		
-		// Panel which includes the Buttons for zooming 
-		this.tools = new ToolPanel(this);
-		this.tools.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
-		this.tools.setPreferredSize(new Dimension(m_content.getWidth(), 30));
-		
+		this.tools = new ToolPanel(this);		
 		addDrawingPanels();
 		
 		Format format = numberOfChannels == 12 ? Format.FOURPARTS_RYTHM : Format.DEFAULT;
@@ -451,8 +443,11 @@ public class WaveformPlugin extends APlugin implements Printable {
 	}
 	
 	public void setSelectedTool(Tool tool) {
+		if(tool == selectedTool)
+			return;
+		
+		
 		selectedTool = tool;
-
 		for(Component c: channelpane.getComponents())
 			((DrawingPanel)c).selectedToolChanged(tool);
 

@@ -3,12 +3,8 @@ package dicomux.waveform;
 import static dicomux.Translation.tr;
 
 import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.awt.print.PrinterException;
@@ -18,20 +14,21 @@ import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
 import javax.print.attribute.standard.OrientationRequested;
 import javax.print.attribute.standard.PageRanges;
+import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JPanel;
+import javax.swing.JToggleButton;
+import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
 
 import dicomux.Translation;
 import dicomux.waveform.WaveformLayout.Format;
 
-//TODO: redo this with an action toolbar & actions
-class ToolPanel extends JPanel {
+class ToolPanel extends JToolBar {
 	private static final long serialVersionUID = 2827148456926205919L;
 	private WaveformPlugin plugin;
 	private JLabel displayLabel;
@@ -39,40 +36,63 @@ class ToolPanel extends JPanel {
 
 	public ToolPanel(WaveformPlugin plugin) {
 		this.plugin = plugin;
+		setFloatable(false);
 
+		addPrintButton();		
+		addSeparator();
 		addToolSelection();
 		addRemoveMarkersButton();
-		add(new JLabel(" ")); //spacer
+		addSeparator();
 		addZoomButtons();
-		addPrintButton();		
-		add(new JLabel("            ")); //spacer
+		add(Box.createHorizontalGlue());
 		addPrecisionComponents();
-		if(plugin.getNumberOfChannels() == 12)
-		{
+		
+		if(plugin.getNumberOfChannels() == 12) {
+			add(Box.createHorizontalGlue());
 			addDisplayFormatComponent();
 		}
 	}
 	
 	private void addToolSelection() {
-		this.add(new JLabel(tr("wfToolSelection")));
 		
-		final JComboBox combo = new JComboBox(Tool.values());
-		combo.setRenderer(new BasicComboBoxRenderer() {
-			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {				
-				value = tr("wfTool" + value);
-				return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-			}
-		});
-		combo.setFocusable(false);
-
-		combo.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				Tool t = (Tool)combo.getSelectedItem();
-				plugin.setSelectedTool(t);
-			}
-		});			
+		final JToggleButton verticalMeasure = new JToggleButton(new ImageIcon(
+				this.getClass().getClassLoader().getResource("images/tools/vertical-measure.png")));
+		final JToggleButton horizontalMeasure = new JToggleButton(new ImageIcon(
+				this.getClass().getClassLoader().getResource("images/tools/horizontal-measure.png")));
+		final JToggleButton multipleMarkers = new JToggleButton(new ImageIcon(
+				this.getClass().getClassLoader().getResource("images/tools/multiple-markers.png")));
 		
-		this.add(combo);
+		verticalMeasure.setToolTipText(tr("wfTool" + Tool.VERTICAL_MEASURE));
+		horizontalMeasure.setToolTipText(tr("wfTool" + Tool.HORIZONTAL_MEASURE));
+		multipleMarkers.setToolTipText(tr("wfTool" + Tool.MULTIPLE_MARKERS));
+		
+		ActionListener listener = new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				verticalMeasure.setSelected(false);
+				horizontalMeasure.setSelected(false);
+				multipleMarkers.setSelected(false);
+				
+				if(e.getSource() == verticalMeasure) {
+					verticalMeasure.setSelected(true);
+					plugin.setSelectedTool(Tool.VERTICAL_MEASURE);
+				} else if(e.getSource() == horizontalMeasure) {
+					horizontalMeasure.setSelected(true);
+					plugin.setSelectedTool(Tool.HORIZONTAL_MEASURE);
+				} else if(e.getSource() == multipleMarkers) {
+					multipleMarkers.setSelected(true);
+					plugin.setSelectedTool(Tool.MULTIPLE_MARKERS);				
+				}
+			}
+		};
+		
+		verticalMeasure.addActionListener(listener);
+		horizontalMeasure.addActionListener(listener);
+		multipleMarkers.addActionListener(listener);
+		
+		verticalMeasure.setSelected(true);
+		add(verticalMeasure);
+		add(horizontalMeasure);
+		add(multipleMarkers);
 	}
 
 	private void addRemoveMarkersButton() {
@@ -219,18 +239,6 @@ class ToolPanel extends JPanel {
 		});
 		displayCombo.setFocusable(false);
 		this.add(displayCombo);
-	}
-
-	public void paintComponent( Graphics g ) {
-		super.paintComponent(g); 
-
-		int width = plugin.getContent().getWidth();
-
-		this.setPreferredSize(new Dimension(width, 35));
-		this.setSize(new Dimension(width, 35));
-		this.setMinimumSize(new Dimension(width, 35));
-		this.setMaximumSize(new Dimension(width, 35));
-
 	}
 
 	public void selectDisplayFormat(Format format) {
