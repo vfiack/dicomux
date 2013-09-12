@@ -16,6 +16,7 @@ import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
+import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
@@ -516,6 +517,13 @@ public class WaveformPlugin extends APlugin implements Printable {
         channelpane.printComponents(g2d);
  
         return PAGE_EXISTS;		
+	}
+	
+	public BufferedImage createImage() {
+		BufferedImage b = new BufferedImage(channelpane.getWidth(), channelpane.getHeight(), 
+				BufferedImage.TYPE_INT_ARGB);
+		channelpane.paint(b.createGraphics());
+		return b;
 	}
 	
 	//-- getters & setters

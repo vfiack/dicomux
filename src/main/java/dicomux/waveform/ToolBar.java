@@ -3,8 +3,10 @@ package dicomux.waveform;
 import static dicomux.Translation.tr;
 
 import java.awt.Component;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.awt.print.PrinterException;
@@ -38,7 +40,8 @@ class ToolBar extends JToolBar {
 		this.plugin = plugin;
 		setFloatable(false);
 
-		addPrintButton();		
+		addPrintButton();	
+		addExportButtons();
 		addSeparator();
 		addToolSelection();
 		addRemoveMarkersButton();
@@ -119,6 +122,20 @@ class ToolBar extends JToolBar {
 		});
 	}
 	
+	private void addExportButtons() {
+		JButton copyButton = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/clipboard_sign.png")));
+		copyButton.setToolTipText(tr("wfCopyToClipboard"));
+		this.add(copyButton);
+		
+		copyButton.addActionListener(new ActionListener() {			
+			public void actionPerformed(ActionEvent e) {				
+				BufferedImage img = plugin.createImage();
+				ImageTransferable transferable = new ImageTransferable( img );
+		        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(transferable, null);				
+			}
+		});
+	}
+	
 	private void addPrintButton() {
 		JButton printButton = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/printer.png")));
 		printButton.setToolTipText(tr("wfPrint"));
@@ -168,6 +185,8 @@ class ToolBar extends JToolBar {
 		});		
 	}
 
+	
+	
 	private void addPrecisionComponents() {	
 		JLabel precisionLabel = new JLabel(tr("wfPrecision"));
 		this.add(precisionLabel);
