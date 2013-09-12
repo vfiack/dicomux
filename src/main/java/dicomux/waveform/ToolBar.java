@@ -28,13 +28,13 @@ import javax.swing.plaf.basic.BasicComboBoxRenderer;
 import dicomux.Translation;
 import dicomux.waveform.WaveformLayout.Format;
 
-class ToolPanel extends JToolBar {
+class ToolBar extends JToolBar {
 	private static final long serialVersionUID = 2827148456926205919L;
 	private WaveformPlugin plugin;
 	private JLabel displayLabel;
 	private JComboBox displayCombo;
 
-	public ToolPanel(WaveformPlugin plugin) {
+	public ToolBar(WaveformPlugin plugin) {
 		this.plugin = plugin;
 		setFloatable(false);
 

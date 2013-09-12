@@ -49,7 +49,7 @@ public class WaveformPlugin extends APlugin implements Printable {
 	private JPanel channelpane;
 	private int numberOfChannels;
 	private Format displayFormat;
-	private ToolPanel tools;
+	private ToolBar tools;
 	private double frequency;
 	private int numberOfSamples;		
 	private int samplesPerSecond;
@@ -225,7 +225,7 @@ public class WaveformPlugin extends APlugin implements Printable {
 		this.scroll.getVerticalScrollBar().addAdjustmentListener(adjustmentListener);
 		
 		this.annotations = new Annotations(dicomObject);
-		this.tools = new ToolPanel(this);		
+		this.tools = new ToolBar(this);		
 		addDrawingPanels();
 		
 		Format format = numberOfChannels == 12 ? Format.FOURPARTS_RYTHM : Format.DEFAULT;
