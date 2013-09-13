@@ -1,6 +1,8 @@
 package dicomux.waveform;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,12 +12,14 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 
 import org.dcm4che2.data.DicomElement;
 import org.dcm4che2.data.DicomObject;
@@ -68,6 +72,7 @@ public class Annotations extends JPanel {
 		annotationPanel.add(filter, BorderLayout.NORTH);
 		
 		this.measureTable = new JTable(new MeasureTableModel(measures));
+		this.measureTable.setDefaultRenderer(String.class, new MeasureTableCellRenderer(measures));
 		JScrollPane measureScroll = new JScrollPane(measureTable);
 		
 		JPanel wrapper = new JPanel(new GridLayout(2, 1));
@@ -82,8 +87,8 @@ public class Annotations extends JPanel {
 		area.setLineWrap(true);
 		this.add(area, BorderLayout.SOUTH);
 		
-		this.setMeasure("cursor time", "-", "", "");
-		this.setMeasure("cursor value", "-", "", "");
+		this.setMeasure("cursor time", "-", "", "", false);
+		this.setMeasure("cursor value", "-", "", "", false);
 	}	
 	
 	private void readPatientData(DicomObject dcm) {
@@ -197,8 +202,8 @@ public class Annotations extends JPanel {
 		return measures;
 	}
 	
-	public void setMeasure(String name, String channel, String value, String unit) {
-		Annotation annotation = new Annotation(name, value, unit, channel, "measure"); 
+	public void setMeasure(String name, String channel, String value, String unit, boolean important) {
+		Annotation annotation = new Annotation(name, value, unit, channel, "measure", important); 
 		
 		int oldIndex = -1;
 		for(int i=0; i<measures.size();i ++) {
@@ -328,5 +333,23 @@ public class Annotations extends JPanel {
 
 			return null;
 		}
+	}
+	
+	//--
+	
+	class MeasureTableCellRenderer extends DefaultTableCellRenderer {
+		private List<Annotation> data;
+		
+		public MeasureTableCellRenderer(List<Annotation> data) {
+			this.data = data;
+		}
+
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+			JLabel label = (JLabel)super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+			if(data.get(row).important)
+				label.setFont(label.getFont().deriveFont(Font.BOLD));
+			return label;
+		}	
 	}
 }

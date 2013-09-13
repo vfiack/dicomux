@@ -94,8 +94,8 @@ public class DrawingPanel extends JPanel {
 	public void setHighlightedSample(int sample) {
 		if(sample < 0 || sample >= data.length) {
 			highlightedSample = -1;
-			plugin.getAnnotations().setMeasure("cursor time", "-", "", "");
-			plugin.getAnnotations().setMeasure("cursor value", "-", "", "");
+			plugin.getAnnotations().setMeasure("cursor time", "-", "", "", false);
+			plugin.getAnnotations().setMeasure("cursor value", "-", "", "", false);
 		}
 		else { 
 			highlightedSample = sample;
@@ -103,8 +103,8 @@ public class DrawingPanel extends JPanel {
 			double uV = data[highlightedSample] * valueScaling;	
 			
 			DecimalFormat format = new DecimalFormat("##.####;-##.####");
-			plugin.getAnnotations().setMeasure("cursor time", "-", format.format(sec*1000), "ms");
-			plugin.getAnnotations().setMeasure("cursor value", "-", format.format(uV/1000), "mV");
+			plugin.getAnnotations().setMeasure("cursor time", "-", format.format(sec*1000), "ms", false);
+			plugin.getAnnotations().setMeasure("cursor value", "-", format.format(uV/1000), "mV", false);
 		}			
 	}
 	
@@ -124,8 +124,8 @@ public class DrawingPanel extends JPanel {
 			setBackground(new Color(255, 255, 215));
 			
 			DecimalFormat format = new DecimalFormat("##.####;-##.####");
-			plugin.getAnnotations().setMeasure("minimum", definition.getName(), format.format(definition.getMinimum_uV()/1000), "mV");
-			plugin.getAnnotations().setMeasure("maximum", definition.getName(), format.format(definition.getMaximum_uV()/1000), "mV");				
+			plugin.getAnnotations().setMeasure("minimum", definition.getName(), format.format(definition.getMinimum_uV()/1000), "mV", false);
+			plugin.getAnnotations().setMeasure("maximum", definition.getName(), format.format(definition.getMaximum_uV()/1000), "mV", false);				
 		}
 		
 		public void mouseExited(MouseEvent e) {
@@ -225,8 +225,10 @@ public class DrawingPanel extends JPanel {
 			markers.add(new SampleMarker(plugin.getSelectedTool(), type, sample));
 			
 			DecimalFormat format = new DecimalFormat("##.####;-##.####");			
-			plugin.getAnnotations().setMeasure(prefix + " time", definition.getName(), format.format(sec*1000), "ms");
-			plugin.getAnnotations().setMeasure(prefix + " value", definition.getName(), format.format(uV/1000), "mV");
+			plugin.getAnnotations().setMeasure(prefix + " value", definition.getName(), format.format(uV/1000), "mV", false);
+			if(plugin.getSelectedTool() == Tool.VERTICAL_MEASURE)
+				plugin.getAnnotations().setMeasure(prefix + " time", definition.getName(), format.format(sec*1000), "ms", false);
+
 			setSelection();
 		}			
 	}
@@ -255,9 +257,13 @@ public class DrawingPanel extends JPanel {
 		
 		//duration, difference, amplitude
 		DecimalFormat format = new DecimalFormat("##.####;-##.####");
-		plugin.getAnnotations().setMeasure("duration", definition.getName(), format.format(time*1000), "ms");
-		plugin.getAnnotations().setMeasure("difference", definition.getName(), format.format(diff_uV/1000), "mV");
-		plugin.getAnnotations().setMeasure("amplitude", definition.getName(), format.format(amplitude_uV/1000), "mV");
+		if(plugin.getSelectedTool() == Tool.VERTICAL_MEASURE) {
+			plugin.getAnnotations().setMeasure("difference", definition.getName(), format.format(diff_uV/1000), "mV", false);
+			plugin.getAnnotations().setMeasure("duration", definition.getName(), format.format(time*1000), "ms", true);
+			plugin.getAnnotations().setMeasure("amplitude", definition.getName(), format.format(amplitude_uV/1000), "mV", false);			
+		} else if(plugin.getSelectedTool() == Tool.HORIZONTAL_MEASURE) {
+			plugin.getAnnotations().setMeasure("difference", definition.getName(), format.format(diff_uV/1000), "mV", true);
+		}
 	}
 		
 	
