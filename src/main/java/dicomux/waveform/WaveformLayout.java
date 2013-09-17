@@ -29,8 +29,8 @@ public class WaveformLayout implements LayoutManager {
 	private LinkedHashMap<String, Component> components; //insertion order is important for layout
 	private Layout layout;
 
-	private float mmPerSecond = 25;
-	private int mmPerMillivolt = 10;
+	private float mmPerSecond = DEFAULT_SPEED;
+	private int mmPerMillivolt = DEFAULT_AMPLITUDE;
 	
 	private Format format;	
     private int displayFactorWidth;

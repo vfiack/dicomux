@@ -218,7 +218,9 @@ class ToolBar extends JToolBar {
 				plugin.setSpeed((Float)cb.getSelectedItem());
 			}
 		});
-		speed.setSelectedItem(WaveformLayout.AUTO_SPEED);
+		//float, doesn't work but this is the idea
+		//speed.setSelectedItem(WaveformLayout.DEFAULT_SPEED);
+		speed.setSelectedIndex(2);
 		speed.setFocusable(false);
 		this.add(speed);
 
@@ -238,7 +240,7 @@ class ToolBar extends JToolBar {
 				plugin.setAmplitude((Integer)cb.getSelectedItem());
 			}
 		});
-		amplitude.setSelectedItem(WaveformLayout.AUTO_AMPLITUDE);
+		amplitude.setSelectedItem(WaveformLayout.DEFAULT_AMPLITUDE);
 		amplitude.setFocusable(false);
 		this.add(amplitude);
 	}
