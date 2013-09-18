@@ -2,6 +2,10 @@ package dicomux;
 
 import java.io.File;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Vector;
 
 import org.dcm4che2.data.DicomObject;
@@ -16,6 +20,12 @@ import dicomux.waveform.WaveformPlugin;
  * @author heidi
  */
 public class Controller implements IController {
+	private DateFormat dicomDateFormat = new SimpleDateFormat("yyyyMMdd");
+	private DateFormat readableDateFormat = DateFormat.getDateInstance(DateFormat.SHORT);
+	private DateFormat dicomTimeFormat = new SimpleDateFormat("HHmmss");
+	private DateFormat readableTimeFormat = DateFormat.getTimeInstance(DateFormat.SHORT);
+
+	
 	/**
 	 * holds instances of all available plug-ins<br/>
 	 * It's very important that plug-ins without any keyFormats are at the end of the list.
@@ -195,10 +205,15 @@ public class Controller implements IController {
 			DicomObject dicomObject = din.readDicomObject();
 			din.close();
 			
-			String patient = dicomObject.getString(Tag.PatientName);
-			String date = dicomObject.getString(Tag.StudyDate);
-			String title = patient + " " + date;
+			String patient = dicomObject.getString(Tag.PatientName).replace("^", " ");			
 			
+			
+			String date = readableDateFormat.format(
+					dicomDateFormat.parse(dicomObject.getString(Tag.StudyDate)));
+			String time = readableTimeFormat.format(
+					dicomTimeFormat.parse(dicomObject.getString(Tag.StudyTime)));
+			
+			String title = patient + " - " + date + " " + time;			
 			openDicomObject(title, dicomObject, true);
 		} catch (Exception e) {
 			// something didn't work - let's show an error message
