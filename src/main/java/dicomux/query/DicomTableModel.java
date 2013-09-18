@@ -96,6 +96,9 @@ public class DicomTableModel extends AbstractTableModel {
 			return new ImageIcon(getClass().getClassLoader().getResource("images/types/unknown.png"));
 		}
 		
+		if(tag == Tag.PatientName)
+			return value.replace("^", " ");
+		
 		if(tag == Tag.StudyDate) {
 			try {
 				Date d = dicomDateFormat.parse(value);
