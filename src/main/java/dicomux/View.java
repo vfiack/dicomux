@@ -15,6 +15,8 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.text.MessageFormat;
@@ -31,6 +33,7 @@ import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
@@ -340,6 +343,23 @@ public class View extends JFrame implements IView {
 	 */
 	private void addHelpMenu() {
 		JMenu menu = new JMenu(tr("key_help"));
+		
+		final File usermanual = new File("manual.pdf");
+		if(usermanual.canRead()) {
+			JMenuItem tmp = new JMenuItem(tr("key_usermanual"));
+			tmp.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					try {					
+						Desktop.getDesktop().open(usermanual);						
+					} catch(Exception ex) {
+						ex.printStackTrace();
+						JOptionPane.showMessageDialog(m_pluginMenu, "Error exporting file:\n" + ex.toString(), "Dicomux", JOptionPane.ERROR_MESSAGE);
+					}
+				}
+			});
+			menu.add(tmp);
+		}
+	
 		JMenuItem tmp = new JMenuItem(tr("key_about"));
 		tmp.addActionListener(new ActionListener() {
 		
@@ -348,6 +368,8 @@ public class View extends JFrame implements IView {
 			}
 		});
 		menu.add(tmp);
+	
+		
 		m_menuBar.add(menu);
 	}
 	
