@@ -111,7 +111,7 @@ class ToolBar extends JToolBar {
 	}
 	
 	private void addZoomButtons() {
-		JButton zoomReset = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoom.png")));
+		JButton zoomReset = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoom_reset.png")));
 		zoomReset.setToolTipText(tr("wfZoomReset"));
 		this.add(zoomReset);
 		
@@ -120,6 +120,17 @@ class ToolBar extends JToolBar {
 				plugin.setZoom(1);
 			}
 		});
+		
+		JButton zoomAuto = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoom_extend.png")));
+		zoomAuto.setToolTipText(tr("wfZoomAuto"));
+		this.add(zoomAuto);
+		
+		zoomAuto.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				plugin.setZoom(WaveformPlugin.AUTO_ZOOM);
+			}
+		});
+
 	}
 	
 	private void addExportButtons() {

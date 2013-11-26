@@ -5,6 +5,7 @@ import static dicomux.Translation.tr;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -44,6 +45,8 @@ import dicomux.waveform.WaveformLayout.Format;
  * @author norbert
  */
 public class WaveformPlugin extends APlugin implements Printable {	
+	public static double AUTO_ZOOM = Double.POSITIVE_INFINITY;
+	
 	private DicomObject dicomObject;
 	private double channelHeightInMillivolt;
 	private double seconds;
@@ -59,7 +62,7 @@ public class WaveformPlugin extends APlugin implements Printable {
 	private ChannelDefinition[] channelDefinitions;
 	private Annotations annotations;
 	
-	private double zoom = 1;
+	private double zoom = AUTO_ZOOM;
 	private WaveformLayout waveformLayout;
 	private Tool selectedTool;
 
@@ -230,7 +233,7 @@ public class WaveformPlugin extends APlugin implements Printable {
 		this.tools = new ToolBar(this);		
 		addDrawingPanels();
 		
-		Format format = numberOfChannels == 12 ? Format.FOURPARTS_RYTHM : Format.DEFAULT;
+		Format format = numberOfChannels == 12 ? Format.TWOPARTS : Format.DEFAULT;
 		setDisplayFormat(format);
 		
 		final JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT,
@@ -243,7 +246,7 @@ public class WaveformPlugin extends APlugin implements Printable {
 			}
 		});
 		
-		
+
 		m_content.add(tools, BorderLayout.NORTH);
 		m_content.add(split, BorderLayout.CENTER);
 		m_content.addComponentListener(new ComponentAdapter() {
@@ -255,11 +258,11 @@ public class WaveformPlugin extends APlugin implements Printable {
 				if(split.getDividerLocation() > toggleLeft && split.getDividerLocation() < toggleRight)
 					split.setDividerLocation(split.getWidth()-rightSize);
 				else
-					split.setLastDividerLocation(split.getWidth()-rightSize);
+					split.setLastDividerLocation(split.getWidth()-rightSize);			
 				
 				channelpane.revalidate();
 			}
-		});
+		});				
 	}
 
 	public void updateLanguage(String lang) {
@@ -444,6 +447,26 @@ public class WaveformPlugin extends APlugin implements Printable {
 		channelpane.revalidate();
 	}
 	
+	public double getZoom() {
+		if(zoom == AUTO_ZOOM) {
+			//shortcut
+			if(scroll.getViewport().getWidth() == 0)
+				return 1;
+			
+			Dimension nozoom = waveformLayout.preferredLayoutSize(scroll, 1);
+			double wratio = scroll.getViewport().getWidth() / nozoom.getWidth();
+			double hratio = scroll.getViewport().getHeight() / nozoom.getHeight();
+			double autozoom = Math.min(wratio, hratio);
+			if(Double.isNaN(autozoom) || Double.isInfinite(autozoom) || autozoom < 1)
+				return 1;
+			
+			System.err.println("autozoom: " + autozoom);
+			this.zoom = autozoom;
+		}
+		
+		return zoom;
+	}
+	
 	public void setSelectedTool(Tool tool) {
 		if(tool == selectedTool)
 			return;
@@ -545,10 +568,6 @@ public class WaveformPlugin extends APlugin implements Printable {
 
 	public int getSamplesPerSecond() {
 		return samplesPerSecond;
-	}
-	
-	public double getZoom() {
-		return zoom;
 	}
 
 	public Format getDisplayFormat() {
