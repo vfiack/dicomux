@@ -37,4 +37,8 @@ public class Settings {
 	public int getInt(String key) {
 		return Integer.valueOf(get(key));
 	}
+	
+	public double getDouble(String key) {
+		return Double.valueOf(get(key));
+	}
 }

@@ -174,7 +174,8 @@ public class Controller implements IController {
 			// select the first plug-in of the suitable plug-ins
 			chosenPlugin = suitablePlugins.firstElement().getClass().newInstance();
 			
-			// push the currently used language to the new plug-in
+			// push the settings to the new plug-in
+			chosenPlugin.setSettings(m_settings);		
 			chosenPlugin.updateLanguage(Translation.getLocale());
 			
 			// push the DicomObject to the plug-in

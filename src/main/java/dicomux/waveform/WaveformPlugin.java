@@ -187,8 +187,8 @@ public class WaveformPlugin extends APlugin implements Printable {
 		readChannelDefinitions(dcm.get(Tag.ChannelDefinitionSequence));		
 		readData(dcm);
 				
-		//get minmax
-		getMinMax(data, channelDefinitions);
+		//get channel height
+		this.channelHeightInMillivolt = computeChannelHeight(data, channelDefinitions);
 		
 		
 		// in most cases we have to many channels so we use a scrollpane
@@ -371,7 +371,7 @@ public class WaveformPlugin extends APlugin implements Printable {
 		this.channelpane.revalidate();
 	}
 	
-	private void getMinMax(int data[][], ChannelDefinition definitions[]) {						
+	private double computeChannelHeight(int data[][], ChannelDefinition definitions[]) {						
 			for(int i = 0; i < data.length; i++) {
 				double min = 0;
 				double max = 0;
@@ -404,7 +404,16 @@ public class WaveformPlugin extends APlugin implements Printable {
 			double minmax_uV = Math.max(Math.abs(max), Math.abs(min));
 			double minmax_mV = minmax_uV/1000;
 			double margin = 0.3; //small margin to avoid having the graph touching the channel border
-			this.channelHeightInMillivolt = minmax_mV * 2 + margin;
+			
+			double height_mV = minmax_mV * 2 + margin;
+			double maxChannelHeight = getSettings().getDouble("dicomux.waveform.maxChannelHeight");
+			
+			if(height_mV > maxChannelHeight) {
+				System.err.println("WARNING: Channel height in mV: " + height_mV + ", cutoff");
+				height_mV = maxChannelHeight;
+			}
+			
+			return height_mV;
 	}
 
 	//--

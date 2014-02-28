@@ -7,6 +7,8 @@ import javax.swing.JPanel;
 
 import org.dcm4che2.data.DicomObject;
 
+import dicomux.settings.Settings;
+
 /**
  * Each concrete plugin has to implement this interface
  * @author heidi
@@ -15,6 +17,7 @@ import org.dcm4che2.data.DicomObject;
 public abstract class APlugin {
 	protected JComponent m_content;
 	protected KeyTag m_keyTag;
+	protected Settings m_settings;
 	
 	/**
 	 * default constructor which initializes m_content with a JPanel including a BorderLayout layout manager
@@ -22,6 +25,14 @@ public abstract class APlugin {
 	public APlugin() {
 		m_content = new JPanel(new BorderLayout(5, 5));
 		m_keyTag = new KeyTag();
+	}
+	
+	public void setSettings(Settings s) {
+		m_settings = s;
+	}
+	
+	public Settings getSettings() {
+		return m_settings;
 	}
 	
 	/**
