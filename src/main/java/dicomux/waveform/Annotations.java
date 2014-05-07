@@ -40,6 +40,7 @@ public class Annotations extends JPanel {
 	private List<Annotation> measures;
 	private String text;	
 	
+	private JTable annotationTable;
 	private JTable measureTable;
 	
 	public Annotations(DicomObject dcm) {
@@ -56,23 +57,28 @@ public class Annotations extends JPanel {
 		filterAnnotations();
 		
 		JPanel annotationPanel = new JPanel(new BorderLayout());		
-		final JTable annotationTable = new JTable(new AnnotationTableModel(annotationsFiltered));
+		this.annotationTable = new JTable(new AnnotationTableModel(annotationsFiltered));
+		this.annotationTable.setDefaultRenderer(String.class, new AnnotationTableCellRenderer(annotationsFiltered));
 		JScrollPane annotationScroll = new JScrollPane(annotationTable);
 		annotationPanel.add(annotationScroll, BorderLayout.CENTER);
 
 		final JToggleButton filter = new JToggleButton(Translation.tr("annotations.filter"), true);
 		filter.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				if(filter.isSelected())
+				if(filter.isSelected()) {
 					annotationTable.setModel(new AnnotationTableModel(annotationsFiltered));
-				else
+					annotationTable.setDefaultRenderer(String.class, new AnnotationTableCellRenderer(annotationsFiltered));					
+				}
+				else {
 					annotationTable.setModel(new AnnotationTableModel(annotations));
+					annotationTable.setDefaultRenderer(String.class, new AnnotationTableCellRenderer(annotations));
+				}
 			}
 		});
 		annotationPanel.add(filter, BorderLayout.NORTH);
 		
 		this.measureTable = new JTable(new MeasureTableModel(measures));
-		this.measureTable.setDefaultRenderer(String.class, new MeasureTableCellRenderer(measures));
+		this.measureTable.setDefaultRenderer(String.class, new AnnotationTableCellRenderer(measures));
 		JScrollPane measureScroll = new JScrollPane(measureTable);
 		
 		JPanel wrapper = new JPanel(new GridLayout(2, 1));
@@ -202,24 +208,38 @@ public class Annotations extends JPanel {
 		return measures;
 	}
 	
-	public void setMeasure(String name, String channel, String value, String unit, boolean important) {
-		Annotation annotation = new Annotation(name, value, unit, channel, "measure", important); 
-		
+	private void addOrReplaceAnnotation(List<Annotation> list, Annotation annotation) {
 		int oldIndex = -1;
-		for(int i=0; i<measures.size();i ++) {
-			Annotation a = measures.get(i);
-			if(a.channel.equals(annotation.channel) && a.name.equals(annotation.name)) {
+		for(int i=0; i<list.size();i ++) {
+			Annotation a = list.get(i);
+			if(a.annotationGroup.equals(annotation.annotationGroup) 
+					&& a.name.equals(annotation.name)
+					&& a.channel.equals(annotation.channel)
+					&& a.unit.equals(annotation.unit)) {
 				oldIndex = i;
 				break;
 			}
 		}
 		
 		if(oldIndex >= 0) {
-			measures.add(oldIndex, annotation);
-			measures.remove(oldIndex+1);
+			list.add(oldIndex, annotation);
+			list.remove(oldIndex+1);
 		} else {
-			measures.add(annotation);
+			list.add(annotation);
 		}
+	}
+	
+	public void setManualAnnotation(String name, String value, String unit, boolean important) {
+		Annotation annotation = new Annotation(name, value, unit, "-", "measure", important); 		
+		addOrReplaceAnnotation(annotations, annotation);
+		addOrReplaceAnnotation(annotationsFiltered, annotation);
+		
+		((AnnotationTableModel)annotationTable.getModel()).fireTableDataChanged();
+	}
+	
+	public void setMeasure(String name, String channel, String value, String unit, boolean important) {
+		Annotation annotation = new Annotation(name, value, unit, channel, "measure", important); 		
+		addOrReplaceAnnotation(measures, annotation);
 		
 		Collections.sort(measures, new Comparator<Annotation>() {
 			public int compare(Annotation o1, Annotation o2) {
@@ -337,10 +357,10 @@ public class Annotations extends JPanel {
 	
 	//--
 	
-	class MeasureTableCellRenderer extends DefaultTableCellRenderer {
+	class AnnotationTableCellRenderer extends DefaultTableCellRenderer {
 		private List<Annotation> data;
 		
-		public MeasureTableCellRenderer(List<Annotation> data) {
+		public AnnotationTableCellRenderer(List<Annotation> data) {
 			this.data = data;
 		}
 

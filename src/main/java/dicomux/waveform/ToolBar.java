@@ -35,6 +35,9 @@ class ToolBar extends JToolBar {
 	private WaveformPlugin plugin;
 	private JLabel displayLabel;
 	private JComboBox displayCombo;
+	
+	private JButton rrButton;
+	private JButton qtButton;
 
 	public ToolBar(WaveformPlugin plugin) {
 		this.plugin = plugin;
@@ -45,6 +48,8 @@ class ToolBar extends JToolBar {
 		addSeparator();
 		addToolSelection();
 		addRemoveMarkersButton();
+		addSeparator();
+		addIntervalButtons();
 		addSeparator();
 		addZoomButtons();
 		add(Box.createHorizontalGlue());
@@ -78,12 +83,18 @@ class ToolBar extends JToolBar {
 				if(e.getSource() == verticalMeasure) {
 					verticalMeasure.setSelected(true);
 					plugin.setSelectedTool(Tool.VERTICAL_MEASURE);
+					rrButton.setEnabled(true);
+					qtButton.setEnabled(true);
 				} else if(e.getSource() == horizontalMeasure) {
 					horizontalMeasure.setSelected(true);
 					plugin.setSelectedTool(Tool.HORIZONTAL_MEASURE);
+					rrButton.setEnabled(false);
+					qtButton.setEnabled(false);
 				} else if(e.getSource() == multipleMarkers) {
 					multipleMarkers.setSelected(true);
 					plugin.setSelectedTool(Tool.MULTIPLE_MARKERS);				
+					rrButton.setEnabled(false);
+					qtButton.setEnabled(false);
 				}
 			}
 		};
@@ -109,6 +120,72 @@ class ToolBar extends JToolBar {
 			}
 		});
 	}
+	
+	private void addIntervalButtons() {
+		rrButton = new JButton("RR");
+		rrButton.setToolTipText(tr("wfMarkAsRR"));
+		this.add(rrButton);
+
+		qtButton = new JButton("QT");
+		qtButton.setToolTipText(tr("wfMarkAsQT"));
+		this.add(qtButton);
+		
+		ActionListener actionListener = new ActionListener() {
+			private double qt = -1;
+			private double rr = -1;
+			
+			private Annotation findDuration() {
+				Annotation found = null;
+				for(Annotation a: plugin.getAnnotations().getMeasures()) {
+					if("duration".equals(a.name)) {
+						if(found == null)
+							found = a;
+						else {
+							//ambiguity: more than one lead has been marked
+							JOptionPane.showMessageDialog(plugin.getContent(), 
+									tr("wfMarkIntervalAmbiguityError"), 
+									"Dicomux", JOptionPane.ERROR_MESSAGE);
+							return null;
+						}
+					}					
+				}
+				
+				if(found == null) {
+					JOptionPane.showMessageDialog(plugin.getContent(), 
+							tr("wfMarkNoIntervalFoundError"), 
+							"Dicomux", JOptionPane.ERROR_MESSAGE);
+				}
+				
+				return found;
+			}
+			
+			public void actionPerformed(ActionEvent e) {
+				Annotation a = findDuration();
+				if(a == null)
+					return;
+				
+				if(e.getSource() == rrButton) {
+					this.rr = Double.valueOf(a.value);
+					int bpm = (int)(60000/rr);
+					plugin.getAnnotations().setManualAnnotation("*RR Interval", a.value, a.unit, true);
+					plugin.getAnnotations().setManualAnnotation("*RR Interval", String.valueOf(bpm), "bpm", true);
+				}
+				else if(e.getSource() == qtButton) {
+					this.qt = Double.valueOf(a.value);					
+					plugin.getAnnotations().setManualAnnotation("*QT Interval", a.value, a.unit, true);
+				}			
+				
+				if(qt > 0 && rr > 0) {
+					int qtc = (int)(1000 * (qt/1000)/Math.sqrt(rr/1000));
+					plugin.getAnnotations().setManualAnnotation("*QTc Interval", String.valueOf(qtc), a.unit, true);
+				}
+			}
+		};
+		
+		rrButton.addActionListener(actionListener);
+		qtButton.addActionListener(actionListener);
+	}
+	
 	
 	private void addZoomButtons() {
 		JButton zoomReset = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/zoom_reset.png")));
