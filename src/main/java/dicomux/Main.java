@@ -48,7 +48,7 @@ public class Main {
 		
 		// create model and view
 		IView view = new View();
-		IModel model = new Model(view);
+		IModel model = new Model(view, settings);
 		
 		// register the model on the view
 		view.registerModel(model);

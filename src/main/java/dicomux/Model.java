@@ -2,6 +2,8 @@ package dicomux;
 
 import java.util.Vector;
 
+import dicomux.settings.Settings;
+
 /**
  * Model for Dicomux
  * @author heidi
@@ -18,12 +20,15 @@ public class Model implements IModel {
 	 */
 	private IView m_view;
 	
+	private Settings m_settings;
+	
 	/**
 	 * creates a model
 	 */
-	public Model(IView view) {
+	public Model(IView view, Settings settings) {
 		m_view = view;
 		m_tabObjects = new Vector<TabObject>(5, 5);
+		m_settings = settings;
 		initialize();
 		m_view.registerModel(this);
 	}
@@ -31,7 +36,12 @@ public class Model implements IModel {
 
 	public void initialize() {
 		m_tabObjects.clear();
-		addWorkspace(new TabObject(TabState.WELCOME));
+		
+		if(m_settings.getBoolean("dicomux.showWelcomeScreen"))
+			addWorkspace(new TabObject(TabState.WELCOME));
+		else
+			addWorkspace(new TabObject(TabState.DICOM_QUERY));
+		
 		m_view.notifyView();
 	}
 	

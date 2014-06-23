@@ -41,4 +41,8 @@ public class Settings {
 	public double getDouble(String key) {
 		return Double.valueOf(get(key));
 	}
+	
+	public boolean getBoolean(String key) {
+		return Boolean.valueOf(get(key));
+	}
 }
