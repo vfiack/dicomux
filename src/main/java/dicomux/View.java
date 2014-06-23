@@ -193,7 +193,10 @@ public class View extends JFrame implements IView {
 		m_menuBar.removeAll();
 		addFileMenu();
 		addPluginMenu();
-		addLanguageMenu();
+		
+		if(m_controller.getSettings().getBoolean("dicomux.showLanguageMenu"))
+			addLanguageMenu();
+		
 		addHelpMenu();
 	}
 	
@@ -225,14 +228,16 @@ public class View extends JFrame implements IView {
 		menu.add(tmp);
 		menu.addSeparator();
 		
-		tmp = new JMenuItem(tr("key_settings"));
-		tmp.addActionListener(new ActionListener() {		
-			public void actionPerformed(ActionEvent e) {
-				m_controller.openSettings();
-			}
-		});
-		menu.add(tmp);
-		menu.addSeparator();
+		if(m_controller.getSettings().getBoolean("dicomux.showFileSettingsMenu")) {
+			tmp = new JMenuItem(tr("key_settings"));
+			tmp.addActionListener(new ActionListener() {		
+				public void actionPerformed(ActionEvent e) {
+					m_controller.openSettings();
+				}
+			});
+			menu.add(tmp);
+			menu.addSeparator();
+		}
 		
 		tmp = new JMenuItem(tr("key_closeTab"));
 		tmp.addActionListener(new ActionListener() {		
