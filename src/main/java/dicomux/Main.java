@@ -38,12 +38,13 @@ public class Main {
 		try {
 			settings = new Settings();
 			settings.set("intrahus.appkey", cmdline.getOptionValue("appkey"), false);
+			settings.set("pacs.patientId", cmdline.getOptionValue("patientId"), false);			
 		} catch (IOException e) {
 			System.err.println("Config instantiation failed!");
 			e.printStackTrace();
 			System.exit(1);
 		}
-		
+				
 		Translation.setLocale(settings.get("dicomux.lang"));
 		
 		// create model and view
@@ -59,8 +60,7 @@ public class Main {
 			ctrl = new Controller(settings, model, view);
 			view.registerController(ctrl);
 						
-			if(cmdline.getOptionValue("patientId") != null) {
-				settings.set("pacs.patientId", cmdline.getOptionValue("patientId"), false);
+			if(settings.get("pacs.patientId") != null && !settings.get("pacs.patientId").isEmpty()) {
 				ctrl.openDicomQueryDialog();
 			}
 
