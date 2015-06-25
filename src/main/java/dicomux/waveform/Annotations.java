@@ -203,6 +203,10 @@ public class Annotations extends JPanel {
 	public List<Annotation> getAnnotations() {
 		return annotations;
 	}
+
+	public List<Annotation> getAnnotationsFiltered() {
+		return annotationsFiltered;
+	}
 	
 	public List<Annotation> getMeasures() {
 		return measures;
