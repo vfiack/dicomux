@@ -1,6 +1,8 @@
 package dicomux;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -19,6 +21,7 @@ import dicomux.settings.Settings;
 public class Main {
 	public static void main(String[] args) {
 		Options options = new Options();
+		options.addOption("settings", true, "Settings file");
 		options.addOption("appkey", true, "AppKey intrahus");
 		options.addOption("patientId", true, "Patient ID for pacs auto search");
 		CommandLineParser parser = new BasicParser();
@@ -36,7 +39,12 @@ public class Main {
 		
 		Settings settings = null;
 		try {
-			settings = new Settings();
+			InputStream is = Main.class.getClassLoader().getResourceAsStream("settings.properties");
+			if(cmdline.hasOption("settings")) {
+				 is = new FileInputStream(cmdline.getOptionValue("settings"));
+			}			
+			settings = new Settings(is);
+
 			settings.set("intrahus.appkey", cmdline.getOptionValue("appkey"), false);
 			settings.set("pacs.patientId", cmdline.getOptionValue("patientId"), false);			
 		} catch (IOException e) {
