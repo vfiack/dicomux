@@ -3,6 +3,7 @@ package dicomux.waveform;
 import static dicomux.Translation.tr;
 
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -11,6 +12,7 @@ import java.awt.print.PageFormat;
 import java.awt.print.Paper;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
+import java.io.File;
 
 import javax.print.attribute.HashPrintRequestAttributeSet;
 import javax.print.attribute.PrintRequestAttributeSet;
@@ -26,6 +28,15 @@ import javax.swing.JOptionPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.plaf.basic.BasicComboBoxRenderer;
+
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.edit.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.graphics.xobject.PDPixelMap;
+import org.dcm4che2.data.Tag;
 
 import dicomux.Translation;
 import dicomux.waveform.WaveformLayout.Format;
@@ -44,13 +55,17 @@ class ToolBar extends JToolBar {
 		setFloatable(false);
 
 		addPrintButton();	
-		addExportButtons();
+		addPdfButton();
+		addExportButton();
 		addSeparator();
+		
 		addToolSelection();
 		addRemoveMarkersButton();
 		addSeparator();
+		
 		addIntervalButtons();
 		addSeparator();
+		
 		addZoomButtons();
 		add(Box.createHorizontalGlue());
 		addPrecisionComponents();
@@ -215,7 +230,7 @@ class ToolBar extends JToolBar {
 
 	}
 	
-	private void addExportButtons() {
+	private void addExportButton() {
 		JButton copyButton = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/clipboard_sign.png")));
 		copyButton.setToolTipText(tr("wfCopyToClipboard"));
 		this.add(copyButton);
@@ -225,6 +240,118 @@ class ToolBar extends JToolBar {
 				BufferedImage img = plugin.createImage();
 				ImageTransferable transferable = new ImageTransferable( img );
 		        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(transferable, null);				
+			}
+		});
+	}
+	
+	private void addPdfButton() {
+		JButton pdfButton = new JButton(new ImageIcon(this.getClass().getClassLoader().getResource("images/pdf.png")));
+		pdfButton.setToolTipText(tr("wfPdfExport"));
+		this.add(pdfButton);
+		
+		pdfButton.addActionListener(new ActionListener() {			
+			public void actionPerformed(ActionEvent e) {				
+				
+				new Thread(new Runnable() {
+					public void run() {
+						int margin = 13;
+						int headerHeight = 3*margin;
+						int annotationsWidth = 180;
+						
+						try {
+							PDDocument document = new PDDocument();
+							PDRectangle landscape = new PDRectangle(PDPage.PAGE_SIZE_A4.getHeight(), PDPage.PAGE_SIZE_A4.getWidth());
+							PDPage page = new PDPage(landscape);
+							document.addPage(page);
+							
+							PDFont font = PDType1Font.HELVETICA;
+							PDFont boldFont = PDType1Font.HELVETICA_BOLD;
+
+							PDPageContentStream contentStream = new PDPageContentStream(document, page);						
+
+							contentStream.beginText();
+							contentStream.setFont(font, 10);
+							contentStream.moveTextPositionByAmount(margin, landscape.getHeight() - 2*margin);
+							contentStream.drawString(tr("print.patientName") 
+									+ plugin.getAnnotations().getAnnotation("patient name").value.replace("^", " ")
+									+ "        " + tr("print.patientSex")
+									+ plugin.getAnnotations().getAnnotation("patient sex").value
+									+ "        " + tr("print.birthDate")
+									+ plugin.getAnnotations().getAnnotation("birth date").value
+									+ "        " + tr("print.patientId")
+									+ plugin.getDicomObject().getString(Tag.PatientID));
+									
+							//study info
+							String studyDescription = plugin.getDicomObject().getString(Tag.StudyDescription);
+							if(studyDescription == null)
+								studyDescription = "";
+							if(studyDescription.length() > 80)
+								studyDescription = studyDescription.substring(0, 80) + "[...]";
+							
+							contentStream.moveTextPositionByAmount(0, -margin);						
+							contentStream.drawString(tr("print.studyDate")
+									+ plugin.getDicomObject().getString(Tag.StudyDate)
+									+ "        " + tr("print.studyTime")
+									+ plugin.getDicomObject().getString(Tag.StudyTime)
+									+ "        " + tr("print.description")
+									+ studyDescription);		
+							contentStream.endText();
+
+							//annotations
+							contentStream.beginText();
+							contentStream.setFont(boldFont, 8);
+							contentStream.moveTextPositionByAmount(landscape.getWidth()-annotationsWidth, landscape.getHeight() - headerHeight - 2*margin);
+							contentStream.drawString(tr("annotation.name"));
+							contentStream.moveTextPositionByAmount(80, 0);
+							contentStream.drawString(tr("annotation.value"));
+							
+							contentStream.setFont(font, 8);
+							for(Annotation a: plugin.getAnnotations().getAnnotationsFiltered()) {
+								contentStream.moveTextPositionByAmount(-80, -margin);
+								contentStream.drawString(a.name);
+								contentStream.moveTextPositionByAmount(80, 0);
+								contentStream.drawString(a.value + " " + a.unit);
+							}
+
+							contentStream.moveTextPositionByAmount(-80, -margin);
+							contentStream.drawString(tr("wfPrecision").replace(":", "").trim());
+							contentStream.moveTextPositionByAmount(80, 0);
+							contentStream.drawString(((int)plugin.getSpeed()) + "mm/s, " 
+									+ plugin.getAmplitude() + " mm/mV");							
+							contentStream.endText();
+							
+							//resize image to fit page
+							BufferedImage img = plugin.createImage();
+							double imgRatio = img.getWidth()/(double)img.getHeight();
+
+							PDRectangle mediabox = page.getMediaBox();
+							int width = (int)mediabox.getWidth() - 2*margin - annotationsWidth;
+							int height = (int)mediabox.getHeight() - 2*margin - headerHeight;							
+							if(imgRatio * height > width) {
+								height = (int)(width / imgRatio);
+							} else {
+								width = (int)(imgRatio * height);
+							}
+															
+							int bottom = (int)mediabox.getHeight() - headerHeight - margin - height;
+												
+							PDPixelMap pixelMap = new PDPixelMap(document, img);
+							contentStream.drawXObject(pixelMap, margin, bottom, width, height);
+							contentStream.close();
+
+							File tempFile = File.createTempFile("dicomux-", ".pdf");
+							document.save(tempFile);
+							document.close();
+							
+							Desktop.getDesktop().open(tempFile);	
+						} catch(Exception ex) {
+							JOptionPane.showMessageDialog(plugin.getContent(), 
+									"Error while exporting:\n" + ex.toString(), 
+									"Dicomux", JOptionPane.ERROR_MESSAGE);
+							ex.printStackTrace();					
+						}					
+					}
+				}).start();
 			}
 		});
 	}
