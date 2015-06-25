@@ -6,6 +6,8 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,7 +35,8 @@ public class Annotations extends JPanel {
 		"electrode placement", 
 		"rr interval", "pr interval",
 		"qrs duration", "qt interval", "qtc interval", 
-		"qrs axis", "pp interval", "p axis", "p duration");
+		"qrs axis", "pp interval", "p axis", "p duration",
+		"high-pass filter", "low-pass filter", "notch filter");
 	
 	private List<Annotation> annotations;
 	private List<Annotation> annotationsFiltered;	
@@ -53,6 +56,7 @@ public class Annotations extends JPanel {
 		
 		readPatientData(dcm);
 		readAcquisitionContext(dcm);
+		readFilters(dcm);
 		readWaveformAnnotations(dcm);		
 		filterAnnotations();
 		
@@ -126,6 +130,53 @@ public class Annotations extends JPanel {
 				continue;
 			}
 		}
+	}
+	
+	private void readFilters(DicomObject dcm) {
+		DicomElement waveformSequence = dcm.get(Tag.WaveformSequence);
+		if(waveformSequence == null || waveformSequence.countItems() < 1)
+				return;
+		
+		double filterLow = -1;
+		double filterHigh = -1;
+		double notch = -1;
+		boolean mixed = false;
+		
+		DicomObject waveform = waveformSequence.getDicomObject(0);
+		DicomElement sequence = waveform.get(Tag.ChannelDefinitionSequence);
+		for(int i=0;i<sequence.countItems();i++) {
+			DicomObject item = sequence.getDicomObject(i);
+			double flf = item.getDouble(Tag.FilterLowFrequency);
+			double fhf = item.getDouble(Tag.FilterHighFrequency);
+			double nff = item.getDouble(Tag.NotchFilterFrequency);
+			
+			//first affectation
+			if(filterLow < 0)
+				filterLow = flf;
+			if(filterHigh < 0)
+				filterHigh = fhf;
+			if(notch < 0)
+				notch = nff;
+			
+			//check for mixed filters in different channels. 
+			//This would be strange, but better safe than sorry 
+			if(filterLow != flf || filterHigh != fhf || notch != nff) {
+				mixed = true;
+				break;
+			}
+		}
+				
+		if(mixed) {
+			annotations.add(new Annotation("Low-Pass Filter", "mixed!"));
+			annotations.add(new Annotation("High-Pass Filter", "mixed!"));
+			annotations.add(new Annotation("Notch-Pass Filter", "mixed!"));
+		} else {
+			NumberFormat format = new DecimalFormat("#.## Hz");
+			annotations.add(new Annotation("Low-Pass Filter", format.format(filterLow)));
+			annotations.add(new Annotation("High-Pass Filter", format.format(filterHigh)));
+			annotations.add(new Annotation("Notch Filter", format.format(notch)));
+		}
+
 	}
 	
 	private void readWaveformAnnotations(DicomObject dcm) {
