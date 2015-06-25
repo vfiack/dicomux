@@ -21,6 +21,8 @@ import java.util.List;
 
 import javax.swing.JPanel;
 
+import dicomux.waveform.filters.Filter;
+import dicomux.waveform.filters.NoopFilter;
 import dicomux.waveform.tools.MarkersToolListener;
 import dicomux.waveform.tools.MeasureToolListener;
 
@@ -42,6 +44,7 @@ public class DrawingPanel extends JPanel {
 	private int sampleCount;
 	private double valueScaling;
 	private boolean isRhythm;
+	private Filter filter;
 	
 	//selected positions for measures
 	private int highlightedSample;
@@ -55,11 +58,14 @@ public class DrawingPanel extends JPanel {
 		this.definition = definition;					
 		this.sampleCount = data.length;
 		this.valueScaling = this.definition.getScaling();
-		
+	
 		this.highlightedSample = -1;
 		this.markers = new ArrayList<SampleMarker>();		
 		this.isRhythm = false;
 		
+		this.filter = new NoopFilter();
+		filter.init(values);
+	
 		setBackground(Color.WHITE);
 		
 		this.measureToolListener = new MeasureToolListener(plugin, this, definition.getName());
@@ -70,6 +76,12 @@ public class DrawingPanel extends JPanel {
 
 		this.addMouseListener(measureToolListener);
 		this.addMouseMotionListener(measureToolListener);		
+	}
+	
+	public void setFilter(Filter filter) {
+		this.filter = filter;
+		filter.init(this.data);
+		repaint();		
 	}
 	
 	public void setTimeLength(double length) {
@@ -337,9 +349,9 @@ public class DrawingPanel extends JPanel {
 			// dim.height / 2 is our base line
 			Line2D line = new Line2D.Double(
 					this.scalingWidth * a, 
-					(height /2 - this.valueScaling * ( (float)(this.data[a] / (float) 1000) * mvHeight) ), 
+					(height /2 - this.valueScaling * ( (float)(filter.get(a) / (float) 1000) * mvHeight) ), 
 					this.scalingWidth * b, 
-					(height /2 - this.valueScaling * ( (float)(this.data[b] / (float) 1000) * mvHeight ) ));
+					(height /2 - this.valueScaling * ( (float)(filter.get(b) / (float) 1000) * mvHeight ) ));
 			g2.draw(line);
 		 }	
 	}
@@ -402,7 +414,7 @@ public class DrawingPanel extends JPanel {
 		
 		Dimension dim = getPreferredSize();
 		double mvHeight = dim.height / plugin.getChannelHeightInMillivolt();
-		double y = (dim.height /2 - this.valueScaling * ( (float)(this.data[sample] / (float) 1000) * mvHeight)); 
+		double y = (dim.height /2 - this.valueScaling * ( (float)(filter.get(sample) / (float) 1000) * mvHeight)); 
 		Line2D line = new Line2D.Double(0, y, dim.width, y);
 		
 		g2.setColor(color);

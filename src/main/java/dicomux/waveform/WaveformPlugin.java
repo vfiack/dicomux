@@ -39,6 +39,11 @@ import org.dcm4che2.data.Tag;
 import dicomux.APlugin;
 import dicomux.DicomException;
 import dicomux.waveform.WaveformLayout.Format;
+import dicomux.waveform.filters.CombinedFilter;
+import dicomux.waveform.filters.HighPassFilter;
+import dicomux.waveform.filters.LowPassFilter;
+import dicomux.waveform.filters.MovingAverageFilter;
+import dicomux.waveform.filters.NoopFilter;
 
 /**
  * This plug-in is for displaying waveform ecg data in a graphical way.
@@ -417,6 +422,28 @@ public class WaveformPlugin extends APlugin implements Printable {
 	}
 
 	//--
+	
+	public void setFilter(String name) {		 
+		for(Component c: channelpane.getComponents()) {
+			if("Noop".equals(name)) {
+				((DrawingPanel)c).setFilter(new NoopFilter());
+			} else if("HighPass".equals(name)) {
+				((DrawingPanel)c).setFilter(new HighPassFilter(samplesPerSecond, 0.05));
+			} else if("LowPass".equals(name)) {
+				((DrawingPanel)c).setFilter(new LowPassFilter(samplesPerSecond, 40));
+			} else if("Combined".equals(name)) {
+				((DrawingPanel)c).setFilter(new CombinedFilter(
+						new HighPassFilter(samplesPerSecond, 0.05),
+						new LowPassFilter(samplesPerSecond, 40)));
+			} else if("Smooth".equals(name)) {
+				((DrawingPanel)c).setFilter(new MovingAverageFilter(samplesPerSecond/100));
+			} else if("Smoother".equals(name)) {
+				((DrawingPanel)c).setFilter(new MovingAverageFilter(samplesPerSecond/40));
+			}
+		}
+		
+		this.channelpane.revalidate();
+	}
 	
 	public void setSpeed(float mmPerSecond) {
 		this.waveformLayout.setSpeed(mmPerSecond);

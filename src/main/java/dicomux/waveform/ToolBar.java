@@ -55,6 +55,11 @@ class ToolBar extends JToolBar {
 		add(Box.createHorizontalGlue());
 		addPrecisionComponents();
 		
+		if(plugin.getSettings().getBoolean("dicomux.waveform.showFilterList")) {
+			addSeparator();
+			addFilterComponents();
+		}
+		
 		if(plugin.getNumberOfChannels() == 12) {
 			add(Box.createHorizontalGlue());
 			addDisplayFormatComponent();
@@ -331,6 +336,29 @@ class ToolBar extends JToolBar {
 		amplitude.setSelectedItem(WaveformLayout.DEFAULT_AMPLITUDE);
 		amplitude.setFocusable(false);
 		this.add(amplitude);
+	}
+	
+	private void addFilterComponents() {	
+		JLabel filterLabel = new JLabel(tr("wfFilter"));
+		this.add(filterLabel);
+
+		JComboBox filter = new JComboBox(new String[] {"Noop", "HighPass", "LowPass", "Combined", "Smooth", "Smoother"});
+		filter.setRenderer(new BasicComboBoxRenderer() {
+			public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+				Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+				((BasicComboBoxRenderer)c).setText(Translation.tr("wfFilter" + value));
+				return c;
+			}
+		});
+		filter.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				JComboBox cb = (JComboBox) e.getSource();
+				plugin.setFilter((String)cb.getSelectedItem());
+			}
+		});
+		filter.setSelectedIndex(0);
+		filter.setFocusable(false);
+		this.add(filter);
 	}
 
 	private void addDisplayFormatComponent() {
